@@ -1,19 +1,66 @@
 <template>
-    <div class="Browse">
-        
+    <div class="Browse" @onscroll="this.scroll">
+        <FlowersTable :Flowers="flowers" :useUrl="true" :noFlowerMessage="'There are no Flowers'"/>
     </div>
 </template>
 
 <script>
-    export default {
+    import FlowersTable from '../components/FlowersTable.vue';
+    import { mapActions, mapGetters } from 'vuex'
+    export default{
         name:'Browse',
-        props:{
-            
+        components:{
+            FlowersTable,
+        },
+        created(){
+            this.$store.state.query.offset = 0;
+            this.updateFlowers({limit:this.$store.state.query.limit, offset:this.$store.state.query.offset});
+            this.increaseOffset();
+        },
+        computed:{
+            flowers: {
+                get(){
+                    return this.$store.getters.getFlowers();
+                },
+                set(){
+                    
+                },
+            },
+        },
+        methods:{
+            ...mapGetters([
+              'getFlowers',
+            ]),
+            ...mapActions([
+              'updateFlowers',
+              'updateAndConcatFlowers',
+            ]),
+            getFlowers: function(limit, offset){
+                this.updateAndConcatFlowers({limit:limit, offset:offset});
+                this.flowers = this.$store.state.flowers;
+                this.increaseOffset();
+            },
+            scroll: function(){
+                window.onscroll = function(){
+                    var bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
+                    if(bottomOfWindow){
+                        this.getFlowers(this.$store.state.query.limit, this.$store.state.query.offset);
+                    }
+                }.bind(this);
+            },
+            increaseOffset: function(){
+                this.$store.state.query.offset = this.$store.state.query.offset + this.$store.state.query.limit;
+            },
+        },
+        mounted: function(){
+            this.scroll();
         },
     }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-
+    .Browse{
+        margin: 0px 10px 10px 10px;
+        background-color: black;
+    }
 </style>

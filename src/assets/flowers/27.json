@@ -1,0 +1,1436 @@
+{
+	"Flower" : {
+		"dna" : {
+			"genomes" : [
+				{
+					"ConnectionChromosomes" : [
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "0"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : -0.19652416806584952
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443931"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "1"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : -0.074235684944657848
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443942"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "2"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : 0.16204387569162165
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443929"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "3"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : -0.15245961079013481
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443932"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "4"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : -0.17383597793179217
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443935"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "5"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : -0.11615107068848043
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443930"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "6"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : -0.27390091547978695
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443933"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "7"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : 0.098571416879405988
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443920"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "8"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : 0.2054806616642178
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443923"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "9"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : -0.12118080724226783
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443934"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "10"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : 0.18202814648551563
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443921"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "11"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : -0.069535678711449528
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443924"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "12"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : -0.0061376861451951648
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443927"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "13"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : 0.25658751357366488
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443922"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "0"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : 0.037108751214435909
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443992"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "1"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : -0.13272926371364829
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676444005"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "2"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : -0.079120082361595651
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443994"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "3"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : -0.041717151391735999
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443999"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "4"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : 0.16709748222438425
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443996"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "5"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : 0.2597200158084903
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443993"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "6"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : -0.023209651042849961
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443998"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "7"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : -0.063334146227306959
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443987"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "8"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : -0.24727309753003723
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443984"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "9"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : -0.083282156720868694
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443997"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "10"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : -0.028709421183174544
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443986"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "11"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : -0.32091912500393638
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443991"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "12"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : -0.63506382896277225
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443988"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "13"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : -0.17399887825276578
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443985"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "0"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : 0.0061353387075474917
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443801"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "1"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : 0.0068335570291278751
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443812"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "2"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : 0.01652777662506022
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443803"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "3"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : 0.27031994729206466
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443806"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "4"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : 0.14765383042045516
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443805"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "5"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : 0.010662590842890413
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443800"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "6"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : 0.29587987781205216
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443807"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "7"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : 0.14792433185867204
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443794"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "8"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : -0.042339661174600342
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443793"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "9"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : -0.30113201665789535
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443804"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "10"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : -0.16117730015009379
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443795"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "11"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : -0.25012986284959793
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443798"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "12"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : -0.14994862364828299
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443797"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "13"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : 0.1854999023484441
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443792"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "0"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "3"
+								},
+								"weight" : -0.072982030481592269
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443871"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "1"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "3"
+								},
+								"weight" : 0.226587440500222
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443868"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "2"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "3"
+								},
+								"weight" : -0.1486046135732253
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443869"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "3"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "3"
+								},
+								"weight" : -0.30344256250608964
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443866"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "4"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "3"
+								},
+								"weight" : 0.1261453940076338
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443867"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "5"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "3"
+								},
+								"weight" : -0.011494643238838493
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443864"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "6"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "3"
+								},
+								"weight" : 0.20941848481865133
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443865"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "7"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "3"
+								},
+								"weight" : -0.2965584501001578
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443862"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "8"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "3"
+								},
+								"weight" : 0.24511499135620057
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443863"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "9"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "3"
+								},
+								"weight" : -0.22501485676491462
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443860"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "10"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "3"
+								},
+								"weight" : 0.039841199514094663
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443861"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "11"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "3"
+								},
+								"weight" : 0.32024304387000729
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443858"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "12"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "3"
+								},
+								"weight" : -0.17860625532254995
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443859"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "13"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "3"
+								},
+								"weight" : -0.11701266003281104
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443856"
+						}
+					],
+					"GenomeID" : "0",
+					"SpeciesID" : "0",
+					"cppn" : false,
+					"fitness" : 0,
+					"nodeChromosomes" : [
+						{
+							"actType" : "sigmoid",
+							"biasWeight" : 1,
+							"innovationID" : "2654435769",
+							"layerID" : "0",
+							"neuronID" : "0",
+							"nrnType" : "input"
+						},
+						{
+							"actType" : "sigmoid",
+							"biasWeight" : 1,
+							"innovationID" : "2654435770",
+							"layerID" : "0",
+							"neuronID" : "1",
+							"nrnType" : "input"
+						},
+						{
+							"actType" : "sigmoid",
+							"biasWeight" : 1,
+							"innovationID" : "2654435771",
+							"layerID" : "0",
+							"neuronID" : "2",
+							"nrnType" : "input"
+						},
+						{
+							"actType" : "sigmoid",
+							"biasWeight" : 1,
+							"innovationID" : "2654435772",
+							"layerID" : "0",
+							"neuronID" : "3",
+							"nrnType" : "input"
+						},
+						{
+							"actType" : "tanh",
+							"biasWeight" : 1,
+							"innovationID" : "2654435899",
+							"layerID" : "2",
+							"neuronID" : "0",
+							"nrnType" : "output"
+						},
+						{
+							"actType" : "square",
+							"biasWeight" : 1,
+							"innovationID" : "2654435896",
+							"layerID" : "2",
+							"neuronID" : "1",
+							"nrnType" : "output"
+						},
+						{
+							"actType" : "sigmoid",
+							"biasWeight" : 1,
+							"innovationID" : "2654435897",
+							"layerID" : "2",
+							"neuronID" : "2",
+							"nrnType" : "output"
+						},
+						{
+							"actType" : "cube",
+							"biasWeight" : 1,
+							"innovationID" : "2654435902",
+							"layerID" : "2",
+							"neuronID" : "3",
+							"nrnType" : "output"
+						},
+						{
+							"actType" : "sigmoid",
+							"biasWeight" : 1,
+							"innovationID" : "2654435903",
+							"layerID" : "2",
+							"neuronID" : "4",
+							"nrnType" : "output"
+						},
+						{
+							"actType" : "tanh",
+							"biasWeight" : 1,
+							"innovationID" : "2654435900",
+							"layerID" : "2",
+							"neuronID" : "5",
+							"nrnType" : "output"
+						},
+						{
+							"actType" : "relu",
+							"biasWeight" : 1,
+							"innovationID" : "2654435901",
+							"layerID" : "2",
+							"neuronID" : "6",
+							"nrnType" : "output"
+						},
+						{
+							"actType" : "tanh",
+							"biasWeight" : 1,
+							"innovationID" : "2654435906",
+							"layerID" : "2",
+							"neuronID" : "7",
+							"nrnType" : "output"
+						},
+						{
+							"actType" : "gaussian",
+							"biasWeight" : 1,
+							"innovationID" : "2654435907",
+							"layerID" : "2",
+							"neuronID" : "8",
+							"nrnType" : "output"
+						},
+						{
+							"actType" : "square",
+							"biasWeight" : 1,
+							"innovationID" : "2654435904",
+							"layerID" : "2",
+							"neuronID" : "9",
+							"nrnType" : "output"
+						},
+						{
+							"actType" : "leakyRelu",
+							"biasWeight" : 1,
+							"innovationID" : "2654435905",
+							"layerID" : "2",
+							"neuronID" : "10",
+							"nrnType" : "output"
+						},
+						{
+							"actType" : "steppedSigmoid",
+							"biasWeight" : 1,
+							"innovationID" : "2654435910",
+							"layerID" : "2",
+							"neuronID" : "11",
+							"nrnType" : "output"
+						},
+						{
+							"actType" : "cube",
+							"biasWeight" : 1,
+							"innovationID" : "2654435911",
+							"layerID" : "2",
+							"neuronID" : "12",
+							"nrnType" : "output"
+						},
+						{
+							"actType" : "noisyRelu",
+							"biasWeight" : 1,
+							"innovationID" : "2654435908",
+							"layerID" : "2",
+							"neuronID" : "13",
+							"nrnType" : "output"
+						}
+					],
+					"rnnAllowed" : false
+				},
+				{
+					"ConnectionChromosomes" : [
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "0"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : 0.2495845718359968
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443931"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "1"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : 0.46082832598147938
+							},
+							"enabled" : false,
+							"frozen" : false,
+							"innovationID" : "173676443942"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "2"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : 0.37018320056332599
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443929"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "3"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : 0.12306218679880565
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443932"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "0"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : 0.16824574055225783
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443992"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "1"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : 0.23736172695419133
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676444005"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "2"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : -0.43281240742017207
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443994"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "3"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : 0.38811059699942452
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443999"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "0"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : 0.058127075060620093
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443801"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "1"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : 0.21208432710184832
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443812"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "2"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : 0.45667881962275081
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443803"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "3"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : -0.37073344501248162
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443806"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "0"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "3"
+								},
+								"weight" : 0.48321169779266449
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443871"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "1"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "3"
+								},
+								"weight" : -0.4136545776208268
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443868"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "2"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "3"
+								},
+								"weight" : -0.23587046234843939
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443869"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "3"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "3"
+								},
+								"weight" : -0.41383037521997257
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443866"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "1",
+									"neuron" : "0"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "0"
+								},
+								"weight" : 1
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676444134"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "1"
+								},
+								"src" : {
+									"layer" : "1",
+									"neuron" : "0"
+								},
+								"weight" : 0.46082832598147938
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676439959"
+						}
+					],
+					"GenomeID" : "1",
+					"SpeciesID" : "0",
+					"cppn" : false,
+					"fitness" : 0,
+					"nodeChromosomes" : [
+						{
+							"actType" : "sigmoid",
+							"biasWeight" : 1,
+							"innovationID" : "2654435769",
+							"layerID" : "0",
+							"neuronID" : "0",
+							"nrnType" : "input"
+						},
+						{
+							"actType" : "sigmoid",
+							"biasWeight" : 1,
+							"innovationID" : "2654435770",
+							"layerID" : "0",
+							"neuronID" : "1",
+							"nrnType" : "input"
+						},
+						{
+							"actType" : "sigmoid",
+							"biasWeight" : 1,
+							"innovationID" : "2654435771",
+							"layerID" : "0",
+							"neuronID" : "2",
+							"nrnType" : "input"
+						},
+						{
+							"actType" : "sigmoid",
+							"biasWeight" : 1,
+							"innovationID" : "2654435772",
+							"layerID" : "0",
+							"neuronID" : "3",
+							"nrnType" : "input"
+						},
+						{
+							"actType" : "cosine",
+							"biasWeight" : 1,
+							"innovationID" : "2654435899",
+							"layerID" : "2",
+							"neuronID" : "0",
+							"nrnType" : "output"
+						},
+						{
+							"actType" : "gaussian",
+							"biasWeight" : 1,
+							"innovationID" : "2654435896",
+							"layerID" : "2",
+							"neuronID" : "1",
+							"nrnType" : "output"
+						},
+						{
+							"actType" : "cosine",
+							"biasWeight" : 1,
+							"innovationID" : "2654435897",
+							"layerID" : "2",
+							"neuronID" : "2",
+							"nrnType" : "output"
+						},
+						{
+							"actType" : "identity",
+							"biasWeight" : 1,
+							"innovationID" : "2654435902",
+							"layerID" : "2",
+							"neuronID" : "3",
+							"nrnType" : "output"
+						},
+						{
+							"actType" : "sigmoid",
+							"biasWeight" : 1,
+							"innovationID" : "2654435832",
+							"layerID" : "1",
+							"neuronID" : "0",
+							"nrnType" : "hidden"
+						}
+					],
+					"rnnAllowed" : false
+				}
+			]
+		},
+		"petals" : {
+			"P" : 6,
+			"bias" : 1,
+			"numLayers" : 3,
+			"radius" : 64
+		}
+	}
+}

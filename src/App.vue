@@ -1,45 +1,26 @@
 <template>
     <div id="app">
         <Header />
-        <router-view class="view"></router-view>
+        <router-view :key="$route.fullPath" class="view"></router-view>
+        <Footer />
     </div>
 </template>
-<!-- 
-TODO
-    routes
-        LastAdded -> last 25|50|100?
-        Browse -> lazy loading
-        Favourites -> limited to ?
-        Download -> download native app
-        Demo -> when backend is off show this [github]
-    actions
-        makeFlower
-        reproduce
- -->
+
 <script>
-import Header from './components/Header.vue';
-
-
-export default{
-    name: 'App',
-    components:{
-        Header,
-    },
-    data(){
-        return{
-            DOWNLOAD_URL:"http://localhost:5000/download/",
-        }
+    import Header from './components/Header.vue';
+    import Footer from './components/Footer.vue';
+    export default{
+        name: 'App',
+        components:{
+            Header,
+            Footer,
+        },
     }
-}
 </script>
 
 <style>
-    #app {
-        font-family: Avenir, Helvetica, Arial, sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        text-align: left;
-        color: #2c3e50;
-        margin-top: 60px;
+    html{
+        background-color: green !important;
+        scrollbar-color: rgb(28, 30, 31) rgb(47, 50, 52);
     }
 </style>

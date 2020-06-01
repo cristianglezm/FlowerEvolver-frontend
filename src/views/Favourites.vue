@@ -1,7 +1,7 @@
 <template>
     <div class="grid" v-if="favourites && favourites.length">
         <div v-for="flower in favourites" :key="flower.id">
-            <Flower :id="flower.id" :genome="flower.genome" :image="flower.image" />
+            <Flower :id="flower.id" :genome="flower.genome" :image="flower.image" :useUrl="true"/>
         </div>
     </div>
     <div v-else>
@@ -21,16 +21,18 @@
                 favourites: this.$store.state.favourites,
             }
         },
-        computed: {
-            //favourites: this.$store.state.favourites,
+        methods: {
+            
         },
     }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
     .grid{
         display: grid;
-        grid-template-columns: auto auto auto auto auto;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        grid-gap: 10px;
+        background-color: black;
+        margin: 0px 10px 10px 10px;
     }
 </style>

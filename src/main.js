@@ -7,14 +7,7 @@ import VueRouter from 'vue-router';
 Vue.use(VueRouter);
 
 Vue.config.productionTip = false;
-
-var settings = {
-    DOWNLOAD_URL: "",
-    API_URL: "",
-    IMAGES_URL: "",
-}
 new Vue({
-    settings,
     router,
     store,
     render: h => h(App),
