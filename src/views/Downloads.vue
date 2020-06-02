@@ -7,7 +7,7 @@
             </div>
             <div id="linux">
                 Linux
-                <button><a>Coming soon!</a></button>
+                <button><a href="/FlowerEvolver-linux.tar">download</a></button>
             </div>
         </div>
         <img id="image" src="/FlowerEvolverNative.png"/>

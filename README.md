@@ -16,5 +16,6 @@ VUE_APP_DOWNLOAD_URL=http://localhost:5000/download/
 then run 
 
 ```
+npm install
 npm run build
 ```
