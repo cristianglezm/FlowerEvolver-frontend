@@ -7,7 +7,8 @@
             </div>
             <div id="linux">
                 Linux
-                <button><a href="/FlowerEvolver-linux.tar">download</a></button>
+                <button><a href="/FlowerEvolver-x32-linux.tar">download x32</a></button>
+                <button><a href="/FlowerEvolver-x64-linux.tar">download x64</a></button>
             </div>
         </div>
         <img id="image" src="/FlowerEvolverNative.png"/>
@@ -47,7 +48,6 @@
         margin: 10px 0px 0px 0px;
         color: lightgreen;
         border-radius: 12px 12px 12px 12px;
-        border: solid solid solid solid;
         border-color: lightgreen;
         background-color: green;
     }

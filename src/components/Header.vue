@@ -1,5 +1,6 @@
 <template>
     <div class="Header">
+        <div v-if="showWarning" id="warning"><span @click="showWarning = false">X</span><p>Flowers are deleted daily at 00:00 UTC</p></div>
         <header>
             <h1>Flower Evolver</h1>
         </header>
@@ -12,15 +13,15 @@
                 <router-link to="/Downloads"> Downloads </router-link>
             </ul>
         <div class="actions">
-            <ul v-if="this.$route.path === '/Demo'">
+            <ul v-if="this.$route.path === '/Demo' || blocked">
                 <button class="disabled">New Flower</button>
                 <button class="disabled">Reproduce Selected</button>
                 <button class="disabled">Show Selected Descendants</button>
             </ul>
             <ul v-else>
-                <button @click="this.makeFlower">New Flower</button>
-                <button @click="this.reproduce">Reproduce Selected</button>
-                <button @click="this.showAncestors">Show Selected Descendants</button>
+                <button @click="block(makeFlower)">New Flower</button>
+                <button @click="block(reproduce)">Reproduce Selected</button>
+                <button @click="block(showAncestors)">Show Selected Descendants</button>
             </ul>
         </div>
         </div>
@@ -35,8 +36,11 @@
         components:{
             Modal,
         },
-        props:{
-            
+        data(){
+            return {
+                blocked: false,
+                showWarning: true,
+            }
         },
         methods:{
             ...mapGetters([
@@ -46,6 +50,13 @@
                 'makeFlower',
                 'reproduce',
             ]),
+            block: function(Fn){
+                this.blocked = true;
+                Fn();
+                setTimeout(function(){
+                    this.blocked = false;
+                }.bind(this), 5000);
+            },
             showAncestors: function(){
                 var selected = this.$store.getters.getSelected;
                 if(selected.length < 2){
@@ -122,5 +133,22 @@
     .disabled{
       opacity: 0.6;
       cursor: not-allowed !important;
+    }
+    #warning span{
+        position: relative;
+        font-size: 20px;
+        cursor: pointer;
+        float: right;
+    }
+    #warning{
+        font-size: 20px;
+        color: lightgreen;
+        position: absolute;
+        width: 100%;
+        text-align: center;
+        border-radius: 4px;
+        border: solid;
+        border-color: lightgreen;
+        background-color: green;
     }
 </style>

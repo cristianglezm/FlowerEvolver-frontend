@@ -1,4 +1,3 @@
 ## TODO ##
     * Downloads 
-        * add linux
-    * expand README
+        check that they work
