@@ -1,7 +1,9 @@
 # Flower Evolver #
 
+Visit the website [here](https://cristianglezm.github.io/FlowerEvolver-frontend/)
+
 Frontend for Flower Evolver (a tool of [EcoSystem](https://github.com/cristianglezm/EcoSystem)),
-the Back-End is found [here](https://github.com/cristianglezm/FlowerEvolver-backend)
+the Backend is found [here](https://github.com/cristianglezm/FlowerEvolver-backend)
 
 # Building #
 

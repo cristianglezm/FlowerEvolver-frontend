@@ -1,6 +1,5 @@
 import VueRouter from 'vue-router';
 
-
 import Demo from '../views/Demo.vue';
 import LastAdded from '../views/LastAdded.vue';
 import Mutations from '../views/Mutations.vue';

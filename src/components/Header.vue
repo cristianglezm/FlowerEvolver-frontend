@@ -2,7 +2,7 @@
     <div class="Header">
         <div v-if="showWarning" id="warning"><span @click="showWarning = false">X</span><p>Flowers are deleted daily at 00:00 UTC</p></div>
         <header>
-            <h1>Flower Evolver</h1>
+            <a href="/" style="text-decoration: none;"><h1>Flower Evolver</h1></a>
         </header>
         <div class="tabs">
             <ul>
