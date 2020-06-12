@@ -21,7 +21,7 @@ if [ "$cont" == "y" ]
 	echo "Building..."
 	npm run build
 	git stash
-	git checkout gh-pages
+	git checkout --orphan gh-pages
 	git stash pop
 	git add dist/
 	git commit
