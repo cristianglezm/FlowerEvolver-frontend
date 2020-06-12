@@ -12,7 +12,7 @@ export default new VueRouter({
     mode: 'history',
     base: process.env.BASE_URL,
     routes: [
-        { path: '/', redirect: 'Demo'},
+        { path: '/', redirect: 'LastAdded'},
         { path: '/Demo', name: 'Demo', component: Demo },
         { path: '/LastAdded', name: 'LastAdded', component: LastAdded },
         { path: '/Browse', name: 'Browse', component: Browse },
