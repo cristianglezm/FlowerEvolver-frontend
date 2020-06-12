@@ -20,7 +20,7 @@ echo "This is the configuration: "
 cat .env
 echo "want to continue?(y/n)"
 read cont
-if [ "$cont" -eq "y" ]
+if [ "$cont" == "y" ]
 	then
 	echo "Building..."
 	npm run build
