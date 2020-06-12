@@ -19,11 +19,10 @@
           run: npm ci
 
         - name: Run deploy script
-        - shell: sh
-	  env:
-	    BACKEND: ${{ secrets.BACKEND }}
-	    BASE_URL: ${{ secrets.BASE_URL }}
+          shell: sh
+          env:
+              BACKEND: ${{ secrets.BACKEND }}
+              BASE_URL: ${{ secrets.BASE_URL }}
           run: |
-            git config user.name "Cristian Gonzalez" && git config user.email 
-"cristian.glez.m@gmail.com"
+            git config user.name "Cristian Gonzalez" && git config user.email "cristian.glez.m@gmail.com"
             sh deployToGithub.sh $BACKEND $BASE_URL
