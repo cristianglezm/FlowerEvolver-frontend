@@ -19,7 +19,7 @@ echo "restoring backup"
 rm .env
 mv .env_bak .env
 git --work-tree dist add --all
-git --work-tre dist commit -m "gh-pages"
+git --work-tree dist commit -m "gh-pages"
 echo "pushing to gh-pages..."
 git push origin HEAD:gh-pages --force
 rm -R dist
