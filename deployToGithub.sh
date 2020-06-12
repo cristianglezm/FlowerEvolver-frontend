@@ -1,8 +1,4 @@
 #!/bin/bash
-
-echo "checkout to gh-pages"
-git stash
-git checkout gh-pages
 echo "write the backend: (https://example.com)"
 read BACKEND
 echo "write the BASE_URL: ('/')"
@@ -33,6 +29,3 @@ fi
 # restore backup
 rm .env
 mv .env_bak .env
-echo "checkout master"
-git checkout master
-git stash pop
