@@ -20,9 +20,13 @@ if [ "$cont" == "y" ]
 	then
 	echo "Building..."
 	npm run build
+	git stash
+	git checkout gh-pages
+	git stash pop
 	git add dist/
 	git commit
 	git subtree push --prefix dist origin gh-pages
+	git checkout master
 else
 	echo "Aborting..."
 fi
