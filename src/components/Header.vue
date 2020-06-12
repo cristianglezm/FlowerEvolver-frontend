@@ -2,7 +2,7 @@
     <div class="Header">
         <div v-if="showWarning" id="warning"><span @click="showWarning = false">X</span><p>Flowers are deleted daily at 00:00 UTC</p></div>
         <header>
-            <a href="/" style="text-decoration: none;"><h1>Flower Evolver</h1></a>
+            <a :href="this.base_url" style="text-decoration: none;"><h1>Flower Evolver</h1></a>
         </header>
         <div class="tabs">
             <ul>
@@ -40,6 +40,7 @@
             return {
                 blocked: false,
                 showWarning: true,
+                base_url: process.env.BASE_URL,
             }
         },
         methods:{
@@ -55,7 +56,7 @@
                 Fn();
                 setTimeout(function(){
                     this.blocked = false;
-                }.bind(this), 5000);
+                }.bind(this), 2000);
             },
             showAncestors: function(){
                 var selected = this.$store.getters.getSelected;
@@ -91,6 +92,9 @@
     .tabs ul{
         margin: 0px 0px 0px 0px;
         padding: 0px 0px 0px 0px;
+    }
+    .tabs a:hover{
+        background-color: rgb(37, 39, 41);
     }
     .tabs a{
         text-decoration: none;
@@ -136,7 +140,9 @@
     }
     #warning span{
         position: relative;
-        font-size: 20px;
+        margin-right: 5px;
+        font-size: 28px;
+        font-weight: bold;
         cursor: pointer;
         float: right;
     }

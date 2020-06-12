@@ -3,23 +3,25 @@
         <div class="blocks">
             <div id="windows">
                 Windows
-                <button><a href="/FlowerEvolver_win32.zip">download</a></button>
+                <button><a :href="this.base_url + 'FlowerEvolver_win32.zip'">download</a></button>
             </div>
             <div id="linux">
                 Linux
-                <button><a href="/FlowerEvolver-x32-linux.tar">download x32</a></button>
-                <button><a href="/FlowerEvolver-x64-linux.tar">download x64</a></button>
+                <button><a :href="this.base_url + 'FlowerEvolver-x32-linux.tar'">download x32</a></button>
+                <button><a :href="this.base_url + 'FlowerEvolver-x64-linux.tar'">download x64</a></button>
             </div>
         </div>
-        <img id="image" src="/FlowerEvolverNative.png"/>
+        <img id="image" :src="this.base_url + 'FlowerEvolverNative.png'"/>
     </div>
 </template>
 
 <script>
     export default {
         name:'Downloads',
-        props:{
-            
+        data(){
+            return {
+                base_url: process.env.BASE_URL,
+            }
         },
     }
 </script>

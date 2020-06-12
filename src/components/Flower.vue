@@ -174,6 +174,8 @@
     }
     .outButtons{
         background-color: green;
+        box-shadow: 5px 10px 1px 2px rgba(12, 13, 12, 0.5);
+        border: solid 1px black;
     }
     .Selected{
         border-style: solid solid solid solid;
@@ -189,9 +191,11 @@
     }
     .buttons{
         position: absolute;
+        padding: 0px 21px 0px 0px;
         float: right;
         background-color: green;
-        box-shadow: 0px 16px 32px 0px rgba(0,0,0,0.3);
+        border-top: 2px lightgreen;
+        box-shadow: 2px 6px 16px 6px rgba(0,128,0,0.5);
         z-index: 1;
     }
     .buttons ul{
@@ -210,10 +214,6 @@
         background-color: green;
         cursor: pointer;
         text-decoration: none;
-        border-top: auto solid #CCCCCC;
-        border-right: auto solid #333333;
-        border-bottom: auto solid #333333;
-        border-left: auto solid #CCCCCC;
     }
     .pointer{
         cursor: pointer;        

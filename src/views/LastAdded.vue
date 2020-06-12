@@ -1,6 +1,6 @@
 <template>
     <div class="LastAdded">
-        <FlowersTable :Flowers="flowers" :useUrl="true" :noFlowerMessage="'There is a Problem'"/>
+        <FlowersTable :Flowers="flowers" :useUrl="true" :noFlowerMessage="'There are no flowers'"/>
     </div>
 </template>
 
@@ -45,7 +45,6 @@
 
 <style scoped>
     .LastAdded{
-        margin: 0px 10px 10px 10px;
         background-color: black;
     }
 </style>

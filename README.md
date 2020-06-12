@@ -7,12 +7,14 @@ the Backend is found [here](https://github.com/cristianglezm/FlowerEvolver-backe
 
 # Building #
 
-Change variables inside the ".env" file to point to the backend.
-
-```
-VUE_APP_IMAGES_URL=http://localhost:5000/generated/
-VUE_APP_API_URL=http://localhost:5000/api/
-VUE_APP_DOWNLOAD_URL=http://localhost:5000/download/
+Change BACKEND inside the ".env" file to point to the backend.
+Change VUE_APP_BASE_URL if needed (it needs to end with /)
+```bash
+BACKEND=http://localhost:5000
+VUE_APP_BASE_URL='/'
+VUE_APP_IMAGES_URL=$BACKEND/generated/
+VUE_APP_API_URL=$BACKEND/api/
+VUE_APP_DOWNLOAD_URL=$BACKEND/download/
 ```
 
 then run 

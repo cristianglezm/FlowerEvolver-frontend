@@ -1,13 +1,16 @@
 <template>
     <div class="Footer">
-        <p><strong>Copyright &COPY; 2020 FlowerEvolver</strong><a href="https://github.com/cristianglezm/FlowerEvolver-frontend"><img src="/find-on-github.png"/></a></p>
+        <p><strong>Copyright &COPY; 2020 FlowerEvolver</strong><a href="https://github.com/cristianglezm/FlowerEvolver-frontend"><img :src="this.base_url + 'find-on-github.png'"/></a></p>
     </div>
 </template>
 
 <script>
     export default {
         name:'Footer',
-        props:{
+        data(){
+            return {
+                base_url: process.env.BASE_URL,
+            }
         },
     }
 </script>

@@ -5,7 +5,7 @@
         </div>
     </div>
     <div v-else>
-        <p>You don't Have Favourites, go to Browse or Last Added to add.</p>
+        <p style="color: lightgreen; font-size: large;">You don't Have Favourites, go to Browse or Last Added to add.</p>
     </div>
 </template>
 
@@ -33,6 +33,5 @@
         grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
         grid-gap: 10px;
         background-color: black;
-        margin: 0px 10px 10px 10px;
     }
 </style>

@@ -10,9 +10,9 @@ import Downloads from '../views/Downloads.vue';
 
 export default new VueRouter({
     mode: 'history',
-    base: __dirname,
+    base: process.env.BASE_URL,
     routes: [
-        { path: '/', name: 'default', component: LastAdded},
+        { path: '/', redirect: 'Demo'},
         { path: '/Demo', name: 'Demo', component: Demo },
         { path: '/LastAdded', name: 'LastAdded', component: LastAdded },
         { path: '/Browse', name: 'Browse', component: Browse },

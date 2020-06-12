@@ -60,7 +60,6 @@
 
 <style scoped>
     .Browse{
-        margin: 0px 10px 10px 10px;
         background-color: black;
     }
 </style>
