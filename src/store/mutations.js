@@ -8,7 +8,10 @@ export const mutations = {
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state.favourites))
     },
     removeFlowerFromFav(state, flower){
-        state.favourites.splice(state.favourites.indexOf(flower),1);
+        state.favourites = state.favourites.filter(
+            function(value){
+                return value.id !== flower.id;
+        }.bind(this));
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state.favourites));
     },
     selectFlower(state, flower){

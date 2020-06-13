@@ -1,5 +1,7 @@
 # Flower Evolver #
 
+![Deployment](https://github.com/cristianglezm/FlowerEvolver-frontend/workflows/Deploy%20to%20gh-pages/badge.svg?branch=master)
+
 Visit the website [here](https://cristianglezm.github.io/FlowerEvolver-frontend/)
 
 Frontend for Flower Evolver (a tool of [EcoSystem](https://github.com/cristianglezm/EcoSystem)),
