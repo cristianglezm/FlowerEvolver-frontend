@@ -12,6 +12,7 @@
                 <router-link to="/Favourites"> Favourites </router-link>
                 <router-link to="/Downloads"> Downloads </router-link>
             </ul>
+        </div>
         <div class="actions">
             <ul v-if="this.$route.path === '/Demo' || blocked">
                 <button class="disabled">New Flower</button>
@@ -23,7 +24,6 @@
                 <button @click="block(reproduce)">Reproduce Selected</button>
                 <button @click="block(showAncestors)">Show Selected Descendants</button>
             </ul>
-        </div>
         </div>
         <Modal :errors="this.$store.state.errors" />
     </div>
@@ -110,13 +110,13 @@
     }
     .tabs{
         position: relative;
-        bottom: 0;
+        top: 30px;
         font-size: xx-large;
     }
     @media only screen and (max-width: 740px){
         .tabs{
             position: relative;
-            bottom: 0;
+            top: 30px;
             font-size: large;
         }
     }
@@ -133,6 +133,28 @@
         border-color: lightgreen;
         background-color: green;
         color: lightgreen;
+    }
+    .actions button:hover{
+        border-color: green;
+        background-color: lightgreen;
+        color: green;
+    }
+    @media only screen and (max-width: 740px){
+        .actions button{
+            position: relative;
+            font-size: 15px;
+            border-radius: 4px;
+            margin: 10px 10px 0px 2px;
+            cursor: pointer;
+            border-color: lightgreen;
+            background-color: green;
+            color: lightgreen;
+        }
+        .actions button:hover{
+            border-color: green;
+            background-color: lightgreen;
+            color: green;
+        }
     }
     .disabled{
       opacity: 0.6;

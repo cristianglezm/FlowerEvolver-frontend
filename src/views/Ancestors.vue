@@ -110,4 +110,14 @@
         left: 36%;
         width: 33%;
     }
+    @media only screen and (max-width: 740px){
+        .gridFlowers{
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            grid-gap: 10px;
+            position: relative;
+            left: 36%;
+            width: 33%;
+        }
+    }
 </style>

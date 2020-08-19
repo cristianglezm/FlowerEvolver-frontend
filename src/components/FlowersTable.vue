@@ -31,6 +31,14 @@
         grid-gap: 10px;
         background-color: black;
     }
+    @media only screen and (max-width: 740px){
+        .grid{
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            grid-gap: 10px;
+            background-color: black;
+        }
+    }
     .error{
         color: lightgreen;
         font-size: 20px;

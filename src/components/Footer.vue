@@ -1,6 +1,6 @@
 <template>
     <div class="Footer">
-        <p><strong>Copyright &COPY; 2020 FlowerEvolver</strong><a href="https://github.com/cristianglezm/FlowerEvolver-frontend"><img :src="this.base_url + 'find-on-github.png'"/></a></p>
+        <p><strong>Copyright&COPY; 2020 FlowerEvolver</strong><a href="https://github.com/cristianglezm/FlowerEvolver-frontend"><img :src="this.base_url + 'find-on-github.png'"/></a></p>
     </div>
 </template>
 
@@ -25,6 +25,17 @@
         position: relative;
         bottom: 20px;
         margin-bottom: 10px;
+    }
+    @media only screen and (max-width: 740px){
+        .Footer img{
+            float: right;
+            position: relative;
+            width: 25%;
+            height: 25%;
+            bottom: 25px;
+            margin-bottom: 5px;
+            left: 35px;
+        }
     }
     .Footer p{
         margin-left: 20px;

@@ -3,7 +3,7 @@
         <div class="blocks">
             <div id="windows">
                 Windows
-                <button><a :href="this.base_url + 'FlowerEvolver_win32.zip'">download</a></button>
+                <button><a :href="this.base_url + 'FlowerEvolver_win64.zip'">download x64</a></button>
             </div>
             <div id="linux">
                 Linux
@@ -36,7 +36,7 @@
         display: grid;
         grid-template-columns: auto auto;
         grid-gap: 10px;
-        background-color: grey;
+        background-color: green;
         font-size: 60px;
     }
     #image{
@@ -53,6 +53,36 @@
         border-color: lightgreen;
         background-color: green;
     }
+    .blocks button:hover, a:hover{
+        color: green;
+        background-color: lightgreen;
+        border-color: green;
+    }
+    @media only screen and (max-width: 740px){
+        .blocks{
+            margin: 30px 30px 30px 30px;
+            display: grid;
+            grid-template-columns: auto auto;
+            grid-gap: 10px;
+            background-color: green;
+            font-size: 25px;
+        }
+        .blocks button, a{
+            text-decoration: none;
+            text-indent: 10px;
+            font-size: 25px;
+            padding: 2px 10px 0px 0px;
+            margin: 10px 0px 0px 0px;
+            color: lightgreen;
+            border-radius: 12px 12px 12px 12px;
+            border-color: lightgreen;
+            background-color: green;
+        }
+    }
     #linux{
+        color: lightgreen;
+    }
+    #windows{
+        color: lightgreen;
     }
 </style>
