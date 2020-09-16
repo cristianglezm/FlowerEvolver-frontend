@@ -5,7 +5,7 @@
         </div>
     </div>
     <div v-else>
-        <p style="color: lightgreen; font-size: large;">You don't Have Favourites, go to Browse or Last Added to add.</p>
+        <p class="nofavs">You don't Have Favourites, go to Browse or Last Added to add.</p>
     </div>
 </template>
 
@@ -33,6 +33,13 @@
         grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
         grid-gap: 10px;
         background-color: black;
+    }
+    .nofavs{
+        color: lightgreen;
+        font-size: large;
+        padding: 15px;
+        background-color: rgb(37, 39, 41);
+        margin: 0px;
     }
     @media only screen and (max-width: 740px){
         .grid{
