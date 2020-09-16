@@ -226,7 +226,6 @@
     }
     .buttons li:hover{
         background-color: lightgreen;
-        borders: solid;
         color: green;
     }
     .disabled {

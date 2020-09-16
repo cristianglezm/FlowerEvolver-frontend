@@ -4,26 +4,52 @@
         <header>
             <a :href="this.base_url" style="text-decoration: none;"><h1>Flower Evolver</h1></a>
         </header>
-        <div class="tabs">
-            <ul>
-                <router-link to="/Demo">Demo </router-link>
-                <router-link to="/LastAdded">Last Added </router-link>
-                <router-link to="/Browse"> Browse </router-link>
-                <router-link to="/Favourites"> Favourites </router-link>
-                <router-link to="/Downloads"> Downloads </router-link>
-            </ul>
+        <div v-if="isMobile()">
+            <img @click="showMenu=!showMenu" src="@/assets/x32/menu.png" alt="menuIcons" class="pointer"/>
+            <div v-if="showMenu" class="mobileMenu">
+                <div class="tabs" @click="showMenu=!showMenu">
+                        <router-link to="/Demo">Demo </router-link>
+                        <router-link to="/LastAdded">Last Added </router-link>
+                        <router-link to="/Browse"> Browse </router-link>
+                        <router-link to="/Favourites"> Favourites </router-link>
+                        <router-link to="/Downloads"> Downloads </router-link>
+                </div>
+                <div class="actions">
+                    <div v-if="this.$route.path === '/Demo' || blocked" style="display: flex; flex-flow: column wrap;z-index: 1;left: 0px;position: absolute;">
+                        <button @click="showMenu=!showMenu" class="disabled">New Flower</button>
+                        <button @click="showMenu=!showMenu" class="disabled">Reproduce Selected</button>
+                        <button @click="showMenu=!showMenu" class="disabled">Show Selected Descendants</button>
+                    </div>
+                    <div v-else style="display: flex; flex-flow: column wrap;z-index: 1;left: 0px;position: absolute;">
+                        <button @click="block(makeFlower); showMenu=!showMenu">New Flower</button>
+                        <button @click="block(reproduce); showMenu=!showMenu">Reproduce Selected</button>
+                        <button @click="block(showAncestors); showMenu=!showMenu">Show Selected Descendants</button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="actions">
-            <ul v-if="this.$route.path === '/Demo' || blocked">
-                <button class="disabled">New Flower</button>
-                <button class="disabled">Reproduce Selected</button>
-                <button class="disabled">Show Selected Descendants</button>
-            </ul>
-            <ul v-else>
-                <button @click="block(makeFlower)">New Flower</button>
-                <button @click="block(reproduce)">Reproduce Selected</button>
-                <button @click="block(showAncestors)">Show Selected Descendants</button>
-            </ul>
+        <div v-else>
+            <div class="tabs">
+                <ul>
+                    <router-link to="/Demo">Demo </router-link>
+                    <router-link to="/LastAdded">Last Added </router-link>
+                    <router-link to="/Browse"> Browse </router-link>
+                    <router-link to="/Favourites"> Favourites </router-link>
+                    <router-link to="/Downloads"> Downloads </router-link>
+                </ul>
+            </div>
+            <div class="actions">
+                <ul v-if="this.$route.path === '/Demo' || blocked">
+                    <button class="disabled">New Flower</button>
+                    <button class="disabled">Reproduce Selected</button>
+                    <button class="disabled">Show Selected Descendants</button>
+                </ul>
+                <ul v-else>
+                    <button @click="block(makeFlower)">New Flower</button>
+                    <button @click="block(reproduce)">Reproduce Selected</button>
+                    <button @click="block(showAncestors)">Show Selected Descendants</button>
+                </ul>
+            </div>
         </div>
         <Modal :errors="this.$store.state.errors" />
     </div>
@@ -40,6 +66,7 @@
             return {
                 blocked: false,
                 showWarning: true,
+                showMenu: false,
                 base_url: process.env.BASE_URL,
             }
         },
@@ -65,6 +92,9 @@
                 }else{
                     this.$router.push({name:'DescendantsFatherAndMother', params:{father:selected[0], mother:selected[1]}});
                 }
+            },
+            isMobile: function(){
+                return screen.width <= 740;
             },
         },
     }
@@ -110,14 +140,36 @@
     }
     .tabs{
         position: relative;
-        top: 30px;
+        top: 15px;
         font-size: xx-large;
     }
     @media only screen and (max-width: 740px){
+        .mobileMenu{
+            box-shadow: 5px 10px 1px 2px rgba(12, 13, 12, 0.5);
+            width: 100%;
+            height: 250%;
+            background-color: rgb(0, 128, 0, 0.8);
+            display: flex;
+            flex-flow: row wrap;
+            position: absolute;
+            z-index:1;
+        }
+        .tabs a{
+            text-decoration: none;
+            float: left;
+            text-indent: 10px;
+            padding: 2px 10px 0px 0px;
+            margin: 10px 0px 0px 0px;
+            color: lightgreen;
+            border-radius: 12px 12px 12px 12px;
+        }
         .tabs{
-            position: relative;
-            top: 30px;
+            display: flex;
+            flex-flow: column wrap;
+            top: 0px;
+            position: absolute;
             font-size: large;
+            z-index: 1;
         }
     }
     .actions{
@@ -140,8 +192,16 @@
         color: green;
     }
     @media only screen and (max-width: 740px){
+        .actions{
+            text-align: right;
+            padding-bottom: 10px;
+            position: absolute;
+            display: flex;
+            flex-flow: column wrap;
+            z-index: 1;
+            right: 120px;
+        }
         .actions button{
-            position: relative;
             font-size: 15px;
             border-radius: 4px;
             margin: 10px 10px 0px 2px;
