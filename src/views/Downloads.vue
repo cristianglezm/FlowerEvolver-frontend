@@ -49,7 +49,7 @@
         padding: 2px 10px 0px 0px;
         margin: 10px 0px 0px 0px;
         color: lightgreen;
-        border-radius: 12px 12px 12px 12px;
+        border-radius: 315px 335px 155px 135px;
         border-color: lightgreen;
         background-color: green;
     }

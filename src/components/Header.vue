@@ -179,7 +179,7 @@
     .actions button{
         position: relative;
         font-size: 20px;
-        border-radius: 4px;
+        border-radius: 315px 335px 155px 135px;
         margin: 10px 10px 0px 2px;
         cursor: pointer;
         border-color: lightgreen;
@@ -203,7 +203,7 @@
         }
         .actions button{
             font-size: 15px;
-            border-radius: 4px;
+            border-radius: 315px 335px 155px 135px;
             margin: 10px 10px 0px 2px;
             cursor: pointer;
             border-color: lightgreen;
