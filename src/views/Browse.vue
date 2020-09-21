@@ -94,7 +94,7 @@
                 return this.$route.query.page >= 0;
             },
             isMobile: function(){
-                return screen.width <= 740;
+                return screen.width <= 1280;
             },
         },
         mounted: function(){
@@ -114,7 +114,7 @@
         grid-template-columns: 70px auto 70px;
         grid-gap: 10px;
     }
-    @media only screen and (max-width: 740px){
+    @media only screen and (max-width: 1280px){
         .container{
             display: grid;
             grid-template-columns: 20px auto 20px;
@@ -136,7 +136,7 @@
         left: 0.1em;
         cursor: pointer;
     }
-    @media only screen and (max-width: 740px){
+    @media only screen and (max-width: 1280px){
     .arrow span{
         font-size: 25px;
         border-radius: 126px;

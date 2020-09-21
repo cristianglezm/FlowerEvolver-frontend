@@ -94,7 +94,7 @@
                 }
             },
             isMobile: function(){
-                return screen.width <= 740;
+                return screen.width <= 1280;
             },
         },
     }
@@ -107,7 +107,7 @@
         margin: 0px 0px 0px 0px;
         color: lightgreen;
     }
-    @media only screen and (max-width: 740px){
+    @media only screen and (max-width: 1280px){
         h1{
             font-size: 36px;
             padding: 0px 0px 0px 0px;
@@ -143,7 +143,7 @@
         top: 15px;
         font-size: xx-large;
     }
-    @media only screen and (max-width: 740px){
+    @media only screen and (max-width: 1280px){
         .mobileMenu{
             box-shadow: 5px 10px 1px 2px rgba(12, 13, 12, 0.5);
             width: 100%;
@@ -191,7 +191,7 @@
         background-color: lightgreen;
         color: green;
     }
-    @media only screen and (max-width: 740px){
+    @media only screen and (max-width: 1280px){
         .actions{
             text-align: right;
             padding-bottom: 10px;

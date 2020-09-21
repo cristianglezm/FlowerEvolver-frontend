@@ -1,6 +1,6 @@
 <template>
     <div class="Mutations" @onscroll="this.scroll">
-        <div class="flower">
+        <div class="mutFlower">
             <Flower :id="flower.id" :genome="flower.genome" :image="flower.image" :useUrl="true"/>
         </div>
         <div class="header"><p><strong>Mutations of {{flower.id}}</strong></p></div>
@@ -75,10 +75,9 @@
         color: lightgreen;
         background-color: green;
     }
-    .flower{
+    .mutFlower{
         position: relative;
-        left: 43%;
-        width:15%;
-        height:15%;
+        display: grid;
+        justify-items: center;
     }
 </style>

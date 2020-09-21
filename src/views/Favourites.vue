@@ -41,7 +41,7 @@
         background-color: rgb(37, 39, 41);
         margin: 0px;
     }
-    @media only screen and (max-width: 740px){
+    @media only screen and (max-width: 1280px){
         .grid{
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));

@@ -31,7 +31,7 @@
         grid-gap: 10px;
         background-color: black;
     }
-    @media only screen and (max-width: 740px){
+    @media only screen and (max-width: 1280px){
         .grid{
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));

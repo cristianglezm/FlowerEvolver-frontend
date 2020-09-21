@@ -8,7 +8,7 @@
             <div class="header"><p><strong>Descendants of {{flower1.id}} and {{flower2.id}}</strong></p></div>
         </div>
         <div v-else>
-            <div class="flower">
+            <div class="fatherFlower">
                 <Flower :id="flower1.id" :genome="flower1.genome" :image="flower1.image" :useUrl="true"/>
             </div>
             <div class="header"><p><strong>Descendants of {{flower1.id}}</strong></p></div>
@@ -96,28 +96,15 @@
         color: lightgreen;
         background-color: green;
     }
-    .flower{
+    .fatherFlower{
+        display: grid;
+        justify-items: center;
         position: relative;
-        left: 43%;
-        width:15%;
-        height:15%;
     }
     .gridFlowers{
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        grid-template-columns: auto auto;
         grid-gap: 10px;
-        position: relative;
-        left: 36%;
-        width: 33%;
-    }
-    @media only screen and (max-width: 740px){
-        .gridFlowers{
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            grid-gap: 10px;
-            position: relative;
-            left: 36%;
-            width: 33%;
-        }
+        justify-content: center;
     }
 </style>

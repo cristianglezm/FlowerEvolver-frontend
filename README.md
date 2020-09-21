@@ -11,6 +11,7 @@ the Backend is found [here](https://github.com/cristianglezm/FlowerEvolver-backe
 
 Change BACKEND inside the ".env" file to point to the backend.
 Change VUE_APP_BASE_URL if needed (it needs to end with /)
+
 ```bash
 BACKEND=http://localhost:5000
 VUE_APP_BASE_URL='/'
