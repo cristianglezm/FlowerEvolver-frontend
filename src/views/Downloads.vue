@@ -53,6 +53,7 @@
         border-radius: 315px 335px 155px 135px;
         border-color: lightgreen;
         background-color: green;
+        cursor: pointer;
     }
     .blocks button:hover{
         color: green;
@@ -69,6 +70,7 @@
             font-size: 25px;
             padding: 10px;
             border-radius: 12px;
+            cursor: pointer;
         }
         .blocks button{
             text-decoration: none;
