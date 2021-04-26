@@ -174,7 +174,7 @@
     }
     .actions{
         text-align: right;
-        padding-bottom: 10px;
+        padding-bottom: 9px;
     }
     .actions button{
         position: relative;
@@ -194,7 +194,7 @@
     @media only screen and (max-width: 1280px){
         .actions{
             text-align: right;
-            padding-bottom: 10px;
+            padding-bottom: 9px;
             position: absolute;
             display: flex;
             flex-flow: column wrap;

@@ -3,12 +3,12 @@
         <div class="blocks">
             <div id="windows">
                 Windows
-                <button :href="this.base_url + 'FlowerEvolver_win64.zip'">download x64</button>
+                <a :href="this.base_url + 'FlowerEvolver_win64.zip'">download x64</a>
             </div>
             <div id="linux">
                 Linux
-                <button :href="this.base_url + 'FlowerEvolver-x32-linux.tar'">download x32</button>
-                <button :href="this.base_url + 'FlowerEvolver-x64-linux.tar'">download x64</button>
+                <a :href="this.base_url + 'FlowerEvolver-x32-linux.tar'" download>download x32</a>
+                <a :href="this.base_url + 'FlowerEvolver-x64-linux.tar'">download x64</a>
             </div>
         </div>
         <img id="image" :src="this.base_url + 'FlowerEvolverNative.png'"/>
@@ -43,7 +43,9 @@
     #image{
         width:100%;
     }
-    .blocks button{
+    .blocks a{
+        border: outset lightgreen;
+        text-align: center;
         text-decoration: none;
         text-indent: 10px;
         font-size: 60px;
@@ -51,14 +53,13 @@
         margin: 10px 0px 0px 5px;
         color: lightgreen;
         border-radius: 315px 335px 155px 135px;
-        border-color: lightgreen;
         background-color: green;
         cursor: pointer;
     }
-    .blocks button:hover{
+    .blocks a:hover{
         color: green;
         background-color: lightgreen;
-        border-color: green;
+        border: inset green;
     }
     @media only screen and (max-width: 1280px){
         .blocks{
@@ -72,7 +73,7 @@
             border-radius: 12px;
             cursor: pointer;
         }
-        .blocks button{
+        .blocks a{
             text-decoration: none;
             text-indent: 10px;
             font-size: 25px;
@@ -82,6 +83,7 @@
             border-radius: 12px 12px 12px 12px;
             border-color: lightgreen;
             background-color: green;
+            display: inline flex;
         }
     }
     #linux, #windows{
