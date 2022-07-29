@@ -48,7 +48,7 @@
         text-align: center;
         text-decoration: none;
         text-indent: 10px;
-        font-size: 60px;
+        font-size: 58px;
         padding: 2px 10px 0px 0px;
         margin: 10px 0px 0px 5px;
         color: lightgreen;
