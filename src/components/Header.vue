@@ -140,7 +140,7 @@
     }
     .tabs{
         position: relative;
-        top: 15px;
+        top: 16px;
         font-size: xx-large;
     }
     @media only screen and (max-width: 1280px){
