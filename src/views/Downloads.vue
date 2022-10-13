@@ -7,7 +7,7 @@
             </div>
             <div id="linux">
                 Linux
-                <a :href="this.base_url + 'FlowerEvolver-x32-linux.tar'" download>download x32</a>
+                <a :href="this.base_url + 'FlowerEvolver-x32-linux.tar'" download>download x86</a>
                 <a :href="this.base_url + 'FlowerEvolver-x64-linux.tar'">download x64</a>
             </div>
         </div>
@@ -20,7 +20,7 @@
         name:'Downloads',
         data(){
             return {
-                base_url: process.env.BASE_URL,
+                base_url: import.meta.env.BASE_URL,
             }
         },
     }
@@ -36,7 +36,7 @@
         display: grid;
         grid-template-columns: auto auto;
         grid-gap: 10px;
-        font-size: 60px;
+        font-size: 58px;
         padding: 10px;
         border-radius: 12px;
     }

@@ -1,5 +1,5 @@
 import axios from 'axios';
-var API = process.env.VUE_APP_API_URL;
+var API = import.meta.env.VUE_APP_API_URL;
 export const STORAGE_KEY = 'FlowerEvolver';
 
 export const mutations = {
@@ -72,7 +72,7 @@ export const mutations = {
         }
     },
     async updateAncestors(state, {flower1, flower2, limit, offset}){
-        try{            
+        try{
             if(flower2 === undefined || flower2 === null){
                 const response = await axios.get(API + 'ancestors/' + flower1.id + '?limit=' + limit + '&offset=' + offset)
                 state.ancestors = response.data;

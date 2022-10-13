@@ -67,7 +67,7 @@
                 blocked: false,
                 showWarning: true,
                 showMenu: false,
-                base_url: process.env.BASE_URL,
+                base_url: import.meta.env.BASE_URL,
             }
         },
         methods:{

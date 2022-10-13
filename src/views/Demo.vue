@@ -5,7 +5,7 @@
 </template>
 
 <script>
-    import FlowersTable from '../components/FlowersTable.vue';
+    require FlowersTable from '../components/FlowersTable.vue';
     export default {
         name:'Demo',
         components:{

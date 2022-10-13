@@ -60,8 +60,8 @@
         },
         data(){
             return{
-                IMAGES_URL: process.env.VUE_APP_IMAGES_URL,
-                DOWNLOAD_URL: process.env.VUE_APP_DOWNLOAD_URL,
+                IMAGES_URL: import.meta.env.VUE_APP_IMAGES_URL,
+                DOWNLOAD_URL: import.meta.env.VUE_APP_DOWNLOAD_URL,
                 clicked: false,
                 selected: this.isSelected(),
                 index: 0,

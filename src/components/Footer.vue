@@ -9,7 +9,7 @@
         name:'Footer',
         data(){
             return {
-                base_url: process.env.BASE_URL,
+                base_url: import.meta.env.BASE_URL,
             }
         },
     }
