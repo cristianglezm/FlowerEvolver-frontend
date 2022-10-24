@@ -1,5 +1,5 @@
 import axios from 'axios';
-var API = import.meta.env.VUE_APP_API_URL;
+export const API = import.meta.env.VITE_APP_API_URL;
 export const STORAGE_KEY = 'FlowerEvolver';
 
 export const mutations = {
