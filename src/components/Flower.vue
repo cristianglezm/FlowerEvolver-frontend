@@ -65,15 +65,15 @@
                 clicked: false,
                 selected: this.isSelected(),
                 index: 0,
-                heartIconSrc: this.isFavourited({id:this.id, genome:this.genome,image:this.image}) ? "/src/assets/x32/heart_full.png" : "/src/assets/x32/heart_empty.png",
+                heartIconSrc: this.isFavourited({id:this.id, genome:this.genome,image:this.image}) ? this.loadImage("heart_full.png","x32") : this.loadImage("heart_empty.png","x32"),
                 heartAnimation: [
-                            '/src/assets/x32/heart_empty.png',
-                            '/src/assets/x32/heart_filling0.png',
-                            '/src/assets/x32/heart_filling1.png',
-                            '/src/assets/x32/heart_filling2.png',
-                            '/src/assets/x32/heart_filling3.png',
-                            '/src/assets/x32/heart_filling4.png',
-                            '/src/assets/x32/heart_full.png',
+                            this.loadImage("heart_empty.png","x32"),
+                            this.loadImage("heart_filling0.png","x32"),
+                            this.loadImage("heart_filling1.png","x32"),
+                            this.loadImage("heart_filling2.png","x32"),
+                            this.loadImage("heart_filling3.png","x32"),
+                            this.loadImage("heart_filling4.png","x32"),
+                            this.loadImage("heart_full.png","x32"),
                             ],
             }
         },
@@ -84,6 +84,9 @@
               'selectFlower',
               'makeMutation',
             ]),
+			loadImage: function(url, size){
+				return new URL(`/src/assets/${size}/${url}`, import.meta.url);
+			},
             checkUrl: function(){
                 if(this.useUrl){
                     return this.IMAGES_URL + this.image;

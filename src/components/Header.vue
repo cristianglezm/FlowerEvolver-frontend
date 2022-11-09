@@ -5,7 +5,7 @@
             <a :href="this.base_url" style="text-decoration: none;"><h1>Flower Evolver</h1></a>
         </header>
         <div v-if="isMobile()">
-            <img @click="showMenu=!showMenu" src="@/assets/x32/menu.png" alt="menuIcons" class="pointer"/>
+            <img @click="showMenu=!showMenu" src="/x32/menu.png" alt="menuIcon" class="pointer"/>
             <div v-if="showMenu" class="mobileMenu">
                 <div class="tabs" @click="showMenu=!showMenu">
                         <router-link to="/Demo">Demo </router-link>
