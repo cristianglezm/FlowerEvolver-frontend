@@ -7,10 +7,10 @@ echo "making backup of .env"
 mv .env .env_bak
 # build .env
 echo "Building .env file"
-echo "VUE_APP_IMAGES_URL=$BACKEND/generated/" > .env
-echo "VUE_APP_API_URL=$BACKEND/api/" >> .env
-echo "VUE_APP_DOWNLOAD_URL=$BACKEND/download/" >> .env
-echo "VUE_APP_BASE_URL=$BASE_URL" >> .env
+echo "VITE_APP_IMAGES_URL=$BACKEND/generated/" > .env
+echo "VITE_APP_API_URL=$BACKEND/api/" >> .env
+echo "VITE_APP_DOWNLOAD_URL=$BACKEND/download/" >> .env
+echo "VITE_APP_BASE_URL=$BASE_URL" >> .env
 git checkout --orphan gh-pages
 echo "building..."
 npm run build

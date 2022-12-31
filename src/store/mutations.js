@@ -110,7 +110,7 @@ export const mutations = {
                 state.errors.push({message:e});
             });
         }else{
-            state.errors.push({message:"There are no flowers selected"});
+            state.errors.push({message:"There are no Flowers selected"});
         }
     },
     async makeMutation(state, flower){

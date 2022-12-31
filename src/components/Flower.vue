@@ -84,9 +84,9 @@
               'selectFlower',
               'makeMutation',
             ]),
-			loadImage: function(url, size){
-				return new URL(`/src/assets/${size}/${url}`, import.meta.url);
-			},
+            loadImage: function(url, res){
+                return new URL(`/src/assets/${res}/${url}`, import.meta.url);
+            },
             checkUrl: function(){
                 if(this.useUrl){
                     return this.IMAGES_URL + this.image;
