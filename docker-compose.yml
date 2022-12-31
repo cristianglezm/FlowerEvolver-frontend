@@ -1,0 +1,83 @@
+version: '3.9'
+services:
+    mysql:
+      image: mysql:latest
+      container_name: mysql
+      hostname: mysql
+      restart: always
+      environment:
+          MYSQL_ROOT_PASSWORD: passwd
+          MYSQL_DATABASE: flowerevolver
+          MYSQL_USER: fe
+          MYSQL_PASSWORD: fe
+#      ports:
+#        - 3306:3306
+      volumes:
+        - mysql:/var/lib/mysql/
+        - logs:/var/log/mysql/
+      networks:
+        - backend
+    backend:
+      image: cristianglezm/fe:backend-alpine-dev
+      container_name: backend
+      hostname: backend
+      depends_on:
+        - mysql
+      restart: always
+      environment:
+        REWRITE_ENV: "true" # overwrite the .env file
+        HOST: mysql # mysql host
+        DB: flowerevolver # database name
+        PASSWD: fe # password for mysql
+        USER: fe # username for mysql
+        ENV: production # set to production
+        ORIGINS: 'http://localhost/' # domain name for frontend
+        SECRET_KEY: 'not_really_needed' # no sessions used
+#      ports:
+#        - 5000:5000
+      volumes:
+        - generated:/app/generated # flower images and genome jsons
+        - migration:/app/migrations
+        - logs:/var/log/
+      networks:
+        - backend
+    frontend:
+      image: cristianglezm/fe:frontend-alpine-dev
+      build: # we need to build the image
+        dockerfile: dockerfile.alpine
+        context: .
+        args:
+          REWRITE_ENV: "true" # overwrite the .env file
+          BACKEND: "http://localhost" # domain name
+          BASE_URL: "/"
+      container_name: frontend
+      depends_on:
+        - backend
+      restart: always
+      environment:
+        REWRITE_ENV: "true" # overwrite the .env file
+        BACKEND: "http://localhost" # where the frontend will send requests (localhost to proxy to backend)
+        BASE_URL: "/"
+        API: backend:5000 # backend server to proxy pass requests
+        NGINX_HOST: localhost # domain name
+        NGINX_RESOLVER: 127.0.0.11 # dns for docker
+      ports:
+        - 80:80
+       # - 443:443
+      volumes:
+        - logs:/var/log/nginx
+      networks:
+        - frontend
+        - backend
+volumes:
+   mysql: {}
+   generated: {}
+   migration: {}
+   logs: {}
+networks:
+    frontend:
+      name: frontend
+      driver: bridge
+    backend:
+      name: backend
+      driver: bridge

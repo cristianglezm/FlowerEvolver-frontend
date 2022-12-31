@@ -1,0 +1,48 @@
+upstream backend{
+    server ${API};
+}
+
+server {
+    listen   80;
+    #listen	 443;
+    server_name  ${NGINX_HOST};
+    #return 301 https://$host$request_uri;
+
+    # Configuration for SSL/TLS certificates
+    #ssl_certificate /etc/certs/${NGINX_HOST}.crt;
+    #ssl_certificate_key /etc/certs/${NGINX_HOST}.key;
+
+    # Disable insecure TLS versions
+    #ssl_protocols TLSv1.2 TLSv1.3;
+    #ssl_prefer_server_ciphers on;
+    #ssl_ciphers HIGH:!aNULL:!MD5;
+
+    access_log  /var/log/nginx/host.access.log  main;
+    #set dns resolver as docker internal dns
+    resolver ${NGINX_RESOLVER} valid=10s;
+    resolver_timeout 5s;
+    #error_page  404              /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+
+    # Proxy headers
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    location ~ /(api|download|generated)/.*$ {
+        proxy_pass http://backend;
+        proxy_set_header Host $host;
+        add_header 'Access-Control-Allow-Origin' '${NGINX_HOST}';
+        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,access-control-allow-origin';
+    }
+    location / {
+        root   /usr/share/nginx/html;
+        try_files $uri $uri/ /index.html;
+    }
+}

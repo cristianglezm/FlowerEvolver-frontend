@@ -1,0 +1,16 @@
+FROM node:16.18-alpine3.15 as builder
+COPY . /app/
+WORKDIR /app
+ARG REWRITE_ENV
+ARG BACKEND
+ARG BASE_URL
+RUN sh rewrite_env.sh && \
+ npm install && \
+ npm run build
+
+FROM nginx:stable-alpine as frontend
+ENV NGINX_HOST="localhost"
+ENV NGINX_RESOLVER="127.0.0.11"
+ENV API="backend:5000"
+COPY --from=builder --chown=nginx /app/dist/ /usr/share/nginx/html/
+COPY nginx/default.conf.template /etc/nginx/templates/
