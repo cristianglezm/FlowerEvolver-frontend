@@ -9,10 +9,12 @@
 </template>
 
 <script>
+	import { defineComponent } from 'vue';
     import Flower from '../components/Flower.vue';
     import FlowersTable from '../components/FlowersTable.vue';
     import { mapActions, mapGetters } from 'vuex'
-    export default{
+	
+    export default defineComponent({
         name:'Mutations',
         components:{
             Flower,
@@ -63,7 +65,7 @@
         mounted: function(){
             this.scroll();
         },
-    }
+    });
 </script>
 
 <style scoped>

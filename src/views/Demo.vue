@@ -5,8 +5,10 @@
 </template>
 
 <script>
+	import { defineComponent } from 'vue';
     import FlowersTable from '../components/FlowersTable.vue';
-    export default {
+	
+    export default defineComponent({
         name:'Demo',
         components:{
             FlowersTable,
@@ -58,7 +60,7 @@
 				return new URL(`/src/assets/${url}`, import.meta.url).toString();
 			},
 		},
-    }
+    });
 </script>
 
 <style scoped>

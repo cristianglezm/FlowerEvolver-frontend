@@ -12,9 +12,11 @@
 </template>
 
 <script>
+	import { defineComponent } from 'vue';
     import FlowersTable from '../components/FlowersTable.vue';
     import { mapActions, mapGetters } from 'vuex'
-    export default{
+	
+    export default defineComponent({
         name:'Browse',
         components:{
             FlowersTable,
@@ -102,7 +104,7 @@
                 this.scroll();
             }
         },
-    }
+    });
 </script>
 
 <style scoped>

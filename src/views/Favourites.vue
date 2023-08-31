@@ -10,8 +10,10 @@
 </template>
 
 <script>
+	import { defineComponent } from 'vue';
     import Flower from '../components/Flower.vue';
-    export default{
+	
+    export default defineComponent({
         name:'Favourites',
         components:{
             Flower,
@@ -24,7 +26,7 @@
         methods: {
             
         },
-    }
+    });
 </script>
 
 <style scoped>

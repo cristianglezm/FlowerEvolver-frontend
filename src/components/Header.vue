@@ -55,9 +55,11 @@
     </div>
 </template>
 <script>
-    import { mapActions, mapGetters} from 'vuex'
+    import { mapActions, mapGetters} from 'vuex';
     import Modal from './Modal.vue';
-    export default {
+	import { defineComponent } from 'vue';
+	
+    export default defineComponent({
         name:'Header',
         components:{
             Modal,
@@ -97,7 +99,7 @@
                 return screen.width <= 1280;
             },
         },
-    }
+    });
 </script>
 
 <style scoped>

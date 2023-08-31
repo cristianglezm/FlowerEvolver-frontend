@@ -7,7 +7,9 @@
 <script>
     import FlowersTable from '../components/FlowersTable.vue';
     import { mapActions } from 'vuex'
-    export default{
+	import { defineComponent } from 'vue';
+	
+    export default defineComponent({
         name:'LastAdded',
         components:{
             FlowersTable,
@@ -40,7 +42,7 @@
                 this.flowers = this.$store.state.lastAdded;
             },
         },
-    }
+    });
 </script>
 
 <style scoped>

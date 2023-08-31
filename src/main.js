@@ -1,14 +1,14 @@
-import Vue from 'vue';
+import { createApp } from 'vue';
 import store from './store';
 import router from './router';
 import App from './App.vue';
-import VueRouter from 'vue-router';
+import mitt from 'mitt';
 
-Vue.use(VueRouter);
+const app = createApp(App);
+app.use(store);
+app.use(router);
 
-Vue.config.productionTip = false;
-new Vue({
-    router,
-    store,
-    render: h => h(App),
-}).$mount('#app');
+const emitter = mitt();
+app.config.globalProperties.emitter = emitter;
+
+app.mount('#app');

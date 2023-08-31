@@ -5,14 +5,16 @@
 </template>
 
 <script>
-    export default {
+	import { defineComponent } from 'vue';
+
+    export default defineComponent({
         name:'Footer',
         data(){
             return {
                 base_url: import.meta.env.BASE_URL,
             }
         },
-    }
+    });
 </script>
 
 <style scoped>

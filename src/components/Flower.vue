@@ -21,7 +21,7 @@
         </div>
         <div v-else>
             <div class="outButtons" :class="{Selected: selected}">
-                <img class="pointer" @click="toogleFavourite({id:id, genome:genome,image:image})" :src="heartIconSrc" :key="id"/>
+                <img class="pointer" @click="toggleFavourite({id:id, genome:genome,image:image})" :src="heartIconSrc" :key="id"/>
                 <img class="drop-menu pointer" v-if="!clicked" @click="clicked = !clicked; " src="@/assets/x32/Arrow_down.png"/>
                 <img class="drop-menu pointer" v-if="clicked" @click="clicked = !clicked; " src="@/assets/x32/Arrow_up.png"/>
                 <div class="buttons" v-if="clicked">
@@ -43,8 +43,9 @@
 
 <script>
     import { mapActions } from 'vuex';
-
-    export default {
+	import { defineComponent } from 'vue';
+	
+    export default defineComponent({
         name:'Flower',
         props:{
             id: Number,
@@ -53,10 +54,9 @@
             useUrl: Boolean,
         },
         mounted(){
-            this.$root.$on('checkSelected', function(){
-                var sel = this.isSelected();
-                this.$set(this.$data, 'selected', sel);
-            }.bind(this));
+              this.emitter.on('checkSelected', (e) => {
+                   this.selected = this.isSelected();
+              });
         },
         data(){
             return{
@@ -99,7 +99,7 @@
                     this.$store.state.errors.push({message:'You can\'t do this while on Demo'});
                 }else{
                     this.selectFlower({id:this.id, genome:this.genome,image:this.image});
-                    this.$root.$emit('checkSelected');
+                    this.emitter.emit('checkSelected');
                 }
             },
             showMutations: function(){
@@ -114,7 +114,7 @@
             isFavourited: function(flower){
                 return this.$store.state.favourites.some(fav => JSON.stringify(flower) === JSON.stringify(fav));
             },
-            toogleFavourite: function(flower){
+            toggleFavourite: function(flower){
                 if(this.$route.path === '/Demo'){
                     this.$store.state.errors.push({message:'You can\'t do this while on Demo'});
                 }else{
@@ -161,7 +161,7 @@
                 }
             },
         }
-    }
+    });
 </script>
 
 <style scoped>
