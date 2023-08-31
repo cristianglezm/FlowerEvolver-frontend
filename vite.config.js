@@ -9,8 +9,8 @@ export default defineConfig({
             "@": path.resolve(__dirname, "./src"),
         },
     },
-	build: {
-		chunkSizeWarningLimit: 2500,
+    build: {
+	chunkSizeWarningLimit: 2500,
     },
     envPrefix: ["VITE_APP_"],
     sourcemap: process.env.NODE_ENV == "production" ? false:true,
