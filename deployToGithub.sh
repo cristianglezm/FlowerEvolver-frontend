@@ -13,7 +13,7 @@ echo "VITE_APP_DOWNLOAD_URL=$BACKEND/download/" >> .env
 echo "VITE_APP_BASE_URL=$BASE_URL" >> .env
 git checkout --orphan gh-pages
 echo "building..."
-npm run buildGHP
+npm run build
 echo "restoring backup"
 # restore backup
 rm .env

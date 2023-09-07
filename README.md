@@ -17,6 +17,8 @@ You can build the image running the following command after cloning the repo, ch
     --build-arg "REWRITE_ENV=TRUE" --build-arg "BASE_URL='/'" --build-arg BACKEND="http://localhost"
 * docker run -dp 80:80 -v logs:/var/log/nginx cristianglezm/fe:frontend-alpine-dev -e "API=localhost:5000"
 
+more info [here](README-Docker.md)
+
 # Building #
 
 Change BACKEND inside the ".env" file to point to the backend.
@@ -34,5 +36,5 @@ then run
 
 ```
 npm install
-npm run build
+npm run dev
 ```

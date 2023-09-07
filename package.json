@@ -5,12 +5,11 @@
     "scripts": {
         "serve": "vite preview",
         "build": "vite build",
-	"buildGHP": "vite build --base=/FlowerEvolver-frontend/",
         "dev": "vite",
         "lint": "eslint --ext .js .vue --ignore-path .gitignore --fix src"
     },
     "dependencies": {
-        "axios": "^0.21.2",
+        "axios": "^1.5.0",
         "mitt": "^3.0.1",
         "vue": "^3.2.20",
         "vue-axios": "^2.1.5",

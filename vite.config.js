@@ -14,5 +14,5 @@ export default defineConfig({
     },
     envPrefix: ["VITE_APP_"],
     sourcemap: process.env.NODE_ENV == "production" ? false:true,
-    publicPath: process.env.NODE_ENV === 'production' ? process.env.VITE_APP_BASE_URL:'/',
+    base: process.env.NODE_ENV === 'production' ? process.env.VITE_APP_BASE_URL:'/',
 });
