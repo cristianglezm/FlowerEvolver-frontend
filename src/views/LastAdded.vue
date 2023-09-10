@@ -6,7 +6,8 @@
 
 <script>
     import FlowersTable from '../components/FlowersTable.vue';
-    import { mapActions } from 'vuex'
+    import { mapActions } from 'pinia';
+	import { useFlowersStore } from '../store';
 	import { defineComponent } from 'vue';
 	
     export default defineComponent({
@@ -20,7 +21,7 @@
         computed:{
             flowers: {
                 get(){
-                    return this.$store.state.lastAdded;
+                    return this.$store.lastAdded;
                 },
                 set(){
                     
@@ -28,18 +29,16 @@
             },
         },
         beforeDestroy(){
-            window.clearInterval(this.$store.state.timer);
+            window.clearInterval(this.$store.timer);
         },
         mounted: function(){
-            this.$store.state.timer = window.setInterval(this.updateList, 30000, 28, 0);
+            this.$store.timer = window.setInterval(this.updateList, 30000, 28, 0);
         },
         methods:{
-            ...mapActions([
-              'updateLastAdded',
-            ]),
+            ...mapActions(useFlowersStore, ['updateLastAdded']),
             updateList: function(limit, offset){
                 this.updateLastAdded({limit:limit, offset:offset});
-                this.flowers = this.$store.state.lastAdded;
+                this.flowers = this.$store.lastAdded;
             },
         },
     });

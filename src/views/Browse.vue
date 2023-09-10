@@ -14,7 +14,8 @@
 <script>
 	import { defineComponent } from 'vue';
     import FlowersTable from '../components/FlowersTable.vue';
-    import { mapActions, mapGetters } from 'vuex'
+    import { mapActions, mapGetters } from 'pinia';
+	import { useFlowersStore } from '../store';
 	
     export default defineComponent({
         name:'Browse',
@@ -22,14 +23,14 @@
             FlowersTable,
         },
         created(){
-            this.$store.state.query.offset = 0;
+            this.$store.query.offset = 0;
             this.page = parseInt(this.$route.query.page, 10) || 0;
             if(this.isPaginated()){
-                this.$store.state.query.limit = this.isMobile() ? 4:14;
+                this.$store.query.limit = this.isMobile() ? 4:14;
                 this.getFlowersFrom(this.page);
             }else{
-                this.$store.state.query.limit = 28;
-                this.updateFlowers({limit:this.$store.state.query.limit, offset:this.$store.state.query.offset});
+                this.$store.query.limit = 28;
+                this.updateFlowers({limit:this.$store.query.limit, offset:this.$store.query.offset});
                 this.increaseOffset();
             }
         },
@@ -41,7 +42,7 @@
         computed:{
             flowers: {
                 get(){
-                    return this.$store.getters.getFlowers();
+                    return this.$store.getFlowers();
                 },
                 set(){
                     
@@ -49,22 +50,22 @@
             },
         },
         methods:{
-            ...mapGetters([
+            ...mapGetters(useFlowersStore, [
               'getFlowers',
             ]),
-            ...mapActions([
+            ...mapActions(useFlowersStore, [
               'updateFlowers',
               'updateAndConcatFlowers',
             ]),
             getFlowers: function(limit, offset){
                 this.updateAndConcatFlowers({limit:limit, offset:offset});
-                this.flowers = this.$store.state.flowers;
+                this.flowers = this.$store.flowers;
                 this.increaseOffset();
             },
             getFlowersFrom: function(page){
                 this.calcOffset(page);
-                this.updateFlowers({limit:this.$store.state.query.limit, offset:this.$store.state.query.offset});
-                this.flowers = this.$store.state.flowers;
+                this.updateFlowers({limit:this.$store.query.limit, offset:this.$store.query.offset});
+                this.flowers = this.$store.flowers;
             },
             prevPage: function(){
                 if(this.page > 0){
@@ -82,15 +83,15 @@
                 window.onscroll = function(){
                     var bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
                     if(bottomOfWindow){
-                        this.getFlowers(this.$store.state.query.limit, this.$store.state.query.offset);
+                        this.getFlowers(this.$store.query.limit, this.$store.query.offset);
                     }
                 }.bind(this);
             },
             increaseOffset: function(){
-                this.$store.state.query.offset = this.$store.state.query.offset + this.$store.state.query.limit;
+                this.$store.query.offset = this.$store.query.offset + this.$store.query.limit;
             },
             calcOffset: function(page){
-                this.$store.state.query.offset = page * this.$store.state.query.limit;
+                this.$store.query.offset = page * this.$store.query.limit;
             },
             isPaginated: function(){
                 return this.$route.query.page >= 0;

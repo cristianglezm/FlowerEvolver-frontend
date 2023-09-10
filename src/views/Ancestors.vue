@@ -20,7 +20,8 @@
 <script>
     import Flower from '../components/Flower.vue';
     import FlowersTable from '../components/FlowersTable.vue';
-    import { mapActions, mapGetters } from 'vuex'
+    import { mapActions, mapGetters } from 'pinia';
+	import { useFlowersStore } from '../store';
 	import { defineComponent } from 'vue';
 	
     export default defineComponent({
@@ -30,21 +31,21 @@
             FlowersTable,
         },
         created(){
-            this.$store.state.query.offset = 0;
-            this.$store.state.ancestors = [];
+            this.$store.query.offset = 0;
+            this.$store.ancestors = [];
             this.flower1 = { id:this.$route.params.father, genome:this.$route.params.father+'.json', image:this.$route.params.father+'.png'};
             if(this.checkFlowers()){
-                this.updateAndConcatAncestors({flower1:this.flower1,limit:this.$store.state.query.limit, offset:this.$store.state.query.offset});
+                this.updateAndConcatAncestors({flower1:this.flower1,limit:this.$store.query.limit, offset:this.$store.query.offset});
             }else{
                 this.flower2 = { id:this.$route.params.mother, genome:this.$route.params.mother+'.json', image:this.$route.params.mother+'.png'};
-                this.updateAndConcatAncestors({flower1:this.flower1, flower2: this.flower2,limit:this.$store.state.query.limit, offset:this.$store.state.query.offset});
+                this.updateAndConcatAncestors({flower1:this.flower1, flower2: this.flower2,limit:this.$store.query.limit, offset:this.$store.query.offset});
             }
             this.increaseOffset();
         },
         computed:{
             ancestors:{
                 get(){
-                    return this.$store.getters.getAncestors();
+                    return this.$store.getAncestors();
                 },
                 set(){
                     
@@ -52,10 +53,10 @@
             },
         },
         methods:{
-            ...mapGetters([
+            ...mapGetters(useFlowersStore, [
               'getAncestors',
             ]),
-            ...mapActions([
+            ...mapActions(useFlowersStore, [
               'updateAncestors',
               'updateAndConcatAncestors',
             ]),
@@ -68,19 +69,19 @@
                 }else{
                     this.updateAndConcatAncestors({flower1:this.flower1, flower2: this.flower2,limit:limit, offset:offset});
                 }
-                this.ancestors = this.$store.getters.getAncestors;
+                this.ancestors = this.$store.getAncestors;
                 this.increaseOffset();
             },
             scroll: function(){
                 window.onscroll = function(){
                     var bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
                     if(bottomOfWindow){
-                        this.getAncestors(this.$store.state.query.limit, this.$store.state.query.offset);
+                        this.getAncestors(this.$store.query.limit, this.$store.query.offset);
                     }
                 }.bind(this);
             },
             increaseOffset: function(){
-                this.$store.state.query.offset = this.$store.state.query.offset + this.$store.state.query.limit;
+                this.$store.query.offset = this.$store.query.offset + this.$store.query.limit;
             },
         },
         mounted: function(){

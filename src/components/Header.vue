@@ -1,20 +1,20 @@
 <template>
     <div class="Header">
-        <div v-if="showWarning" id="warning"><span @click="showWarning = false">X</span><p>Flowers are deleted daily at 00:00 UTC</p></div>
+        <div v-if="showWarning" role="warning" id="warning"><span @click="showWarning = false">X</span><p>Flowers are deleted daily at 00:00 UTC</p></div>
         <header>
             <a :href="this.base_url" style="text-decoration: none;"><h1>Flower Evolver</h1></a>
         </header>
         <div v-if="isMobile()">
             <img @click="showMenu=!showMenu" src="@/assets/x32/menu.png" alt="menuIcon" class="pointer"/>
             <div v-if="showMenu" class="mobileMenu">
-                <div class="tabs" @click="showMenu=!showMenu">
+                <nav class="tabs" @click="showMenu=!showMenu" alt="tabs">
                         <router-link to="/Demo">Demo </router-link>
                         <router-link to="/LastAdded">Last Added </router-link>
                         <router-link to="/Browse"> Browse </router-link>
                         <router-link to="/Favourites"> Favourites </router-link>
                         <router-link to="/Downloads"> Downloads </router-link>
-                </div>
-                <div class="actions">
+                </nav>
+                <nav class="actions" alt="actions">
                     <div v-if="this.$route.path === '/Demo' || blocked" style="display: flex; flex-flow: column wrap;z-index: 1;left: 0px;position: absolute;">
                         <button @click="showMenu=!showMenu" class="disabled">New Flower</button>
                         <button @click="showMenu=!showMenu" class="disabled">Reproduce Selected</button>
@@ -25,11 +25,11 @@
                         <button @click="block(reproduce); showMenu=!showMenu">Reproduce Selected</button>
                         <button @click="block(showAncestors); showMenu=!showMenu">Show Selected Descendants</button>
                     </div>
-                </div>
+                </nav>
             </div>
         </div>
         <div v-else>
-            <div class="tabs">
+            <nav class="tabs" alt="tabs">
                 <ul>
                     <router-link to="/Demo">Demo </router-link>
                     <router-link to="/LastAdded">Last Added </router-link>
@@ -37,8 +37,8 @@
                     <router-link to="/Favourites"> Favourites </router-link>
                     <router-link to="/Downloads"> Downloads </router-link>
                 </ul>
-            </div>
-            <div class="actions">
+            </nav>
+            <div class="actions" alt="actions">
                 <ul v-if="this.$route.path === '/Demo' || blocked">
                     <button class="disabled">New Flower</button>
                     <button class="disabled">Reproduce Selected</button>
@@ -51,11 +51,12 @@
                 </ul>
             </div>
         </div>
-        <Modal :errors="this.$store.state.errors" />
+        <Modal :errors="this.$store.errors" />
     </div>
 </template>
 <script>
-    import { mapActions, mapGetters} from 'vuex';
+    import { mapActions, mapGetters} from 'pinia';
+	import { useFlowersStore } from '../store';
     import Modal from './Modal.vue';
 	import { defineComponent } from 'vue';
 	
@@ -73,10 +74,10 @@
             }
         },
         methods:{
-            ...mapGetters([
+            ...mapGetters(useFlowersStore, [
                 'getSelected',
             ]),
-            ...mapActions([
+            ...mapActions(useFlowersStore, [
                 'makeFlower',
                 'reproduce',
             ]),
@@ -88,9 +89,9 @@
                 }.bind(this), 2000);
             },
             showAncestors: function(){
-                var selected = this.$store.getters.getSelected;
+                var selected = this.$store.getSelected;
                 if(selected.length < 2){
-                    this.$store.state.errors.push({message:'You need to select two flowers'});
+                    this.$store.errors.push({message:'You need to select two flowers'});
                 }else{
                     this.$router.push({name:'DescendantsFatherAndMother', params:{father:selected[0], mother:selected[1]}});
                 }

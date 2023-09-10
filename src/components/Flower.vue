@@ -42,7 +42,8 @@
 </template>
 
 <script>
-    import { mapActions } from 'vuex';
+    import { mapActions } from 'pinia';
+	import { useFlowersStore } from '../store';
 	import { defineComponent } from 'vue';
 	
     export default defineComponent({
@@ -78,7 +79,7 @@
             }
         },
         methods:{
-            ...mapActions([
+            ...mapActions(useFlowersStore,[
               'addFlowerToFav',
               'removeFlowerFromFav',
               'selectFlower',
@@ -96,7 +97,7 @@
             },
             onSelected: function(){
                 if(this.$route.path === '/Demo'){
-                    this.$store.state.errors.push({message:'You can\'t do this while on Demo'});
+                    this.$store.errors.push({message:'You can\'t do this while on Demo'});
                 }else{
                     this.selectFlower({id:this.id, genome:this.genome,image:this.image});
                     this.emitter.emit('checkSelected');
@@ -109,14 +110,14 @@
                 this.$router.push({name:'DescendantsFatherOrMother', params:{father:this.id}});
             },
             isSelected: function(){
-                return this.$store.getters.isFlowerSelected({id:this.id, genome:this.genome,image:this.image})
+                return this.$store.isFlowerSelected({id:this.id, genome:this.genome,image:this.image})
             },
             isFavourited: function(flower){
-                return this.$store.state.favourites.some(fav => JSON.stringify(flower) === JSON.stringify(fav));
+                return this.$store.favourites.some(fav => JSON.stringify(flower) === JSON.stringify(fav));
             },
             toggleFavourite: function(flower){
                 if(this.$route.path === '/Demo'){
-                    this.$store.state.errors.push({message:'You can\'t do this while on Demo'});
+                    this.$store.errors.push({message:'You can\'t do this while on Demo'});
                 }else{
                     if(this.isFavourited(flower)){
                         this.index = 6;
@@ -141,14 +142,14 @@
             },
             getGenome: function(){
                 if(this.$route.path === '/Demo'){
-                    this.$store.state.errors.push({message:this.genome});
+                    this.$store.errors.push({message:this.genome});
                 }else{
                     window.location = this.DOWNLOAD_URL + this.genome;
                 }
             },
             mutate: function(){
                 if(this.$route.path === '/Demo'){
-                    this.$store.state.errors.push({message:'You can\'t do this while on Demo'});
+                    this.$store.errors.push({message:'You can\'t do this while on Demo'});
                 }else{
                     this.makeMutation({id:this.id, image:this.image, genome:this.genome});
                 }

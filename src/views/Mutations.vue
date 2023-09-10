@@ -12,7 +12,8 @@
 	import { defineComponent } from 'vue';
     import Flower from '../components/Flower.vue';
     import FlowersTable from '../components/FlowersTable.vue';
-    import { mapActions, mapGetters } from 'vuex'
+    import { mapActions, mapGetters } from 'pinia';
+	import { useFlowersStore } from '../store';
 	
     export default defineComponent({
         name:'Mutations',
@@ -21,16 +22,16 @@
             FlowersTable,
         },
         created(){
-            this.flower = { id:this.$route.params.id, genome:this.$route.params.id+'.json', image:this.$route.params.id+'.png'};
-            this.$store.state.query.offset = 0;
-            this.$store.state.mutations = [];
-            this.updateMutations({flower:this.flower, limit:this.$store.state.query.limit, offset:this.$store.state.query.offset});
+            this.flower = { id:this.$route.params.id, genome:this.$route.params.id + '.json', image:this.$route.params.id + '.png'};
+            this.$store.query.offset = 0;
+            this.$store.mutations = [];
+            this.updateMutations({flower:this.flower, limit:this.$store.query.limit, offset:this.$store.query.offset});
             this.increaseOffset();
         },
         computed:{
             mutations:{
                 get(){
-                    return this.$store.getters.getMutations();
+                    return this.$store.getMutations();
                 },
                 set(){
                     
@@ -38,28 +39,28 @@
             },
         },
         methods:{
-            ...mapGetters([
+            ...mapGetters(useFlowersStore, [
               'getMutations',
             ]),
-            ...mapActions([
+            ...mapActions(useFlowersStore, [
               'updateMutations',
               'updateAndConcatMutations',
             ]),
             getMutations: function(limit, offset){
                 this.updateAndConcatMutations({flower:this.flower,limit:limit, offset:offset});
-                this.mutations = this.$store.state.mutations;
+                this.mutations = this.$store.mutations;
                 this.increaseOffset();
             },
             scroll: function(){
                 window.onscroll = function(){
                     var bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
                     if(bottomOfWindow){
-                        this.getMutations(this.$store.state.query.limit, this.$store.state.query.offset);
+                        this.getMutations(this.$store.query.limit, this.$store.query.offset);
                     }
                 }.bind(this);
             },
             increaseOffset: function(){
-                this.$store.state.query.offset = this.$store.state.query.offset + this.$store.state.query.limit;
+                this.$store.query.offset = this.$store.query.offset + this.$store.query.limit;
             },
         },
         mounted: function(){

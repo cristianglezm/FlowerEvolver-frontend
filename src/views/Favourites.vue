@@ -12,7 +12,8 @@
 <script>
 	import { defineComponent } from 'vue';
     import Flower from '../components/Flower.vue';
-	
+	import { useFlowersStore } from '../store';
+
     export default defineComponent({
         name:'Favourites',
         components:{
@@ -20,7 +21,7 @@
         },
         data(){
             return{
-                favourites: this.$store.state.favourites,
+                favourites: this.$store.favourites,
             }
         },
         methods: {

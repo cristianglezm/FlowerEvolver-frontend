@@ -1,4 +1,4 @@
-import { STORAGE_KEY } from './mutations';
+import { STORAGE_KEY } from './index';
 
 const localStoragePlugin = store => {
   store.subscribe((mutation, { favourites }) => {

@@ -16,7 +16,7 @@
         },
         methods:{
             clearErrors: function(){
-                this.$store.state.errors = [];
+                this.$store.errors = [];
             },
         },
     }
