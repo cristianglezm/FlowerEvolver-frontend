@@ -4,8 +4,8 @@ WORKDIR /app
 ARG REWRITE_ENV
 ARG BACKEND
 ARG BASE_URL
-RUN sh rewrite_env.sh && \
- npm install && \
+RUN sh rewrite_env.sh && \ 
+ npm ci && \
  npm run build
 
 FROM nginx:stable-alpine as frontend

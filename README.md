@@ -13,9 +13,11 @@ The frontend image must be built as it is a SPA and it needs to be configured.
 
 You can build the image running the following command after cloning the repo, change the environment variables as needed.
 
-* docker build -t cristianglezm/fe:frontend-alpine-dev -f dockerfile.alpine \
-    --build-arg "REWRITE_ENV=TRUE" --build-arg "BASE_URL='/'" --build-arg BACKEND="http://localhost"
-* docker run -dp 80:80 -v logs:/var/log/nginx cristianglezm/fe:frontend-alpine-dev -e "API=localhost:5000"
+```bash
+docker build -t cristianglezm/fe:frontend-alpine-dev -f dockerfile.alpine \
+    --build-arg "REWRITE_ENV=TRUE" --build-arg "BASE_URL='/'" --build-arg BACKEND="http://localhost" .
+docker run -dp 80:80 -v logs:/var/log/nginx cristianglezm/fe:frontend-alpine-dev -e "API=localhost:5000"
+````
 
 more info [here](README-Docker.md)
 

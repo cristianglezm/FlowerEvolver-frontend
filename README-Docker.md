@@ -7,6 +7,7 @@ for production you will need to change the .env file and configure ssl.
 ## Docker compose ##
 
 The frontend image must be built as it is a SPA and it needs to be configured.
+if you are on windows you might need to run dos2unix rewrite_env.sh
 
 You will need to change these environment variables:
 
@@ -37,7 +38,7 @@ Change the arg and environment variables: backend and NGINX_HOST to domain name.
         NGINX_HOST: localhost # domain name
         NGINX_RESOLVER: 127.0.0.11 # dns for docker
 
-the [compose file](https://github.com/cristianglezm/FlowerEvolver-frontend/docker-compose.yml)
+the [compose file](https://github.com/cristianglezm/FlowerEvolver-frontend/blob/master/docker-compose.yml) 
 
 ## Frontend ##
 
@@ -45,9 +46,11 @@ The frontend image must be built as it is a SPA and it needs to be configured.
 
 You can build the image running the following command after cloning the repo, change the environment variables as needed.
 
-* docker build -t cristianglezm/fe:frontend-alpine-dev -f dockerfile.alpine \
-    --build-arg "REWRITE_ENV=TRUE" --build-arg "BASE_URL='/'" --build-arg BACKEND="http://localhost"
-* docker run -dp 80:80 -v logs:/var/log/nginx cristianglezm/fe:frontend-alpine-dev -e "API=localhost:5000"
+```bash
+docker build -t cristianglezm/fe:frontend-alpine-dev -f dockerfile.alpine \
+    --build-arg "REWRITE_ENV=TRUE" --build-arg "BASE_URL='/'" --build-arg BACKEND="http://localhost" .
+docker run -dp 80:80 -v logs:/var/log/nginx cristianglezm/fe:frontend-alpine-dev -e "API=localhost:5000"
+```
 
 ## Backend ##
 

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "running rewrite_env.sh"
-if [ "$REWRITE_ENV" = "true" ]
+if [ "$REWRITE_ENV" == "true" ]
 then
     echo "Building .env file"
     echo "BACKEND=$BACKEND" > .env
