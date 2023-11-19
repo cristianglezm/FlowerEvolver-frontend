@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite'
 import Vue from '@vitejs/plugin-vue'
 
-const path = require("path");
+import path from 'path'
+
 export default defineConfig({
     plugins: [Vue()],
     resolve: {
@@ -16,4 +17,3 @@ export default defineConfig({
     sourcemap: process.env.NODE_ENV === "production" ? false:true,
     base: process.env.NODE_ENV === 'production' ? process.env.VITE_APP_BASE_URL:'/',
 });
-
