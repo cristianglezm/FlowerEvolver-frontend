@@ -1,6 +1,6 @@
 # Flower Evolver #
 
-![Deployment](https://github.com/cristianglezm/FlowerEvolver-frontend/workflows/Deploy%20to%20gh-pages/badge.svg?branch=master)
+[![cd](https://github.com/cristianglezm/FlowerEvolver-frontend/actions/workflows/deploy-gh-pages.yml/badge.svg)](https://github.com/cristianglezm/FlowerEvolver-frontend/actions/workflows/deploy-gh-pages.yml)
 
 Visit the website [here](https://cristianglezm.github.io/FlowerEvolver-frontend/)
 
