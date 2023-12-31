@@ -1,21 +1,28 @@
 <template>
-    <div class="Demo">
-        <FlowersTable :Flowers="flowers" :useUrl="false" :noFlowerMessage="'There is a Problem'"/>
+    <div class="Demo" @onscroll="this.scoll">
+        <FlowersTable :Flowers="flowers" :isLocal="true" :noFlowerMessage="'There is a Problem'"/>
     </div>
 </template>
 
 <script>
 	import { defineComponent } from 'vue';
     import FlowersTable from '../components/FlowersTable.vue';
-	
+    import { mapActions, mapGetters } from 'pinia';
+	import { useFlowersStore } from '../store';
+
     export default defineComponent({
         name:'Demo',
         components:{
             FlowersTable,
         },
+        created(){
+			this.$store.query.offset = 0;
+			this.updateLocalFlowers({limit:this.$store.query.limit, offset:this.$store.query.offset});
+			this.increaseOffset();
+        },
         data(){
             return {
-                flowers: [
+                demoFlowers: [
                             {id: 1, genome: JSON.stringify('@/assets/flowers/1.json'), image: this.loadImage("flowers/1.png")},
                             {id: 2, genome: JSON.stringify('@/assets/flowers/2.json'), image: this.loadImage("flowers/2.png")},
                             {id: 3, genome: JSON.stringify('@/assets/flowers/3.json'), image: this.loadImage("flowers/3.png")},
@@ -55,11 +62,45 @@
                         ]
             }
         },
+        computed:{
+            flowers: {
+                get(){
+                    return this.$store.getLocalFlowers();
+                },
+                set(){
+                    
+                },
+            },
+        },
 		methods:{
+            ...mapGetters(useFlowersStore, [
+              'getLocalFlowers',
+            ]),
+            ...mapActions(useFlowersStore, [
+              'updateLocalFlowers',
+              'updateAndConcatLocalFlowers',
+            ]),
 			loadImage: function(url){
 				return new URL(`/src/assets/${url}`, import.meta.url).toString();
 			},
+            scroll: function(){
+                window.onscroll = function(){
+                    var bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
+                    if(bottomOfWindow){
+                        this.getLocalFlowers(this.$store.query.limit, this.$store.query.offset);
+                    }
+                }.bind(this);
+            },
+            increaseOffset: function(){
+                this.$store.query.offset = this.$store.query.offset + this.$store.query.limit;
+            },
+            calcOffset: function(page){
+                this.$store.query.offset = page * this.$store.query.limit;
+            },
 		},
+        mounted: function(){
+			this.scroll();
+        },
     });
 </script>
 

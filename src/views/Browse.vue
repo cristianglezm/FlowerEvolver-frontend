@@ -29,8 +29,7 @@
                 this.$store.query.limit = this.isMobile() ? 4:14;
                 this.getFlowersFrom(this.page);
             }else{
-                this.$store.query.limit = 28;
-                this.updateFlowers({limit:this.$store.query.limit, offset:this.$store.query.offset});
+                this.updateRemoteFlowers({limit:this.$store.query.limit, offset:this.$store.query.offset});
                 this.increaseOffset();
             }
         },
@@ -42,7 +41,7 @@
         computed:{
             flowers: {
                 get(){
-                    return this.$store.getFlowers();
+                    return this.$store.getRemoteFlowers();
                 },
                 set(){
                     
@@ -51,11 +50,11 @@
         },
         methods:{
             ...mapGetters(useFlowersStore, [
-              'getFlowers',
+              'getRemoteFlowers',
             ]),
             ...mapActions(useFlowersStore, [
-              'updateFlowers',
-              'updateAndConcatFlowers',
+              'updateRemoteFlowers',
+              'updateAndConcatRemoteFlowers',
             ]),
             getFlowers: function(limit, offset){
                 this.updateAndConcatFlowers({limit:limit, offset:offset});
@@ -83,7 +82,7 @@
                 window.onscroll = function(){
                     var bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
                     if(bottomOfWindow){
-                        this.getFlowers(this.$store.query.limit, this.$store.query.offset);
+                        this.getRemoteFlowers(this.$store.query.limit, this.$store.query.offset);
                     }
                 }.bind(this);
             },

@@ -1,7 +1,7 @@
 <template>
     <div class="grid" v-if="Flowers && Flowers.length">
         <div v-for="flower in Flowers"  :key="flower.id">
-            <Flower :id="flower.id" :genome="flower.genome" :image="flower.image" :useUrl="useUrl"/>
+            <Flower :id="flower.id" :genome="flower.genome" :image="flower.image" :isLocal="isLocal"/>
         </div>
     </div>
     <div class="error" v-else>
@@ -20,7 +20,7 @@
         },
         props:{
             Flowers: Array,
-            useUrl: Boolean,
+            isLocal: Boolean,
             noFlowerMessage: String,
         },
     });

@@ -16,13 +16,13 @@
                 </nav>
                 <nav class="actions" alt="actions">
                     <div v-if="this.$route.path === '/Demo' || blocked" style="display: flex; flex-flow: column wrap;z-index: 1;left: 0px;position: absolute;">
-                        <button @click="showMenu=!showMenu" class="disabled">New Flower</button>
-                        <button @click="showMenu=!showMenu" class="disabled">Reproduce Selected</button>
-                        <button @click="showMenu=!showMenu" class="disabled">Show Selected Descendants</button>
+                        <button @click="makeLocalFlower(); showMenu=!showMenu">New Local Flower</button>
+                        <button @click="localReproduce(); showMenu=!showMenu">Local Reproduce Selected</button>
+                        <button @click="showAncestors(); showMenu=!showMenu">Show Selected Descendants</button>
                     </div>
                     <div v-else style="display: flex; flex-flow: column wrap;z-index: 1;left: 0px;position: absolute;">
-                        <button @click="block(makeFlower); showMenu=!showMenu">New Flower</button>
-                        <button @click="block(reproduce); showMenu=!showMenu">Reproduce Selected</button>
+                        <button @click="block(makeRemoteFlower); showMenu=!showMenu">New Remote Flower</button>
+                        <button @click="block(remoteReproduce); showMenu=!showMenu">Remote Reproduce Selected</button>
                         <button @click="block(showAncestors); showMenu=!showMenu">Show Selected Descendants</button>
                     </div>
                 </nav>
@@ -39,14 +39,14 @@
                 </ul>
             </nav>
             <div class="actions" alt="actions">
-                <ul v-if="this.$route.path === '/Demo' || blocked">
-                    <button class="disabled">New Flower</button>
-                    <button class="disabled">Reproduce Selected</button>
-                    <button class="disabled">Show Selected Descendants</button>
+                <ul v-if="this.$route.path === '/Demo'">
+					<button @click="makeLocalFlower()">New Local Flower</button>
+					<button @click="localReproduce()">Local Reproduce Selected</button>
+					<button @click="showAncestors()">Show Selected Descendants</button>
                 </ul>
                 <ul v-else>
-                    <button @click="block(makeFlower)">New Flower</button>
-                    <button @click="block(reproduce)">Reproduce Selected</button>
+                    <button @click="block(makeRemoteFlower)">New Remote Flower</button>
+                    <button @click="block(remoteReproduce)">Remote Reproduce Selected</button>
                     <button @click="block(showAncestors)">Show Selected Descendants</button>
                 </ul>
             </div>
@@ -67,6 +67,7 @@
         },
         data(){
             return {
+				isLocal: this.$route.path === '/Demo',
                 blocked: false,
                 showWarning: true,
                 showMenu: false,
@@ -75,26 +76,42 @@
         },
         methods:{
             ...mapGetters(useFlowersStore, [
-                'getSelected',
+				'getRemoteSelected',
+				'getLocalSelected'
             ]),
             ...mapActions(useFlowersStore, [
-                'makeFlower',
-                'reproduce',
+				'makeRemoteFlower',
+				'makeLocalFlower',
+				'remoteReproduce',
+				'localReproduce'
             ]),
             block: function(Fn){
-                this.blocked = true;
-                Fn();
-                setTimeout(function(){
-                    this.blocked = false;
-                }.bind(this), 2000);
+				if(!this.blocked){
+					this.blocked = true;
+					Fn();
+					setTimeout(function(){
+						this.blocked = false;
+					}.bind(this), 2000);
+				}else{
+					this.$store.errors.push({message: "please wait 2 seconds to make another request."});
+				}
             },
             showAncestors: function(){
-                var selected = this.$store.getSelected;
-                if(selected.length < 2){
-                    this.$store.errors.push({message:'You need to select two flowers'});
-                }else{
-                    this.$router.push({name:'DescendantsFatherAndMother', params:{father:selected[0], mother:selected[1]}});
-                }
+				if(this.isLocal){
+					let selected = this.getLocalSelected();
+					if(selected.length < 2){
+						this.$store.errors.push({message:'You need to select two flowers'});
+					}else{
+						this.$router.push({name:'DescendantsFatherAndMother', params:{father:selected[0], mother:selected[1], isLocal: this.isLocal}});
+					}					
+				}else{
+					let selected = this.getRemoteSelected();
+					if(selected.length < 2){
+						this.$store.errors.push({message:'You need to select two flowers'});
+					}else{
+						this.$router.push({name:'DescendantsFatherAndMother', params:{father:selected[0], mother:selected[1], isLocal: this.isLocal}});
+					}
+				}
             },
             isMobile: function(){
                 return screen.width <= 1280;

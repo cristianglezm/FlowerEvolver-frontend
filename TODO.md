@@ -2,13 +2,13 @@
 
 * make website local first
     + add dexie to use indexedDB to store flowers
-    + adapt Flower component + others to work local first
-        - make local the default way to work with flowers
-          by fetching the data and converting it.
+    + adapt components and views to work with local and remote flowers
+        + browse and lastAdded are remote only.
+        + make localFlowers and remoteFlowers
         + adapt buttons to work local only in Demo (change name?)
         + add button to convert remote flowers into locals
+        + add button to delete local flowers.
         + add button to share flowers with backend - [not sure]
-    + adapt cd to download latest FlowerEvolver wasm and js module.
 * Make Settings component
     + pagination or infinite scroll modes
         - /Browse?page=1 works.
@@ -16,3 +16,4 @@
     + configure params(radius, numLayers, P, bias)
     + configure mutation rates
     + limit per page
+* clean code, squash and merge branch.
