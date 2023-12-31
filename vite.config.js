@@ -1,10 +1,10 @@
-import { defineConfig } from 'vite'
-import Vue from '@vitejs/plugin-vue'
-
-import path from 'path'
+import { defineConfig } from 'vite';
+import Vue from '@vitejs/plugin-vue';
+import wasm from "vite-plugin-wasm";
+import path from 'path';
 
 export default defineConfig({
-    plugins: [Vue()],
+    plugins: [Vue(), wasm()],
     resolve: {
         alias: {
             "@": path.resolve(__dirname, "./src"),

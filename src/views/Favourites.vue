@@ -1,7 +1,7 @@
 <template>
     <div class="grid" v-if="favourites && favourites.length">
         <div v-for="flower in favourites" :key="flower.id">
-            <Flower :id="flower.id" :genome="flower.genome" :image="flower.image" :useUrl="true"/>
+            <Flower :id="flower.id" :genome="flower.genome" :image="flower.image" :isLocal="true"/>
         </div>
     </div>
     <div v-else>

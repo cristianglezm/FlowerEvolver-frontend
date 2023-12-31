@@ -1,18 +1,18 @@
 <template>
     <div class="Flower">
         <div v-if="this.$route.path === '/Demo'">
-            <div class="outButtons">
-                <img class="disabled" :src="heartIconSrc" :key="id"/>
-                <img class="drop-menu disabled" v-if="!clicked" src="@/assets/x32/Arrow_down.png"/>
-                <img class="drop-menu disabled" v-if="clicked" src="@/assets/x32/Arrow_up.png"/>
+            <div class="outButtons" :class="{Selected: selected}">
+                <img class="pointer" @click="toggleFavourite({id:id, genome:genome,image:image})" :src="heartIconSrc" :key="id"/>
+                <img class="drop-menu pointer" v-if="!clicked" @click="clicked = !clicked; " src="@/assets/x32/Arrow_down.png"/>
+                <img class="drop-menu pointer" v-if="clicked" @click="clicked = !clicked; " src="@/assets/x32/Arrow_up.png"/>
                 <div class="buttons" v-if="clicked">
                     <ul>
-                        <li><a class="disabled">Mutate</a></li>
-                        <li><a class="disabled">Select Flower</a></li>
-                        <li><a class="disabled">Download Genome</a></li>
-                        <li><a class="disabled">Download Image</a></li>
-                        <li><a class="disabled">Show Mutations</a></li>
-                        <li><a class="disabled">Show Descendants</a></li>
+                        <li><a @click="mutate(); clicked = !clicked;">Mutate</a></li>
+                        <li><a @click="onSelected(); clicked = !clicked;">Select Flower</a></li>
+                        <li><a @click="getGenome(); clicked = !clicked;">Download Genome</a></li>
+                        <li><a @click="downloadImage(); clicked = !clicked;">Download Image</a></li>
+                        <li><a @click="showMutations(); clicked = !clicked;">Show Mutations</a></li>
+                        <li><a @click="showAncestors(); clicked = !clicked;">Show Descendants</a></li>
                     </ul>
                 </div>
             </div>
@@ -52,7 +52,7 @@
             id: Number,
             genome: String,
             image: String,
-            useUrl: Boolean,
+            isLocal: Boolean,
         },
         mounted(){
               this.emitter.on('checkSelected', (e) => {
@@ -68,56 +68,72 @@
                 index: 0,
                 heartIconSrc: this.isFavourited({id:this.id, genome:this.genome,image:this.image}) ? this.loadImage("heart_full.png","x32") : this.loadImage("heart_empty.png","x32"),
                 heartAnimation: [
-                            this.loadImage("heart_empty.png","x32"),
-                            this.loadImage("heart_filling0.png","x32"),
-                            this.loadImage("heart_filling1.png","x32"),
-                            this.loadImage("heart_filling2.png","x32"),
-                            this.loadImage("heart_filling3.png","x32"),
-                            this.loadImage("heart_filling4.png","x32"),
-                            this.loadImage("heart_full.png","x32"),
+								this.loadImage("heart_empty.png","x32"),
+								this.loadImage("heart_filling0.png","x32"),
+								this.loadImage("heart_filling1.png","x32"),
+								this.loadImage("heart_filling2.png","x32"),
+								this.loadImage("heart_filling3.png","x32"),
+								this.loadImage("heart_filling4.png","x32"),
+								this.loadImage("heart_full.png","x32"),
                             ],
             }
         },
         methods:{
             ...mapActions(useFlowersStore,[
               'addFlowerToFav',
+			  'addRemoteFlowerToLocal',
               'removeFlowerFromFav',
-              'selectFlower',
-              'makeMutation',
+              'selectLocalFlower',
+			  'selectRemoteFlower',
+              'makeRemoteMutation',
+			  'makeLocalMutation',
             ]),
             loadImage: function(url, res){
                 return new URL(`/src/assets/${res}/${url}`, import.meta.url);
             },
             checkUrl: function(){
-                if(this.useUrl){
-                    return this.IMAGES_URL + this.image;
-                }else{
+                if(this.isLocal){
                     return this.image;
+                }else{
+					return this.IMAGES_URL + this.image;
                 }
             },
             onSelected: function(){
                 if(this.$route.path === '/Demo'){
-                    this.$store.errors.push({message:'You can\'t do this while on Demo'});
+                    this.selectLocalFlower({id:this.id, genome:this.genome,image:this.image});
                 }else{
-                    this.selectFlower({id:this.id, genome:this.genome,image:this.image});
-                    this.emitter.emit('checkSelected');
+                    this.selectRemoteFlower({id:this.id, genome:this.genome,image:this.image});
                 }
+				this.emitter.emit('checkSelected');
             },
             showMutations: function(){
                 this.$router.push({name:'Mutations', params:{id:this.id}});
             },
             showAncestors: function(){
-                this.$router.push({name:'DescendantsFatherOrMother', params:{father:this.id}});
+                this.$router.push({name:'DescendantsFatherOrMother', params:{father:this.id, isLocal: this.isLocal}});
             },
             isSelected: function(){
-                return this.$store.isFlowerSelected({id:this.id, genome:this.genome,image:this.image})
+                if(this.isLocal){
+					return this.$store.isLocalFlowerSelected({id:this.id, genome:this.genome,image:this.image})
+				}
+				return this.$store.isRemoteFlowerSelected({id:this.id, genome:this.genome,image:this.image})
             },
             isFavourited: function(flower){
-                return this.$store.favourites.some(fav => JSON.stringify(flower) === JSON.stringify(fav));
+			/// @todo fix
+				return false;
+                //return this.$store.db.favourites.where("id").equals(this.id).toArray().length >== 1;
             },
             toggleFavourite: function(flower){
-                if(this.$route.path === '/Demo'){
-                    this.$store.errors.push({message:'You can\'t do this while on Demo'});
+                if(this.isLocal){
+                    if(this.isFavourited(flower)){
+                        this.index = 6;
+                        setTimeout(this.changeHeartIcon, 50, true);
+                        this.removeFlowerFromFav(flower);
+                    }else{
+                        this.index = 0;
+                        setTimeout(this.changeHeartIcon, 50, false);
+                        this.addFlowerToFav(flower);
+                    }
                 }else{
                     if(this.isFavourited(flower)){
                         this.index = 6;
@@ -126,6 +142,7 @@
                     }else{
                         this.index = 0;
                         setTimeout(this.changeHeartIcon, 50, false);
+						this.convert
                         this.addFlowerToFav(flower);
                     }
                 }
@@ -142,16 +159,9 @@
             },
             getGenome: function(){
                 if(this.$route.path === '/Demo'){
-                    this.$store.errors.push({message:this.genome});
+                    window.location = 'data:text/json;charset=utf-8,' + flower.genome;
                 }else{
                     window.location = this.DOWNLOAD_URL + this.genome;
-                }
-            },
-            mutate: function(){
-                if(this.$route.path === '/Demo'){
-                    this.$store.errors.push({message:'You can\'t do this while on Demo'});
-                }else{
-                    this.makeMutation({id:this.id, image:this.image, genome:this.genome});
                 }
             },
             downloadImage: function(){
@@ -159,6 +169,13 @@
                     window.location.href = this.image;
                 }else{
                     window.location = this.DOWNLOAD_URL + this.image;
+                }
+            },
+            mutate: function(){
+                if(this.isLocal){
+                    this.makeLocalMutation({id:this.id, image:this.image, genome:this.genome});
+                }else{
+                    this.makeRemoteMutation({id:this.id, image:this.image, genome:this.genome});
                 }
             },
         }
