@@ -19,13 +19,26 @@
         components:{
             Flower,
         },
+        mounted(){
+            this.$store.db.favourites.limit(this.$store.settings.limit)
+                .offset(this.offset).toArray()
+                .then(ids => {
+                    for(const id of ids){
+                        this.$store.db.flowers.get(id)
+                        .then(f => this.favourites.unshift(f));
+                    }
+            });
+        },
         data(){
             return{
+                offset: 0,
                 favourites: this.$store.favourites,
             }
         },
         methods: {
-            
+            loadFavourites: async function(){
+
+            },
         },
     });
 </script>

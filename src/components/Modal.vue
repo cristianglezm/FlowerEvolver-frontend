@@ -1,10 +1,10 @@
 <template>
     <div v-if="errors.length" class="Modal">
-        <span @click="clearErrors" class="close">&times;</span>
+        <span @click="clearErrors()" class="close">&times;</span>
         <div class="modal-content" v-for="error of errors" :key="error.id">
             <p>{{error.message}}</p>
         </div>
-        <button @click="clearErrors">Ok.</button>
+        <button @click="clearErrors()">Ok.</button>
     </div>
 </template>
 

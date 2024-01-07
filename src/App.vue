@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <Header />
+    <Header :isLocal="isLocal()"/>
     <router-view :key="$route.fullPath" class="view"></router-view>
     <Footer />
   </div>
@@ -16,6 +16,13 @@ export default defineComponent({
   components: {
     Header,
     Footer,
+  },
+  methods:{
+    isLocal(){
+      return this.$route.path === '/Demo' || 
+              this.$route.path === '/Favourites' || 
+              this.$route.params.isLocal === 'local';
+    }
   },
 });
 </script>

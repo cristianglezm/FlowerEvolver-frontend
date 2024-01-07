@@ -1,42 +1,45 @@
 <template>
     <div class="Flower">
-        <div v-if="this.$route.path === '/Demo'">
+        <div v-if="this.isLocal">
             <div class="outButtons" :class="{Selected: selected}">
-                <img class="pointer" @click="toggleFavourite({id:id, genome:genome,image:image})" :src="heartIconSrc" :key="id"/>
+                <img class="pointer" @click="toggleFavourite(this.id)" :src="heartIconSrc" :key="id"/>
                 <img class="drop-menu pointer" v-if="!clicked" @click="clicked = !clicked; " src="@/assets/x32/Arrow_down.png"/>
                 <img class="drop-menu pointer" v-if="clicked" @click="clicked = !clicked; " src="@/assets/x32/Arrow_up.png"/>
                 <div class="buttons" v-if="clicked">
                     <ul>
                         <li><a @click="mutate(); clicked = !clicked;">Mutate</a></li>
                         <li><a @click="onSelected(); clicked = !clicked;">Select Flower</a></li>
-                        <li><a @click="getGenome(); clicked = !clicked;">Download Genome</a></li>
+                        <li><a @click="downloadGenome(); clicked = !clicked;">Download Genome</a></li>
                         <li><a @click="downloadImage(); clicked = !clicked;">Download Image</a></li>
                         <li><a @click="showMutations(); clicked = !clicked;">Show Mutations</a></li>
                         <li><a @click="showAncestors(); clicked = !clicked;">Show Descendants</a></li>
+						<li><a @click="deleteLocalFlower(this.id); clicked != clicked;">Delete Flower</a></li>
+						<!--- @todo add modal confirm yes no --->
                     </ul>
                 </div>
             </div>
-            <img :id="'FlImage' + id" :src="checkUrl()" :alt="id" class="FlowerImage"/>
-            <p><strong>id: {{id}}</strong></p>
+            <img :id="'FlImage' + id" :src="getImage()" :alt="id" class="FlowerImage"/>
+            <p><strong>{{ id }}</strong></p>
         </div>
         <div v-else>
             <div class="outButtons" :class="{Selected: selected}">
-                <img class="pointer" @click="toggleFavourite({id:id, genome:genome,image:image})" :src="heartIconSrc" :key="id"/>
+                <img class="pointer disabled"  :src="heartIconSrc" :key="id"/>
                 <img class="drop-menu pointer" v-if="!clicked" @click="clicked = !clicked; " src="@/assets/x32/Arrow_down.png"/>
                 <img class="drop-menu pointer" v-if="clicked" @click="clicked = !clicked; " src="@/assets/x32/Arrow_up.png"/>
                 <div class="buttons" v-if="clicked">
                     <ul>
                         <li><a @click="mutate(); clicked = !clicked;">Mutate</a></li>
                         <li><a @click="onSelected(); clicked = !clicked;">Select Flower</a></li>
-                        <li><a @click="getGenome(); clicked = !clicked;">Download Genome</a></li>
+						<li><a @click="addToLocal(); clicked = !clicked;">Add to local</a></li>
+                        <li><a @click="downloadGenome(); clicked = !clicked;">Download Genome</a></li>
                         <li><a @click="downloadImage(); clicked = !clicked;">Download Image</a></li>
                         <li><a @click="showMutations(); clicked = !clicked;">Show Mutations</a></li>
                         <li><a @click="showAncestors(); clicked = !clicked;">Show Descendants</a></li>
                     </ul>
                 </div>
             </div>
-            <img :id="'FlImage' + id" :src="checkUrl()" :alt="id" class="FlowerImage"/>
-            <p><strong>id: {{id}}</strong></p>
+            <img :id="'FlImage' + id" :src="getImage()" :alt="id" class="FlowerImage"/>
+            <p><strong>{{ id }}</strong></p>
         </div>
     </div>
 </template>
@@ -55,9 +58,15 @@
             isLocal: Boolean,
         },
         mounted(){
-              this.emitter.on('checkSelected', (e) => {
-                   this.selected = this.isSelected();
-              });
+            this.emitter.on('checkSelected', (e) => {
+                this.selected = this.isSelected();
+            });
+            this.isFavourited(this.id)
+            .then((isFav) => {
+                if(isFav){
+                    this.heartIconSrc = this.loadImage("heart_full.png","x32");
+                }
+            });
         },
         data(){
             return{
@@ -66,7 +75,7 @@
                 clicked: false,
                 selected: this.isSelected(),
                 index: 0,
-                heartIconSrc: this.isFavourited({id:this.id, genome:this.genome,image:this.image}) ? this.loadImage("heart_full.png","x32") : this.loadImage("heart_empty.png","x32"),
+                heartIconSrc: this.loadImage("heart_empty.png","x32"),
                 heartAnimation: [
 								this.loadImage("heart_empty.png","x32"),
 								this.loadImage("heart_filling0.png","x32"),
@@ -80,18 +89,20 @@
         },
         methods:{
             ...mapActions(useFlowersStore,[
-              'addFlowerToFav',
-			  'addRemoteFlowerToLocal',
-              'removeFlowerFromFav',
-              'selectLocalFlower',
-			  'selectRemoteFlower',
-              'makeRemoteMutation',
-			  'makeLocalMutation',
+                'addFlowerToFav',
+                'addRemoteFlowerToLocal',
+                'removeFlowerFromFav',
+                'selectLocalFlower',
+                'selectRemoteFlower',
+                'makeRemoteMutation',
+                'makeLocalMutation',
+                'isFavourited',
+                'deleteLocalFlower'
             ]),
             loadImage: function(url, res){
                 return new URL(`/src/assets/${res}/${url}`, import.meta.url);
             },
-            checkUrl: function(){
+            getImage: function(){
                 if(this.isLocal){
                     return this.image;
                 }else{
@@ -99,7 +110,7 @@
                 }
             },
             onSelected: function(){
-                if(this.$route.path === '/Demo'){
+                if(this.isLocal){
                     this.selectLocalFlower({id:this.id, genome:this.genome,image:this.image});
                 }else{
                     this.selectRemoteFlower({id:this.id, genome:this.genome,image:this.image});
@@ -107,44 +118,42 @@
 				this.emitter.emit('checkSelected');
             },
             showMutations: function(){
-                this.$router.push({name:'Mutations', params:{id:this.id}});
+                let localOr = this.isLocal ? "local":"remote";
+                this.$router.push({name:'Mutations', params:{id:this.id, isLocal: localOr}});
             },
             showAncestors: function(){
-                this.$router.push({name:'DescendantsFatherOrMother', params:{father:this.id, isLocal: this.isLocal}});
+                let localOr = this.isLocal ? "local":"remote";
+                this.$router.push({name:'DescendantsFatherOrMother', params:{father:this.id, isLocal: localOr}});
             },
             isSelected: function(){
                 if(this.isLocal){
-					return this.$store.isLocalFlowerSelected({id:this.id, genome:this.genome,image:this.image})
-				}
-				return this.$store.isRemoteFlowerSelected({id:this.id, genome:this.genome,image:this.image})
+                    return this.$store.isLocalFlowerSelected({id:this.id, genome:this.genome,image:this.image})
+                }
+                return this.$store.isRemoteFlowerSelected({id:this.id, genome:this.genome,image:this.image})
             },
-            isFavourited: function(flower){
-			/// @todo fix
-				return false;
-                //return this.$store.db.favourites.where("id").equals(this.id).toArray().length >== 1;
-            },
-            toggleFavourite: function(flower){
+            toggleFavourite: function(id){
                 if(this.isLocal){
-                    if(this.isFavourited(flower)){
-                        this.index = 6;
-                        setTimeout(this.changeHeartIcon, 50, true);
-                        this.removeFlowerFromFav(flower);
-                    }else{
-                        this.index = 0;
-                        setTimeout(this.changeHeartIcon, 50, false);
-                        this.addFlowerToFav(flower);
-                    }
+                    this.isFavourited(id)
+                    .then((isFav) =>{
+                        if(isFav){
+                            this.index = 6;
+                            setTimeout(this.changeHeartIcon, 50, true);
+                            this.removeFlowerFromFav(id);
+                        }else{
+                            this.index = 0;
+                            setTimeout(this.changeHeartIcon, 50, false);
+                            this.addFlowerToFav(id);	
+                        }
+                    }).catch(e => this.$store.errors.push({message: e}));
                 }else{
-                    if(this.isFavourited(flower)){
-                        this.index = 6;
-                        setTimeout(this.changeHeartIcon, 50, true);
-                        this.removeFlowerFromFav(flower);
-                    }else{
-                        this.index = 0;
-                        setTimeout(this.changeHeartIcon, 50, false);
-						this.convert
-                        this.addFlowerToFav(flower);
-                    }
+                    this.$store.errors.push({message: "Add the flower to local first to add it to favourites."});
+                }
+            },
+            addToLocal: function(){
+                if(!this.isLocal){
+                    this.addRemoteFlowerToLocal({id: this.id, genome: this.genome, image: this.image});
+                }else{
+                    this.$store.errors.push({message: "This flower is a local flower already."});
                 }
             },
             changeHeartIcon: function(desc){
@@ -157,16 +166,22 @@
                     setTimeout(this.changeHeartIcon, 50, desc);
                 }
             },
-            getGenome: function(){
-                if(this.$route.path === '/Demo'){
-                    window.location = 'data:text/json;charset=utf-8,' + flower.genome;
+            downloadGenome: function(){
+                if(this.isLocal){
+                    const a = document.createElement("a");
+                    a.href = 'data:text/json;charset=utf-8,' + this.genome;
+                    a.download = "flower " + this.id + ".json";
+                    a.click();
                 }else{
                     window.location = this.DOWNLOAD_URL + this.genome;
                 }
             },
             downloadImage: function(){
-                if(this.$route.path === '/Demo'){
-                    window.location.href = this.image;
+                if(this.isLocal){
+                    const a = document.createElement("a");
+                    a.href = this.image;
+                    a.download = "flower " + this.id + ".png";
+                    a.click();
                 }else{
                     window.location = this.DOWNLOAD_URL + this.image;
                 }
