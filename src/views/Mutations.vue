@@ -22,11 +22,18 @@
             FlowersTable,
         },
         created(){
-            this.flower = { id:this.$route.params.id, genome:this.$route.params.id + '.json', image:this.$route.params.id + '.png'};
-            this.$store.query.offset = 0;
+            this.offset = 0;
             this.$store.mutations = [];
-            this.updateMutations({flower:this.flower, limit:this.$store.query.limit, offset:this.$store.query.offset});
-            this.increaseOffset();
+            this.isLocal = this.$route.params.isLocal === "local";
+            let originalID = this.$route.params.id;
+            if(this.isLocal){
+                this.flower = {id:0, genome:"", image:""};
+                this.$store.db.flowers.get(originalID).then(f => this.flower = f)
+            }else{
+                this.flower = { id: originalID, genome: originalID + '.json', image: originalID + '.png'};
+            }
+            this.updateMutations({flower:this.flower, limit:this.$store.settings.limit, offset:this.offset});
+            this.offset = this.increaseOffset(this.offset);
         },
         computed:{
             mutations:{
@@ -40,27 +47,25 @@
         },
         methods:{
             ...mapGetters(useFlowersStore, [
-              'getMutations',
+                'getMutations',
             ]),
             ...mapActions(useFlowersStore, [
-              'updateMutations',
-              'updateAndConcatMutations',
+                'updateMutations',
+                'updateAndConcatMutations',
+                'increaseOffset'
             ]),
             getMutations: function(limit, offset){
                 this.updateAndConcatMutations({flower:this.flower,limit:limit, offset:offset});
                 this.mutations = this.$store.mutations;
-                this.increaseOffset();
+                this.offset = this.increaseOffset(this.offset);
             },
             scroll: function(){
                 window.onscroll = function(){
                     var bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
                     if(bottomOfWindow){
-                        this.getMutations(this.$store.query.limit, this.$store.query.offset);
+                        this.getMutations(this.$store.settings.limit, this.offset);
                     }
                 }.bind(this);
-            },
-            increaseOffset: function(){
-                this.$store.query.offset = this.$store.query.offset + this.$store.query.limit;
             },
         },
         mounted: function(){

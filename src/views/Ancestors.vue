@@ -1,6 +1,6 @@
 <template>
     <div class="Ancestors" @onscroll="this.scroll">
-        <div v-if="!checkFlowers()">
+        <div v-if="!hasFatherOnly()">
             <div class="gridFlowers">
                 <div><Flower :id="flower1.id" :genome="flower1.genome" :image="flower1.image" :isLocal="isLocal"/></div>
                 <div><Flower :id="flower2.id" :genome="flower2.genome" :image="flower2.image" :isLocal="isLocal"/></div>
@@ -18,10 +18,10 @@
 </template>
 
 <script>
-    import Flower from '../components/Flower.vue';
-    import FlowersTable from '../components/FlowersTable.vue';
-    import { mapActions, mapGetters } from 'pinia';
+	import { mapActions, mapGetters } from 'pinia';
 	import { useFlowersStore } from '../store';
+	import Flower from '../components/Flower.vue';
+	import FlowersTable from '../components/FlowersTable.vue';
 	import { defineComponent } from 'vue';
 	
     export default defineComponent({
@@ -31,17 +31,15 @@
             FlowersTable,
         },
         created(){
-            this.$store.query.offset = 0;
+            this.offset = 0;
             this.$store.ancestors = [];
-			this.isLocal = this.$route.params.isLocal;
-            this.flower1 = { id: this.$route.params.father, genome: this.$route.params.father + '.json', image: this.$route.params.father + '.png'};
-            if(this.checkFlowers()){
-                this.updateAndConcatRemoteAncestors({flower1:this.flower1,limit:this.$store.query.limit, offset:this.$store.query.offset});
-            }else{
-                this.flower2 = { id:this.$route.params.mother, genome:this.$route.params.mother+'.json', image:this.$route.params.mother+'.png'};
-                this.updateAndConcatRemoteAncestors({flower1:this.flower1, flower2: this.flower2,limit:this.$store.query.limit, offset:this.$store.query.offset});
-            }
-            this.increaseOffset();
+            this.isLocal = this.$route.params.isLocal === "local";
+            this.flower1 = {id:0, genome:"", image:""};
+            this.flower2 = {id:0, genome:"", image:""};
+            this.Init();
+        },
+        mounted: function(){
+            this.scroll();
         },
         computed:{
             ancestors:{
@@ -55,40 +53,65 @@
         },
         methods:{
             ...mapGetters(useFlowersStore, [
-              'getAncestors',
+                'getAncestors',
             ]),
             ...mapActions(useFlowersStore, [
-              'updateRemoteAncestors',
-			  'updateLocalAncestors',
-              'updateAndRemoteConcatAncestors',
-			  'updateAndLocalConcatAncestors',
+                'updateRemoteAncestors',
+                'updateLocalAncestors',
+                'updateAndConcatRemoteAncestors',
+                'updateAndConcatLocalAncestors',
+                'increaseOffset'
             ]),
-            checkFlowers: function(){
+            hasFatherOnly: function(){
                 return this.$route.params.mother === undefined;
             },
-            getAncestors: function(limit, offset){
-                if(this.checkFlowers()){
-                    this.updateAndConcatAncestors({flower1:this.flower1,limit:limit, offset:offset});
+            Init: async function(){
+                console.log("init()");
+                if(this.isLocal){
+                    let dadID = parseInt(this.$route.params.father);
+                    await this.$store.db.flowers.get(dadID).then((f) => this.flower1 = f);
+                    if(!this.hasFatherOnly()){
+                        let momID = parseInt(this.$route.params.mother);
+                        await this.$store.db.flowers.get(momID).then((f) => this.flower2 = f);
+                    }
                 }else{
-                    this.updateAndConcatAncestors({flower1:this.flower1, flower2: this.flower2,limit:limit, offset:offset});
+                    let dadID = parseInt(this.$route.params.father);
+                    this.flower1 = { id: dadID, genome: dadID + '.json', image: dadID + '.png'};
+                    if(!this.hasFatherOnly()){
+                        let momID = parseInt(this.$route.params.mother);
+                        this.flower2 = { id: momID, genome: momID + '.json', image: momID + '.png'};
+                    }
+                }
+            },
+            updateAncestors: function(limit, offset){
+                if(this.isLocal){
+                    if(this.hasFatherOnly()){
+                        this.updateAndConcatLocalAncestors({flower1:this.flower1,limit:limit, offset:offset});
+                    }else{
+                        this.updateAndConcatLocalAncestors({flower1:this.flower1, flower2: this.flower2,limit:limit, offset:offset});
+                    }
+                }else{
+                    if(this.hasFatherOnly()){
+                        this.updateAndConcatRemoteAncestors({flower1:this.flower1,limit:limit, offset:offset});
+                    }else{
+                        this.updateAndConcatRemoteAncestors({flower1:this.flower1, flower2: this.flower2,limit:limit, offset:offset});
+                    }
                 }
                 this.ancestors = this.$store.getAncestors();
-                this.increaseOffset();
+                this.offset = this.increaseOffset(this.offset);
+                console.log(this.flower1);
+                console.log(this.flower2);
+                console.log(this.ancestors);
             },
             scroll: function(){
                 window.onscroll = function(){
+                    console.log("scrolling");
                     var bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
                     if(bottomOfWindow){
-                        this.getAncestors(this.$store.query.limit, this.$store.query.offset);
+                        this.updateAncestors(this.$store.settings.limit, this.offset);
                     }
                 }.bind(this);
             },
-            increaseOffset: function(){
-                this.$store.query.offset = this.$store.query.offset + this.$store.query.limit;
-            },
-        },
-        mounted: function(){
-            this.scroll();
         },
     });
 </script>

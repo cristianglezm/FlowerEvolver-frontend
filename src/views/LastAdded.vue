@@ -16,7 +16,7 @@
             FlowersTable,
         },
         created(){
-            this.updateList(28,0);
+            this.updateList(30,0);
         },
         computed:{
             flowers: {
@@ -29,10 +29,12 @@
             },
         },
         beforeDestroy(){
+            console.log("beforeDestroy()");
             window.clearInterval(this.$store.timer);
+            this.$store.timer = 0;
         },
         mounted: function(){
-            this.$store.timer = window.setInterval(this.updateList, 30000, 28, 0);
+            this.$store.timer = window.setInterval(this.updateList, 30000, 30, 0);
         },
         methods:{
             ...mapActions(useFlowersStore, ['updateLastAdded']),

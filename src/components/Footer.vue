@@ -1,6 +1,6 @@
 <template>
     <div class="Footer">
-        <p><strong>Copyright&COPY; 2023 FlowerEvolver</strong></p><a href="https://github.com/cristianglezm/FlowerEvolver-frontend"><img :src="this.base_url + 'find-on-github.png'"/></a>
+        <p><strong>Copyright&COPY; 2024 FlowerEvolver</strong></p><a href="https://github.com/cristianglezm/FlowerEvolver-frontend"><img :src="this.base_url + 'find-on-github.png'"/></a>
     </div>
 </template>
 

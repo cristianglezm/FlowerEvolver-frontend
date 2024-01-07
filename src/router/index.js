@@ -15,14 +15,14 @@ const routes = [
   { path: '/Browse', name: 'Browse', component: Browse },
   { path: '/Favourites', name: 'Favourites', component: Favourites },
   { path: '/Downloads', name: 'Downloads', component: Downloads },
-  { path: '/Mutations/:id', name: 'Mutations', component: Mutations },
+  { path: '/Mutations/:isLocal/:id', name: 'Mutations', component: Mutations },
   {
-    path: '/Descendants/:father/:mother',
+    path: '/Descendants/:isLocal/:father/:mother',
     name: 'DescendantsFatherAndMother',
     component: Ancestors,
   },
   {
-    path: '/Descendants/:father',
+    path: '/Descendants/:isLocal/:father',
     name: 'DescendantsFatherOrMother',
     component: Ancestors,
   },

@@ -2,11 +2,11 @@
     <div class="Browse" @onscroll="this.scroll">
         <div v-if="this.isPaginated() && flowers.length" class="container">
             <div v-if="flowers.length" class="arrow"><span @click="prevPage()">&lt;</span></div>
-            <FlowersTable :Flowers="flowers" :useUrl="true" :noFlowerMessage="'There are no Flowers'"/>
+            <FlowersTable :Flowers="flowers" :isLocal="false" :noFlowerMessage="'There are no Flowers'"/>
             <div v-if="flowers.length" class="arrow"><span @click="nextPage()">&gt;</span></div>
         </div>
         <div v-else>
-            <FlowersTable :Flowers="flowers" :useUrl="true" :noFlowerMessage="'There are no Flowers'"/>
+            <FlowersTable :Flowers="flowers" :isLocal="false" :noFlowerMessage="'There are no Flowers'"/>
         </div>
     </div>
 </template>
@@ -23,13 +23,13 @@
             FlowersTable,
         },
         created(){
-            this.$store.query.offset = 0;
+            this.offset = 0;
             this.page = parseInt(this.$route.query.page, 10) || 0;
             if(this.isPaginated()){
-                this.$store.query.limit = this.isMobile() ? 4:14;
+                this.$store.settings.limit = this.isMobile() ? 4:14;
                 this.getFlowersFrom(this.page);
             }else{
-                this.updateRemoteFlowers({limit:this.$store.query.limit, offset:this.$store.query.offset});
+                this.updateRemoteFlowers({limit:this.$store.settings.limit, offset:this.offset});
                 this.increaseOffset();
             }
         },
@@ -50,21 +50,23 @@
         },
         methods:{
             ...mapGetters(useFlowersStore, [
-              'getRemoteFlowers',
+                'getRemoteFlowers',
             ]),
             ...mapActions(useFlowersStore, [
-              'updateRemoteFlowers',
-              'updateAndConcatRemoteFlowers',
+                'updateRemoteFlowers',
+                'updateAndConcatRemoteFlowers',
+                'increaseOffset',
+                'calcOffset'
             ]),
             getFlowers: function(limit, offset){
                 this.updateAndConcatFlowers({limit:limit, offset:offset});
-                this.flowers = this.$store.flowers;
-                this.increaseOffset();
+                this.flowers = this.$store.remoteFlowers;
+                this.offset = this.increaseOffset(this.offset);
             },
             getFlowersFrom: function(page){
-                this.calcOffset(page);
-                this.updateFlowers({limit:this.$store.query.limit, offset:this.$store.query.offset});
-                this.flowers = this.$store.flowers;
+                this.offset = this.calcOffset(page);
+                this.updateRemoteFlowers({limit:this.$store.settings.limit, offset:this.offset});
+                this.flowers = this.$store.remoteFlowers;
             },
             prevPage: function(){
                 if(this.page > 0){
@@ -82,18 +84,12 @@
                 window.onscroll = function(){
                     var bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
                     if(bottomOfWindow){
-                        this.getRemoteFlowers(this.$store.query.limit, this.$store.query.offset);
+                        this.getRemoteFlowers(this.$store.settings.limit, this.offset);
                     }
                 }.bind(this);
             },
-            increaseOffset: function(){
-                this.$store.query.offset = this.$store.query.offset + this.$store.query.limit;
-            },
-            calcOffset: function(page){
-                this.$store.query.offset = page * this.$store.query.limit;
-            },
             isPaginated: function(){
-                return this.$route.query.page >= 0;
+                return this.$store.settings.pagination;
             },
             isMobile: function(){
                 return screen.width <= 1280;
