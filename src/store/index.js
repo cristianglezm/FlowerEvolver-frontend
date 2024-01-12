@@ -7,8 +7,10 @@ export const API = import.meta.env.VITE_APP_API_URL;
 export const URL = import.meta.env.VITE_APP_DOWNLOAD_URL;
 export const STORAGE_KEY = 'FlowerEvolverSettings';
 //import { instantiateStreaming } from '@assemblyscript/loader';
-import feWASM from '/FlowerEvolver.wasm?url';
-import { Module } from '/FlowerEvolver.js?url';
+//import feWASM from '/FlowerEvolver.wasm?url';
+//import { Module } from '/FlowerEvolver.js?url';
+
+import fe from '@cristianglezm/flower-evolver-wasm';
 
 export const useFlowersStore = defineStore('FlowersStore', {
 	state: () => ({
@@ -68,10 +70,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 	},
 	actions: {
 		async loadFE(){
-			fetch(feWASM).then((_) => {
-				Module.locateFile = feWASM;
-				this.fe = Module;
-			});
+			this.fe = await fe();
 		},
 		async convertImageArrayBufferToDataURL(data){
 			const ctx = this.canvas.getContext("2d");
@@ -123,17 +122,15 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			}
 		},
 		async isFavourited(id){
-			return this.db.favourites.where("id").equals(id).toArray()
-						.then((f) => {
-							return f.length >= 1;
-						})
-						.catch(e => this.errors.push({message: e}));
+			return this.db.favourites.where(":id").equals(id).toArray()
+						.then((flowers) => {
+							return flowers.length > 0;
+						}).catch(e => this.errors.push({message: e}));
 		},
 		async addFlowerToFav(id){
-			// @todo fix error?
 			this.db.favourites.add(id, id)
-				.then(id => {
-					this.db.flowers.get(id)
+				.then(ID => {
+					this.db.flowers.get(ID)
 						.then((f) => {
 							this.favourites.unshift(f);
 						})
@@ -142,7 +139,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 				.catch(e => this.errors.push({message: e}));
 		},
 		removeFlowerFromFav(id){
-			this.db.favourites.where("id").equals(id).delete();
+			this.db.favourites.where(":id").equals(id).delete();
 			this.favourites = this.favourites.filter(f => f.id != id);
 		},
 		selectRemoteFlower(flower){
@@ -167,43 +164,6 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			}).catch(e => {
 				this.errors.push({message:e});
 			});
-		},
-		async makeLocalFlower(){
-			try{
-				if(this.fe){
-					if(!this.db.isOpen()){
-						this.db.open();
-					}
-					this.canvas.width = this.settings.params.radius * 2;
-					this.canvas.height = this.settings.params.radius * 3;
-					let genome = this.fe.makeFlower(this.settings.params.radius, this.settings.params.numLayers, 
-													this.settings.params.P, this.settings.params.bias);
-					let id = await this.db.flowers.add({
-						genome: genome, 
-						image: this.getDataURL()
-					});
-					let f = await this.db.flowers.get(id);
-					this.localFlowers.unshift(f);
-				}else{
-					this.errors.push({message:"FlowerEvolver WASM module not loaded"});
-					loadFE();
-				}
-			}catch(e){
-				this.errors.push({message: e});
-			}
-		},
-		async deleteLocalFlower(id){
-			await this.db.favourites.delete(id)
-				.catch(e => this.errors.push({message: e}));
-			await this.db.descendants.delete(id)
-				.catch(e => this.errors.push({message: e}));
-			await this.db.flowers.delete(id)
-				.catch(e => this.errors.push({message: e}));
-// @todo fix mutations error when deleting
-//			await this.db.mutations.where("original").equals(id).or("id").equals(id).delete()
-//				.catch(e => this.errors.push({message: e}));
-			this.localFlowers = this.localFlowers.filter(f => f.id != id);
-			this.favourites = this.favourites.filter(f => f.id != id);
 		},
 		async updateRemoteFlowers({limit, offset}){
 			try{
@@ -367,6 +327,71 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			}catch(e){
 				this.errors.push({message:e});
 			}
+		},
+		async makeLocalFlower(){
+			try{
+				if(this.fe){
+					if(!this.db.isOpen()){
+						this.db.open();
+					}
+					this.canvas.width = this.settings.params.radius * 2;
+					this.canvas.height = this.settings.params.radius * 3;
+					let genome = this.fe.makeFlower(this.settings.params.radius, this.settings.params.numLayers, 
+													this.settings.params.P, this.settings.params.bias);
+					let id = await this.db.flowers.add({
+						genome: genome, 
+						image: this.getDataURL()
+					});
+					let f = await this.db.flowers.get(id);
+					this.localFlowers.unshift(f);
+				}else{
+					this.errors.push({message:"FlowerEvolver WASM module not loaded, try again"});
+					loadFE();
+				}
+			}catch(e){
+				this.errors.push({message: e});
+			}
+		},
+		async redrawFlower(flower){
+			/// @todo review
+			try{
+				if(this.fe){
+					if(!this.db.isOpen()){
+						this.db.open();
+					}
+					this.canvas.width = this.settings.params.radius * 2;
+					this.canvas.height = this.settings.params.radius * 3;
+					try{
+						this.fe.drawFlower(flower.genome, this.settings.params.radius, this.settings.params.numLayers, 
+											this.settings.params.P, this.settings.params.bias);
+					}catch(e){
+						this.errors.push({message: e});
+						return;
+					}
+					flower.image = this.getDataURL();
+					delete flower.id;
+					flower.id = await this.db.flowers.add(flower).catch(e => this.errors.push({message: e}));
+					this.localFlowers.unshift(flower);
+				}else{
+					this.errors.push({message:"FlowerEvolver WASM module not loaded, try again"});
+					loadFE();
+				}
+			}catch(e){
+				this.errors.push({message: e});
+			}
+		},
+		async deleteLocalFlower(id){
+			await this.db.favourites.delete(id)
+				.catch(e => this.errors.push({message: e}));
+			await this.db.descendants.delete(id)
+				.catch(e => this.errors.push({message: e}));
+			await this.db.flowers.delete(id)
+				.catch(e => this.errors.push({message: e}));
+// @todo fix mutations error when deleting
+//			await this.db.mutations.where("original").equals(id).or("id").equals(id).delete()
+//				.catch(e => this.errors.push({message: e}));
+			this.localFlowers = this.localFlowers.filter(f => f.id != id);
+			this.favourites = this.favourites.filter(f => f.id != id);
 		},
 		remoteReproduce(){
 			if(this.remoteSelected.flowers.length > 1){

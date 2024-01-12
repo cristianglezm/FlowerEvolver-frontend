@@ -36,10 +36,9 @@
             this.isLocal = this.$route.params.isLocal === "local";
             this.flower1 = {id:0, genome:"", image:""};
             this.flower2 = {id:0, genome:"", image:""};
-            this.Init();
         },
         mounted: function(){
-            this.scroll();
+            this.Init();
         },
         computed:{
             ancestors:{
@@ -82,6 +81,7 @@
                         this.flower2 = { id: momID, genome: momID + '.json', image: momID + '.png'};
                     }
                 }
+                this.updateAncestors(this.$store.settings.limit, this.offset);
             },
             updateAncestors: function(limit, offset){
                 if(this.isLocal){
