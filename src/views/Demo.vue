@@ -1,6 +1,6 @@
 <template>
     <div class="Demo" @onscroll="this.scroll">
-        <FlowersTable :Flowers="flowers" :isLocal="true" :noFlowerMessage="'There are no flowers'"/>
+        <FlowersTable :Flowers="flowers" :isLocal="true" :noFlowerMessage="'There are no Flowers'"/>
     </div>
 </template>
 
@@ -152,6 +152,6 @@
 
 <style scoped>
     .Demo{
-        background-color: grey;
+        background-color: black;
     }
 </style>

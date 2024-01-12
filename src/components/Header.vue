@@ -169,7 +169,7 @@
         .mobileMenu{
             box-shadow: 5px 10px 1px 2px rgba(12, 13, 12, 0.5);
             width: 100%;
-            height: 250%;
+            height: 330%;
             background-color: rgb(0, 128, 0, 0.8);
             display: flex;
             flex-flow: row wrap;

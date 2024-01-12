@@ -20,14 +20,8 @@
             Flower,
         },
         mounted(){
-            this.$store.db.favourites.limit(this.$store.settings.limit)
-                .offset(this.offset).toArray()
-                .then(ids => {
-                    for(const id of ids){
-                        this.$store.db.flowers.get(id)
-                        .then(f => this.favourites.unshift(f));
-                    }
-            });
+            this.$store.favourites = [];
+            this.loadFavourites();
         },
         data(){
             return{
@@ -35,9 +29,21 @@
                 favourites: this.$store.favourites,
             }
         },
+        computed:{
+            favourites(){
+                return this.$store.favourites;
+            },
+        },
         methods: {
             loadFavourites: async function(){
-
+                await this.$store.db.favourites.limit(this.$store.settings.limit)
+                .offset(this.offset).toArray()
+                .then(ids => {
+                    for(const id of ids){
+                        this.$store.db.flowers.get(id)
+                        .then(f => this.favourites.unshift(f));
+                    }
+                });
             },
         },
     });

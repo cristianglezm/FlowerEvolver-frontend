@@ -14,7 +14,8 @@
                         <li><a @click="showMutations(); clicked = !clicked;">Show Mutations</a></li>
                         <li><a @click="showAncestors(); clicked = !clicked;">Show Descendants</a></li>
 						<li><a @click="deleteLocalFlower(this.id); clicked != clicked;">Delete Flower</a></li>
-						<!--- @todo add modal confirm yes no --->
+                        <li><a @click="redrawFlower({genome: this.genome}); clicked != clicked;">Redraw Flower</a></li>
+<!--- @todo add modal confirm yes no --->
                     </ul>
                 </div>
             </div>
@@ -97,7 +98,8 @@
                 'makeRemoteMutation',
                 'makeLocalMutation',
                 'isFavourited',
-                'deleteLocalFlower'
+                'deleteLocalFlower',
+                'redrawFlower'
             ]),
             loadImage: function(url, res){
                 return new URL(`/src/assets/${res}/${url}`, import.meta.url);
@@ -131,20 +133,18 @@
                 }
                 return this.$store.isRemoteFlowerSelected({id:this.id, genome:this.genome,image:this.image})
             },
-            toggleFavourite: function(id){
+            toggleFavourite: async function(id){
                 if(this.isLocal){
-                    this.isFavourited(id)
-                    .then((isFav) =>{
-                        if(isFav){
-                            this.index = 6;
-                            setTimeout(this.changeHeartIcon, 50, true);
-                            this.removeFlowerFromFav(id);
-                        }else{
-                            this.index = 0;
-                            setTimeout(this.changeHeartIcon, 50, false);
-                            this.addFlowerToFav(id);	
-                        }
-                    }).catch(e => this.$store.errors.push({message: e}));
+                    let isFav = await this.isFavourited(id);
+                    if(isFav){
+                        this.index = 6;
+                        setTimeout(this.changeHeartIcon, 50, true);
+                        await this.removeFlowerFromFav(id);
+                    }else{
+                        this.index = 0;
+                        setTimeout(this.changeHeartIcon, 50, false);
+                        await this.addFlowerToFav(id);
+                    }
                 }else{
                     this.$store.errors.push({message: "Add the flower to local first to add it to favourites."});
                 }
