@@ -1,14 +1,14 @@
 <template>
-    <div class="Demo" @onscroll="this.scroll">
+    <div class="Demo">
         <FlowersTable :Flowers="flowers" :isLocal="true" :noFlowerMessage="'There are no Flowers'"/>
     </div>
 </template>
 
 <script>
-	import { defineComponent } from 'vue';
+    import { defineComponent } from 'vue';
     import FlowersTable from '../components/FlowersTable.vue';
     import { mapActions, mapGetters } from 'pinia';
-	import { useFlowersStore } from '../store';
+    import { useFlowersStore } from '../store';
 
     export default defineComponent({
         name:'Demo',
@@ -64,11 +64,8 @@
             }
         },
         computed:{
-            flowers: {
-                get(){
-                    return this.$store.getLocalFlowers();
-                },
-                set(){},
+            flowers(){
+                return this.$store.getLocalFlowers();
             },
         },
         methods:{
@@ -87,12 +84,13 @@
             },
             scroll: function(){
                 window.onscroll = function(){
+                    console.log("flowers length: ", this.flowers.length);
                     let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
                     if(bottomOfWindow){
                         this.updateAndConcatLocalFlowers({limit: this.$store.settings.limit, offset: this.offset});
                         this.offset = this.increaseOffset(this.offset);
-                        this.flowers = this.$store.localFlowers;
-                        console.log("offset: " + this.offset);
+                        console.log("offset: ", this.offset);
+                        console.log("flowers length: ", this.flowers.length);
                     }
                 }.bind(this);
             },
@@ -138,14 +136,14 @@
                         await this.addDemoFlowerToLocal(f);
                     }
                     this.setLoadDemoFlowers(false);
-                    this.flowers = this.$store.localFlowers;
                 }
             },
         },
         mounted: function(){
             console.log("mounted");
-            this.flowers = this.$store.localFlowers;
-            this.scroll();
+            if(!this.isPaginated()){
+                this.scroll();
+            }
         },
     });
 </script>

@@ -194,7 +194,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 				const flowers = await this.db.flowers.reverse().limit(limit).offset(offset).toArray();
 				this.localFlowers = this.localFlowers.concat(flowers);
 			}catch(e){
-				//this.errors.push({message:e});
+				this.errors.push({message:e});
 			}
 		},
 		async updateLastAdded({limit, offset}){
@@ -210,7 +210,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 				const response = await axios.get(API + 'mutations/' + flower.id + '?limit=' + limit + '&offset=' + offset)
 				this.mutations = response.data;
 			}catch(e){
-				this.errors.push({message:e});
+				//this.errors.push({message:e});
 			}
 		},
 		async updateLocalMutations({flower, limit, offset}){
@@ -232,7 +232,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 				const response = await axios.get(API + 'mutations/' + flower.id +'?limit=' + limit + '&offset=' + offset)
 				this.mutations = this.mutations.concat(response.data);
 			}catch(e){
-				this.errors.push({message:e});
+				//this.errors.push({message:e});
 			}
 		},
 		async updateAndConcatLocalMutations({flower, limit, offset}){
@@ -270,7 +270,8 @@ export const useFlowersStore = defineStore('FlowersStore', {
 											.equals(flower1.id).limit(limit)
 											.offset(offset).toArray();
 					for(const d of descendants){
-						this.db.flowers.get(d.id).toArray()
+						console.log(d);
+						this.db.flowers.get(d.id)
 							.then((f) => {
 								this.ancestors.unshift(f);
 						});
@@ -279,7 +280,8 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					const descendants = await this.db.descendants.where("father").equals(flower1.id)
 						.and(ds => ds.mother == flower2.id).limit(limit).offset(offset).toArray();
 					for(const d of descendants){
-						this.db.flowers.get(d.id).toArray()
+						console.log(d);
+						this.db.flowers.get(d.id)
 							.then((f) => {
 								this.ancestors.unshift(f);
 						});
@@ -299,17 +301,16 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					this.ancestors = this.ancestors.concat(response.data);
 				}
 			}catch(e){
-				this.errors.push({message:e});
+				//this.errors.push({message:e});
 			}
 		},
 		async updateAndConcatLocalAncestors({flower1, flower2, limit, offset}){
-			// @todo fix
 			try{
 				if(flower2 === undefined || flower2 === null){
 					const descendants = await this.db.descendants.where("father").equals(flower1.id)
 											.limit(limit).offset(offset).toArray();
 					for(const d of descendants){
-						this.db.flowers.get(d.id).toArray()
+						this.db.flowers.get(d.id)
 							.then((f) => {
 								this.ancestors.unshift(f);
 						});
@@ -318,7 +319,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					const descendants = await this.db.descendants.where("father").equals(flower1.id)
 						.and(ds => ds.mother == flower2.id).limit(limit).offset(offset).toArray();
 					for(const d of descendants){
-						this.db.flowers.get(d.id).toArray()
+						this.db.flowers.get(d.id)
 							.then((f) => {
 								this.ancestors.unshift(f);
 						});
@@ -433,6 +434,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 						});
 					let f = await this.db.flowers.get(id);
 					this.localFlowers.unshift(f);
+					this.descendants.unshift(f);
 				}else{
 					this.errors.push({message:"There are no Flowers Selected"});
 				}

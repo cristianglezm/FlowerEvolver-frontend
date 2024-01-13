@@ -26,7 +26,6 @@
         data(){
             return{
                 offset: 0,
-                favourites: this.$store.favourites,
             }
         },
         computed:{

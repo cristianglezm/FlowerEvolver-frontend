@@ -1,19 +1,20 @@
 <template>
-    <div class="Ancestors" @onscroll="this.scroll">
+    <div class="Ancestors">
         <div v-if="!hasFatherOnly()">
             <div class="gridFlowers">
                 <div><Flower :id="flower1.id" :genome="flower1.genome" :image="flower1.image" :isLocal="isLocal"/></div>
                 <div><Flower :id="flower2.id" :genome="flower2.genome" :image="flower2.image" :isLocal="isLocal"/></div>
             </div>
             <div class="header"><p><strong>Descendants of {{flower1.id}} and {{flower2.id}}</strong></p></div>
+            <FlowersTable :Flowers="ancestors" :isLocal="isLocal" :noFlowerMessage="'These Flowers have no descendants.'"/>
         </div>
         <div v-else>
             <div class="fatherFlower">
                 <Flower :id="flower1.id" :genome="flower1.genome" :image="flower1.image" :isLocal="isLocal"/>
             </div>
             <div class="header"><p><strong>Descendants of {{flower1.id}}</strong></p></div>
+            <FlowersTable :Flowers="ancestors" :isLocal="isLocal" :noFlowerMessage="'This Flower has no descendants.'"/>
         </div>
-        <FlowersTable :Flowers="ancestors" :isLocal="isLocal" :noFlowerMessage="'These Flowers have no descendants.'"/>
     </div>
 </template>
 
@@ -34,20 +35,20 @@
             this.offset = 0;
             this.$store.ancestors = [];
             this.isLocal = this.$route.params.isLocal === "local";
-            this.flower1 = {id:0, genome:"", image:""};
-            this.flower2 = {id:0, genome:"", image:""};
         },
         mounted: function(){
             this.Init();
+            this.scroll();
+        },
+        data(){
+            return {
+                flower1: {id:0, genome:"", image:""},
+                flower2: {id:0, genome:"", image:""}
+            };
         },
         computed:{
-            ancestors:{
-                get(){
-                    return this.$store.getAncestors();
-                },
-                set(){
-                    
-                },
+            ancestors(){
+                return this.$store.getAncestors();
             },
         },
         methods:{
@@ -55,8 +56,6 @@
                 'getAncestors',
             ]),
             ...mapActions(useFlowersStore, [
-                'updateRemoteAncestors',
-                'updateLocalAncestors',
                 'updateAndConcatRemoteAncestors',
                 'updateAndConcatLocalAncestors',
                 'increaseOffset'
@@ -65,7 +64,6 @@
                 return this.$route.params.mother === undefined;
             },
             Init: async function(){
-                console.log("init()");
                 if(this.isLocal){
                     let dadID = parseInt(this.$route.params.father);
                     await this.$store.db.flowers.get(dadID).then((f) => this.flower1 = f);
@@ -97,15 +95,10 @@
                         this.updateAndConcatRemoteAncestors({flower1:this.flower1, flower2: this.flower2,limit:limit, offset:offset});
                     }
                 }
-                this.ancestors = this.$store.getAncestors();
                 this.offset = this.increaseOffset(this.offset);
-                console.log(this.flower1);
-                console.log(this.flower2);
-                console.log(this.ancestors);
             },
             scroll: function(){
                 window.onscroll = function(){
-                    console.log("scrolling");
                     var bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
                     if(bottomOfWindow){
                         this.updateAncestors(this.$store.settings.limit, this.offset);
