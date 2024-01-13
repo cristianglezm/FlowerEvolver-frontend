@@ -3,17 +3,17 @@
 * make website local first
     + [x] add dexie to use indexedDB to store flowers
     + [] adapt components and views to work with local and remote flowers
-		[] remove message of 2s wait for disabled buttons?
+        + [] remove message of 2s wait for disabled buttons?
         + components
             - Flower
                 + [x] add button to convert remote flowers into locals
                 + [] add button to delete local flowers.
                     - add modalYesNo
-                + [] add button to redraw flower (to apply new params) [make copy with new params? or replace?]
+                + [] add button to redraw flower (make a new flowers with params)
+                    - menu keeps open after clicking.
                 + [] add button to share flowers with backend - [not sure]
         + views
             - Ancestors
-                + [] make parents reactive
                 + [] infinite scroll does not work
                 + [] add pagination mode
             - Browse
@@ -29,14 +29,13 @@
                 + [] infinite scroll does not work
                 + [] add pagination mode
             - mutations
-                + [] make original reactive
                 + [] infinite scroll does not work
                 + [] add pagination mode
         + [] browse and lastAdded are remote only.
         + [] change demo component name to Local?
 	+ [x] fix wasm module not loading in prod
     + [] fix deprecated mapGetters
-    + [] remake demo flowers
+    + [] remake demo flowers (ther images are different as activations from EvoAI changed)
 * Make Settings component
     + pagination or infinite scroll modes
         - /Browse?page=1 works.

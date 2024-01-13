@@ -1,5 +1,5 @@
 <template>
-    <div class="Browse" @onscroll="this.scroll">
+    <div class="Browse">
         <div v-if="this.isPaginated() && flowers.length" class="container">
             <div v-if="flowers.length" class="arrow"><span @click="prevPage()">&lt;</span></div>
             <FlowersTable :Flowers="flowers" :isLocal="false" :noFlowerMessage="'There are no Flowers'"/>
@@ -39,13 +39,8 @@
             }
         },
         computed:{
-            flowers: {
-                get(){
-                    return this.$store.getRemoteFlowers();
-                },
-                set(){
-                    
-                },
+            flowers(){
+                return this.$store.getRemoteFlowers();
             },
         },
         methods:{
@@ -58,15 +53,13 @@
                 'increaseOffset',
                 'calcOffset'
             ]),
-            getFlowers: function(limit, offset){
-                this.updateAndConcatFlowers({limit:limit, offset:offset});
-                this.flowers = this.$store.remoteFlowers;
+            updateFlowers: function(limit, offset){
+                this.updateAndConcatRemoteFlowers({limit:limit, offset:offset});
                 this.offset = this.increaseOffset(this.offset);
             },
             getFlowersFrom: function(page){
                 this.offset = this.calcOffset(page);
                 this.updateRemoteFlowers({limit:this.$store.settings.limit, offset:this.offset});
-                this.flowers = this.$store.remoteFlowers;
             },
             prevPage: function(){
                 if(this.page > 0){
@@ -84,7 +77,9 @@
                 window.onscroll = function(){
                     var bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
                     if(bottomOfWindow){
-                        this.getRemoteFlowers(this.$store.settings.limit, this.offset);
+                        console.log("flowers length: ", this.flowers.length);
+                        this.updateFlowers(this.$store.settings.limit, this.offset);
+                        console.log("flowers length: ", this.flowers.length);
                     }
                 }.bind(this);
             },

@@ -29,7 +29,7 @@
             },
         },
         beforeDestroy(){
-            console.log("beforeDestroy()");
+            console.log("beforeDestroy()"); // never called? bug @todo fix
             window.clearInterval(this.$store.timer);
             this.$store.timer = 0;
         },
