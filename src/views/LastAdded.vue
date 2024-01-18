@@ -28,8 +28,7 @@
                 },
             },
         },
-        beforeDestroy(){
-            console.log("beforeDestroy()"); // never called? bug @todo fix
+        beforeUnmount(){
             window.clearInterval(this.$store.timer);
             this.$store.timer = 0;
         },

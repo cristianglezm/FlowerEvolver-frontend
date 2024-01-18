@@ -14,7 +14,7 @@
                         <li><a @click="showMutations(); clicked = !clicked;">Show Mutations</a></li>
                         <li><a @click="showAncestors(); clicked = !clicked;">Show Descendants</a></li>
 						<li><a @click="deleteLocalFlower(this.id); clicked != clicked;">Delete Flower</a></li>
-                        <li><a @click="redrawFlower({genome: this.genome}); clicked != clicked;">Redraw Flower</a></li>
+                        <li><a @click="clicked != clicked; redrawFlower({genome: this.genome});">Redraw Flower</a></li>
 <!--- @todo add modal confirm yes no --->
                     </ul>
                 </div>
