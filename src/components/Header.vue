@@ -8,31 +8,47 @@
             <img @click="showMenu=!showMenu" src="@/assets/x32/menu.png" alt="menuIcon" class="pointer"/>
             <div v-if="showMenu" class="mobileMenu">
                 <nav class="tabs" @click="showMenu=!showMenu" alt="tabs">
-                        <router-link to="/Demo">Demo </router-link>
-                        <router-link to="/LastAdded">Last Added </router-link>
+                    <ul v-if="isPaginated()">
+                        <router-link to="/Demo?page=0"> Demo </router-link>
+                        <router-link to="/LastAdded"> Last Added </router-link>
+                        <router-link to="/Browse?page=0"> Browse </router-link>
+                        <router-link to="/Favourites?page=0"> Favourites </router-link>
+                        <router-link to="/Downloads"> Downloads </router-link>
+                    </ul>
+                    <ul v-else>
+                        <router-link to="/Demo"> Demo </router-link>
+                        <router-link to="/LastAdded"> Last Added </router-link>
                         <router-link to="/Browse"> Browse </router-link>
                         <router-link to="/Favourites"> Favourites </router-link>
                         <router-link to="/Downloads"> Downloads </router-link>
+                    </ul>
                 </nav>
                 <nav class="actions" alt="actions">
                     <div v-if="this.isLocal || blocked" style="display: flex; flex-flow: column wrap;z-index: 1;left: 0px;position: absolute;">
-                        <button @click="makeLocalFlower(); showMenu=!showMenu">New Local Flower</button>
-                        <button @click="localReproduce(); showMenu=!showMenu">Local Reproduce Selected</button>
-                        <button @click="showAncestors(); showMenu=!showMenu">Show Local Selected Descendants</button>
+                        <button @click="makeLocalFlower(); showMenu=!showMenu"> New Local Flower</button>
+                        <button @click="localReproduce(); showMenu=!showMenu"> Local Reproduce Selected</button>
+                        <button @click="showAncestors(); showMenu=!showMenu"> Show Local Selected Descendants</button>
                     </div>
                     <div v-else style="display: flex; flex-flow: column wrap;z-index: 1;left: 0px;position: absolute;">
-                        <button @click="block(makeRemoteFlower); showMenu=!showMenu">New Remote Flower</button>
-                        <button @click="block(remoteReproduce); showMenu=!showMenu">Remote Reproduce Selected</button>
-                        <button @click="block(showAncestors); showMenu=!showMenu">Show Remote Selected Descendants</button>
+                        <button @click="block(makeRemoteFlower); showMenu=!showMenu"> New Remote Flower</button>
+                        <button @click="block(remoteReproduce); showMenu=!showMenu"> Remote Reproduce Selected</button>
+                        <button @click="block(showAncestors); showMenu=!showMenu"> Show Remote Selected Descendants</button>
                     </div>
                 </nav>
             </div>
         </div>
         <div v-else>
             <nav class="tabs" alt="tabs">
-                <ul>
-                    <router-link to="/Demo">Demo </router-link>
-                    <router-link to="/LastAdded">Last Added </router-link>
+                <ul v-if="isPaginated()">
+                    <router-link to="/Demo?page=0"> Demo </router-link>
+                    <router-link to="/LastAdded"> Last Added </router-link>
+                    <router-link to="/Browse?page=0"> Browse </router-link>
+                    <router-link to="/Favourites?page=0"> Favourites </router-link>
+                    <router-link to="/Downloads"> Downloads </router-link>
+                </ul>
+                <ul v-else>
+                    <router-link to="/Demo"> Demo </router-link>
+                    <router-link to="/LastAdded"> Last Added </router-link>
                     <router-link to="/Browse"> Browse </router-link>
                     <router-link to="/Favourites"> Favourites </router-link>
                     <router-link to="/Downloads"> Downloads </router-link>
@@ -40,14 +56,19 @@
             </nav>
             <div class="actions" alt="actions">
                 <ul v-if="this.isLocal">
-                    <button @click="makeLocalFlower()">New Local Flower</button>
-                    <button @click="localReproduce()">Local Reproduce Selected</button>
-                    <button @click="showAncestors()">Show Local Selected Descendants</button>
+                    <button @click="makeLocalFlower()"> New Local Flower</button>
+                    <button @click="localReproduce()"> Local Reproduce Selected</button>
+                    <button @click="showAncestors()"> Show Local Selected Descendants</button>
+                </ul>
+                <ul v-else-if="blocked">
+                    <button class="disabled"> New Remote Flower</button>
+                    <button class="disabled"> Remote Reproduce Selected</button>
+                    <button class="disabled"> Show Remote Selected Descendants</button>                
                 </ul>
                 <ul v-else>
-                    <button @click="block(makeRemoteFlower)">New Remote Flower</button>
-                    <button @click="block(remoteReproduce)">Remote Reproduce Selected</button>
-                    <button @click="block(showAncestors)">Show Remote Selected Descendants</button>
+                    <button @click="block(makeRemoteFlower)"> New Remote Flower</button>
+                    <button @click="block(remoteReproduce)"> Remote Reproduce Selected</button>
+                    <button @click="block(showAncestors)"> Show Remote Selected Descendants</button>
                 </ul>
             </div>
         </div>
@@ -94,8 +115,6 @@
                     setTimeout(function(){
                         this.blocked = false;
                     }.bind(this), 2000);
-                }else{
-                    this.$store.errors.push({message: "Please wait 2 seconds to make another request."});
                 }
             },
             showAncestors: function(){
@@ -114,6 +133,9 @@
                         this.$router.push({name:'DescendantsFatherAndMother', params:{father:selected[0], mother:selected[1], isLocal: "remote"}});
                     }
                 }
+            },
+            isPaginated: function(){
+                return this.$store.settings.pagination;
             },
             isMobile: function(){
                 return screen.width <= 1280;

@@ -1,12 +1,16 @@
 <template>
     <div class="Demo">
-        <FlowersTable :Flowers="flowers" :isLocal="true" :noFlowerMessage="'There are no Flowers'"/>
+        <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="flowers.length" :currentPage="this.page" :totalPages="this.totalPages"
+                                    @next-page="this.nextPage" @prev-page="this.prevPage" @update-page="this.nextBatch">
+            <FlowersTable :Flowers="flowers" :isLocal="true" :noFlowerMessage="'There are no Flowers'"/>
+        </PaginationOrInfiniteScroll>
     </div>
 </template>
 
 <script>
     import { defineComponent } from 'vue';
     import FlowersTable from '../components/FlowersTable.vue';
+    import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
     import { mapActions, mapGetters } from 'pinia';
     import { useFlowersStore } from '../store';
 
@@ -14,15 +18,27 @@
         name:'Demo',
         components:{
             FlowersTable,
+            PaginationOrInfiniteScroll
         },
         created(){
 			this.loadDemoFlowers();
 			this.offset = 0;
-			this.updateLocalFlowers({limit:this.$store.settings.limit, offset:this.offset});
-			this.offset = this.increaseOffset(this.offset);
+            this.page = parseInt(this.$route.query.page, 10) || 0;
+        },
+        mounted(){
+            if(this.isPaginated()){
+                /// @todo add other limits?
+                this.$store.settings.limit = this.isMobile() ? 4:15;
+                this.getFlowersFrom(this.page);
+                this.getLocalFlowersCount().then(c => this.totalPages = Math.round(c / this.$store.settings.limit));
+            }else{
+                this.updateLocalFlowers({limit:this.$store.settings.limit, offset:this.offset});
+                this.offset = this.increaseOffset(this.offset);
+            }
         },
         data(){
             return {
+                /// @todo load genome and use drawFlower?
                 demoFlowers: [
                             {id: 1, genome: this.loadUrl('flowers/1.json'), image: this.loadUrl("flowers/1.png")},
                             {id: 2, genome: this.loadUrl('flowers/2.json'), image: this.loadUrl("flowers/2.png")},
@@ -35,32 +51,10 @@
                             {id: 9, genome: this.loadUrl('flowers/9.json'), image: this.loadUrl("flowers/9.png")},
                             {id: 10, genome: this.loadUrl('flowers/10.json'), image: this.loadUrl("flowers/10.png")},
                             {id: 11, genome: this.loadUrl('flowers/11.json'), image: this.loadUrl("flowers/11.png")},
-                            {id: 12, genome: this.loadUrl('flowers/12.json'), image: this.loadUrl("flowers/12.png")},
-                            {id: 13, genome: this.loadUrl('flowers/13.json'), image: this.loadUrl("flowers/13.png")},
-                            {id: 14, genome: this.loadUrl('flowers/14.json'), image: this.loadUrl("flowers/14.png")},
-                            {id: 15, genome: this.loadUrl('flowers/15.json'), image: this.loadUrl("flowers/15.png")},
-                            {id: 16, genome: this.loadUrl('flowers/16.json'), image: this.loadUrl("flowers/16.png")},
-                            {id: 17, genome: this.loadUrl('flowers/17.json'), image: this.loadUrl("flowers/17.png")},
-                            {id: 18, genome: this.loadUrl('flowers/18.json'), image: this.loadUrl("flowers/18.png")},
-                            {id: 19, genome: this.loadUrl('flowers/19.json'), image: this.loadUrl("flowers/19.png")},
-                            {id: 20, genome: this.loadUrl('flowers/20.json'), image: this.loadUrl("flowers/20.png")},
-                            {id: 21, genome: this.loadUrl('flowers/21.json'), image: this.loadUrl("flowers/21.png")},
-                            {id: 22, genome: this.loadUrl('flowers/22.json'), image: this.loadUrl("flowers/22.png")},
-                            {id: 23, genome: this.loadUrl('flowers/23.json'), image: this.loadUrl("flowers/23.png")},
-                            {id: 24, genome: this.loadUrl('flowers/24.json'), image: this.loadUrl("flowers/24.png")},
-                            {id: 25, genome: this.loadUrl('flowers/25.json'), image: this.loadUrl("flowers/25.png")},
-                            {id: 26, genome: this.loadUrl('flowers/26.json'), image: this.loadUrl("flowers/26.png")},
-                            {id: 27, genome: this.loadUrl('flowers/27.json'), image: this.loadUrl("flowers/27.png")},
-                            {id: 28, genome: this.loadUrl('flowers/28.json'), image: this.loadUrl("flowers/28.png")},
-                            {id: 29, genome: this.loadUrl('flowers/29.json'), image: this.loadUrl("flowers/29.png")},
-                            {id: 30, genome: this.loadUrl('flowers/30.json'), image: this.loadUrl("flowers/30.png")},
-                            {id: 31, genome: this.loadUrl('flowers/31.json'), image: this.loadUrl("flowers/31.png")},
-                            {id: 32, genome: this.loadUrl('flowers/32.json'), image: this.loadUrl("flowers/32.png")},
-                            {id: 33, genome: this.loadUrl('flowers/33.json'), image: this.loadUrl("flowers/33.png")},
-                            {id: 34, genome: this.loadUrl('flowers/34.json'), image: this.loadUrl("flowers/34.png")},
-                            {id: 35, genome: this.loadUrl('flowers/35.json'), image: this.loadUrl("flowers/35.png")},
-                            {id: 36, genome: this.loadUrl('flowers/36.json'), image: this.loadUrl("flowers/36.png")}
-                        ]
+                            {id: 12, genome: this.loadUrl('flowers/12.json'), image: this.loadUrl("flowers/12.png")}
+                        ],
+                page: 0,
+                totalPages: 0
             }
         },
         computed:{
@@ -77,25 +71,42 @@
                 'updateAndConcatLocalFlowers',
                 'setLoadDemoFlowers',
                 'increaseOffset',
-                'calcOffset'
+                'calcOffset',
+                'getLocalFlowersCount'
             ]),
             loadUrl: function(url){
                 return new URL(`/src/assets/${url}`, import.meta.url).toString();
             },
-            scroll: function(){
-                window.onscroll = function(){
-                    console.log("flowers length: ", this.flowers.length);
-                    let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
-                    if(bottomOfWindow){
-                        this.updateAndConcatLocalFlowers({limit: this.$store.settings.limit, offset: this.offset});
-                        this.offset = this.increaseOffset(this.offset);
-                        console.log("offset: ", this.offset);
-                        console.log("flowers length: ", this.flowers.length);
-                    }
-                }.bind(this);
+            nextBatch: function(){
+                this.updateFlowers(this.$store.settings.limit, this.offset);
+            },
+            updateFlowers: function(limit, offset){
+                this.updateAndConcatLocalFlowers({limit:limit, offset:offset});
+                this.offset = this.increaseOffset(offset);
+            },
+            getFlowersFrom: function(page){
+                this.$nextTick(() => {
+                    this.offset = this.calcOffset(page);
+                    this.updateLocalFlowers({limit:this.$store.settings.limit, offset:this.offset});
+                });
+            },
+            prevPage: function(){
+                if(this.page >= 1){
+                    this.page -= 1;
+                    this.$router.push({path:"Demo", query:{page:this.page}});
+                }
+            },
+            nextPage: function(){
+                if(this.page < this.totalPages){
+                    this.page += 1;
+                    this.$router.push({path:"Demo", query:{page:this.page}});
+                }
             },
             isPaginated: function(){
                 return this.$store.settings.pagination;
+            },
+            isMobile: function(){
+                return screen.width <= 1280;
             },
             addDemoFlowerToLocal: async function(flower){
                 try{
@@ -138,12 +149,6 @@
                     this.setLoadDemoFlowers(false);
                 }
             },
-        },
-        mounted: function(){
-            console.log("mounted");
-            if(!this.isPaginated()){
-                this.scroll();
-            }
         },
     });
 </script>

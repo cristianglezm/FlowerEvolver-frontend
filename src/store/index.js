@@ -6,9 +6,6 @@ import axios from 'axios';
 export const API = import.meta.env.VITE_APP_API_URL;
 export const URL = import.meta.env.VITE_APP_DOWNLOAD_URL;
 export const STORAGE_KEY = 'FlowerEvolverSettings';
-//import { instantiateStreaming } from '@assemblyscript/loader';
-//import feWASM from '/FlowerEvolver.wasm?url';
-//import { Module } from '/FlowerEvolver.js?url';
 
 import fe from '@cristianglezm/flower-evolver-wasm';
 
@@ -90,6 +87,33 @@ export const useFlowersStore = defineStore('FlowersStore', {
 		},
 		calcOffset(page){
 			return page * this.settings.limit;
+		},
+		async getRemoteFlowersCount(){
+			try{
+				const response = await axios.get(API + 'flowers?count=1');
+				return response.data.count;
+			}catch(e){
+				this.errors.push({message: e});
+			}
+			return 0;
+		},
+		async getLocalFlowersCount(){
+			return await this.db.flowers.count();
+		},
+		async getFavouritesCount(){
+			return await this.db.favourites.count();
+		},
+		async getRemoteMutationsCount(){
+			try{
+				const response = await axios.get(API + 'mutations?count=1');
+				return response.data.count;
+			}catch(e){
+				this.errors.push({message: e});
+			}
+			return 0;
+		},
+		async getLocalMutationsCount(){
+			return await this.db.mutations.where("original").equals(1).count();
 		},
 		setLoadDemoFlowers(load){
 			this.settings.loadDemoFlowers = load;
@@ -175,7 +199,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 		},
 		async updateLocalFlowers({limit, offset}){
 			try{
-				const flowers = await this.db.flowers.reverse().limit(limit).offset(offset).toArray();
+				const flowers = await this.db.flowers.reverse().offset(offset).limit(limit).toArray();
 				this.localFlowers = flowers;
 			}catch(e){
 				this.errors.push({message:e});
@@ -191,7 +215,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 		},
 		async updateAndConcatLocalFlowers({limit, offset}){
 			try{
-				const flowers = await this.db.flowers.reverse().limit(limit).offset(offset).toArray();
+				const flowers = await this.db.flowers.reverse().offset(offset).limit(limit).toArray();
 				this.localFlowers = this.localFlowers.concat(flowers);
 			}catch(e){
 				this.errors.push({message:e});
@@ -217,7 +241,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			try{
 				this.mutations = [];
 				const mutations = await this.db.mutations.where("original")
-									.equals(flower.id).limit(limit).offset(offset).toArray();
+									.equals(flower.id).offset(offset).limit(limit).toArray();
 				for(const m of mutations){
 					this.db.flowers.get(m.id).then((f) => {
 						this.mutations.unshift(f);
@@ -238,8 +262,8 @@ export const useFlowersStore = defineStore('FlowersStore', {
 		async updateAndConcatLocalMutations({flower, limit, offset}){
 			try{
 				const mutations = await this.db.mutations.where("original")
-											.equals(flower.id).limit(limit)
-											.offset(offset).toArray();
+											.equals(flower.id).offset(offset)
+											.limit(limit).toArray();
 				for(const m of mutations){
 					this.db.flowers.get(m.id).then((f) => {
 						this.mutations.unshift(f);
@@ -267,8 +291,8 @@ export const useFlowersStore = defineStore('FlowersStore', {
 				this.ancestors = [];
 				if(flower2 === undefined || flower2 === null){
 					const descendants = await this.db.descendants.where("father")
-											.equals(flower1.id).limit(limit)
-											.offset(offset).toArray();
+											.equals(flower1.id).offset(offset)
+											.limit(limit).toArray();
 					for(const d of descendants){
 						console.log(d);
 						this.db.flowers.get(d.id)
@@ -278,7 +302,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					}
 				}else{
 					const descendants = await this.db.descendants.where("father").equals(flower1.id)
-						.and(ds => ds.mother == flower2.id).limit(limit).offset(offset).toArray();
+						.and(ds => ds.mother == flower2.id).offset(offset).limit(limit).toArray();
 					for(const d of descendants){
 						console.log(d);
 						this.db.flowers.get(d.id)
@@ -308,7 +332,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			try{
 				if(flower2 === undefined || flower2 === null){
 					const descendants = await this.db.descendants.where("father").equals(flower1.id)
-											.limit(limit).offset(offset).toArray();
+											.offset(offset).limit(limit).toArray();
 					for(const d of descendants){
 						this.db.flowers.get(d.id)
 							.then((f) => {
@@ -317,7 +341,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					}
 				}else{
 					const descendants = await this.db.descendants.where("father").equals(flower1.id)
-						.and(ds => ds.mother == flower2.id).limit(limit).offset(offset).toArray();
+						.and(ds => ds.mother == flower2.id).offset(offset).limit(limit).toArray();
 					for(const d of descendants){
 						this.db.flowers.get(d.id)
 							.then((f) => {
@@ -354,7 +378,6 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			}
 		},
 		async redrawFlower(flower){
-			/// @todo review
 			try{
 				if(this.fe){
 					if(!this.db.isOpen()){
@@ -389,10 +412,12 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			await this.db.flowers.delete(id)
 				.catch(e => this.errors.push({message: e}));
 // @todo fix mutations error when deleting
-//			await this.db.mutations.where("original").equals(id).or("id").equals(id).delete()
+//			await this.db.mutations.where("original").equals(id).or(":id").equals(id).delete()
 //				.catch(e => this.errors.push({message: e}));
 			this.localFlowers = this.localFlowers.filter(f => f.id != id);
 			this.favourites = this.favourites.filter(f => f.id != id);
+			this.ancestors = this.ancestors.filter(f => f.id != id);
+			this.mutations = this.mutations.filter(f => f.id != id);
 		},
 		remoteReproduce(){
 			if(this.remoteSelected.flowers.length > 1){
@@ -434,7 +459,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 						});
 					let f = await this.db.flowers.get(id);
 					this.localFlowers.unshift(f);
-					this.descendants.unshift(f);
+					this.ancestors.unshift(f);
 				}else{
 					this.errors.push({message:"There are no Flowers Selected"});
 				}

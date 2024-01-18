@@ -1,31 +1,51 @@
 <template>
-    <div class="grid" v-if="favourites && favourites.length">
-        <div v-for="flower in favourites" :key="flower.id">
-            <Flower :id="flower.id" :genome="flower.genome" :image="flower.image" :isLocal="true"/>
+    <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="favourites.length" :currentPage="this.page" :totalPages="this.totalPages"
+                                    @next-page="nextPage" @prev-page="prevPage" @update-page="updateFlowers">
+        <div class="grid" v-if="favourites && favourites.length">
+            <div v-for="flower in favourites" :key="flower.id">
+                <Flower :id="flower.id" :genome="flower.genome" :image="flower.image" :isLocal="true"/>
+            </div>
         </div>
-    </div>
-    <div v-else>
-        <p class="nofavs">You don't Have Favourites, go to Browse or Last Added to add.</p>
-    </div>
+        <div v-else>
+            <p class="nofavs">You don't Have Favourites.</p>
+        </div>
+    </PaginationOrInfiniteScroll>
 </template>
 
 <script>
 	import { defineComponent } from 'vue';
+    import { mapActions } from 'pinia';
     import Flower from '../components/Flower.vue';
+    import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
 	import { useFlowersStore } from '../store';
 
     export default defineComponent({
         name:'Favourites',
         components:{
             Flower,
+            PaginationOrInfiniteScroll
+        },
+        created(){
+            this.offset = 0;
+            this.page = parseInt(this.$route.query.page, 10) || 0;
         },
         mounted(){
-            this.$store.favourites = [];
-            this.loadFavourites();
+            if(this.isPaginated()){
+                /// @todo add other limits?
+                this.$store.settings.limit = this.isMobile() ? 4:15;
+                this.$store.favourites = [];
+                this.getFlowersFrom(this.page);
+                this.getFavouritesCount().then(c => this.totalPages = Math.round(c / this.$store.settings.limit));
+            }else{
+                this.$store.favourites = [];
+                this.updateFlowers();
+            }
         },
         data(){
             return{
                 offset: 0,
+                page: 0,
+                totalPages: 0,
             }
         },
         computed:{
@@ -34,13 +54,47 @@
             },
         },
         methods: {
+            ...mapActions(useFlowersStore, [
+                'increaseOffset',
+                'calcOffset',
+                'getFavouritesCount'
+            ]),
+            prevPage: function(){
+                if(this.page >= 1){
+                    this.page -= 1;
+                    this.$router.push({path:"Favourites", query:{page:this.page}});
+                }
+            },
+            nextPage: function(){
+                if(this.page < this.totalPages){
+                    this.page += 1;
+                    this.$router.push({path:"Favourites", query:{page:this.page}});
+                }
+            },
+            isPaginated: function(){
+                return this.$store.settings.pagination;
+            },
+            isMobile: function(){
+                return screen.width <= 1280;
+            },
+            updateFlowers: function(){
+                this.loadFavourites();
+                this.offset = this.increaseOffset(this.offset);
+            },
+            getFlowersFrom: function(page){
+                this.$store.favourites = [];
+                this.$nextTick(() => {
+                    this.offset = this.calcOffset(page);
+                    this.loadFavourites();
+                });
+            },
             loadFavourites: async function(){
-                await this.$store.db.favourites.limit(this.$store.settings.limit)
-                .offset(this.offset).toArray()
+                await this.$store.db.favourites.reverse().offset(this.offset)
+                .limit(this.$store.settings.limit).toArray()
                 .then(ids => {
                     for(const id of ids){
                         this.$store.db.flowers.get(id)
-                        .then(f => this.favourites.unshift(f));
+                        .then(f => this.favourites.push(f));
                     }
                 });
             },
@@ -55,13 +109,6 @@
         grid-gap: 10px;
         background-color: black;
     }
-    .nofavs{
-        color: lightgreen;
-        font-size: large;
-        padding: 15px;
-        background-color: rgb(37, 39, 41);
-        margin: 0px;
-    }
     @media only screen and (max-width: 1280px){
         .grid{
             display: grid;
@@ -69,5 +116,12 @@
             grid-gap: 10px;
             background-color: black;
         }
+    }
+    .nofavs{
+        color: lightgreen;
+        font-size: large;
+        padding: 15px;
+        background-color: rgb(37, 39, 41);
+        margin: 0px;
     }
 </style>
