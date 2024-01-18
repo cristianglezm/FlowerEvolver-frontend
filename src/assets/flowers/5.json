@@ -14,7 +14,7 @@
 									"layer" : "0",
 									"neuron" : "0"
 								},
-								"weight" : 0.14386497753626562
+								"weight" : -0.1036557484532136
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -30,7 +30,7 @@
 									"layer" : "0",
 									"neuron" : "0"
 								},
-								"weight" : -0.061052976061448772
+								"weight" : -0.3022561738901175
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -46,7 +46,7 @@
 									"layer" : "0",
 									"neuron" : "0"
 								},
-								"weight" : -0.17286627705032181
+								"weight" : -0.052508104570160787
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -62,7 +62,7 @@
 									"layer" : "0",
 									"neuron" : "0"
 								},
-								"weight" : 0.15269958868857203
+								"weight" : -0.08797533521483572
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -78,7 +78,7 @@
 									"layer" : "0",
 									"neuron" : "0"
 								},
-								"weight" : 0.05659719814443398
+								"weight" : 0.10427760852655532
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -94,7 +94,7 @@
 									"layer" : "0",
 									"neuron" : "0"
 								},
-								"weight" : 0.17835623963676178
+								"weight" : 0.25521121470733493
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -110,7 +110,7 @@
 									"layer" : "0",
 									"neuron" : "0"
 								},
-								"weight" : 0.067081597556543221
+								"weight" : -0.14266529555898158
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -126,7 +126,7 @@
 									"layer" : "0",
 									"neuron" : "0"
 								},
-								"weight" : 0.29807996987773966
+								"weight" : 0.11530452150092244
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -142,7 +142,7 @@
 									"layer" : "0",
 									"neuron" : "0"
 								},
-								"weight" : -0.23517876549561004
+								"weight" : 0.10977410185269046
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -158,7 +158,7 @@
 									"layer" : "0",
 									"neuron" : "0"
 								},
-								"weight" : 0.21407431007360569
+								"weight" : -0.061268401039348976
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -174,7 +174,7 @@
 									"layer" : "0",
 									"neuron" : "0"
 								},
-								"weight" : 0.25549998989208877
+								"weight" : -0.13087787786955388
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -190,7 +190,7 @@
 									"layer" : "0",
 									"neuron" : "0"
 								},
-								"weight" : -0.1446040163239295
+								"weight" : -0.21334450205393551
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -206,7 +206,7 @@
 									"layer" : "0",
 									"neuron" : "0"
 								},
-								"weight" : 0.071671688376236123
+								"weight" : 0.17187373569375777
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -222,7 +222,7 @@
 									"layer" : "0",
 									"neuron" : "0"
 								},
-								"weight" : -0.064731338470719171
+								"weight" : 0.10823286288886927
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -238,7 +238,7 @@
 									"layer" : "0",
 									"neuron" : "1"
 								},
-								"weight" : 0.1033120083392276
+								"weight" : -0.11675617419778672
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -254,7 +254,7 @@
 									"layer" : "0",
 									"neuron" : "1"
 								},
-								"weight" : 0.25885735919303299
+								"weight" : 0.08513387604408415
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -270,7 +270,7 @@
 									"layer" : "0",
 									"neuron" : "1"
 								},
-								"weight" : 0.23356711292395294
+								"weight" : -0.038716421547947334
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -286,7 +286,7 @@
 									"layer" : "0",
 									"neuron" : "1"
 								},
-								"weight" : -0.21763530426946287
+								"weight" : 0.2196267855944877
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -302,7 +302,7 @@
 									"layer" : "0",
 									"neuron" : "1"
 								},
-								"weight" : -0.26465954278780995
+								"weight" : 0.28274111678056635
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -318,7 +318,7 @@
 									"layer" : "0",
 									"neuron" : "1"
 								},
-								"weight" : 0.11786067014714266
+								"weight" : -0.12209991114816128
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -334,7 +334,7 @@
 									"layer" : "0",
 									"neuron" : "1"
 								},
-								"weight" : -0.088824432399449552
+								"weight" : 0.069231505427274811
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -350,9 +350,9 @@
 									"layer" : "0",
 									"neuron" : "1"
 								},
-								"weight" : -0.14492744794871362
+								"weight" : -0.15863631434650149
 							},
-							"enabled" : true,
+							"enabled" : false,
 							"frozen" : false,
 							"innovationID" : "173676443987"
 						},
@@ -366,7 +366,7 @@
 									"layer" : "0",
 									"neuron" : "1"
 								},
-								"weight" : -0.04970951283400471
+								"weight" : 0.0024781061789849916
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -382,7 +382,7 @@
 									"layer" : "0",
 									"neuron" : "1"
 								},
-								"weight" : 0.1789719309369458
+								"weight" : 0.01751728759735386
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -398,7 +398,7 @@
 									"layer" : "0",
 									"neuron" : "1"
 								},
-								"weight" : -0.32608861187575144
+								"weight" : 0.093457187721457904
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -414,7 +414,7 @@
 									"layer" : "0",
 									"neuron" : "1"
 								},
-								"weight" : -0.20589436911638798
+								"weight" : 0.1115767267097092
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -430,7 +430,7 @@
 									"layer" : "0",
 									"neuron" : "1"
 								},
-								"weight" : 0.14100663289352014
+								"weight" : -0.086321233552420606
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -446,7 +446,7 @@
 									"layer" : "0",
 									"neuron" : "1"
 								},
-								"weight" : -0.13473327948104591
+								"weight" : -0.28926982253837596
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -462,7 +462,7 @@
 									"layer" : "0",
 									"neuron" : "2"
 								},
-								"weight" : 0.1376517880027715
+								"weight" : -0.093095122480229997
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -478,7 +478,7 @@
 									"layer" : "0",
 									"neuron" : "2"
 								},
-								"weight" : 0.33324900477269137
+								"weight" : 0.24875678592404329
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -494,7 +494,7 @@
 									"layer" : "0",
 									"neuron" : "2"
 								},
-								"weight" : -0.24360214102108763
+								"weight" : 0.049529951647827287
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -510,7 +510,7 @@
 									"layer" : "0",
 									"neuron" : "2"
 								},
-								"weight" : 0.30416054111224411
+								"weight" : 0.25366964200851078
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -526,7 +526,7 @@
 									"layer" : "0",
 									"neuron" : "2"
 								},
-								"weight" : 0.14015873941415694
+								"weight" : -0.20769086443139098
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -542,7 +542,7 @@
 									"layer" : "0",
 									"neuron" : "2"
 								},
-								"weight" : -0.12917370555216992
+								"weight" : -0.07168854199737365
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -558,7 +558,7 @@
 									"layer" : "0",
 									"neuron" : "2"
 								},
-								"weight" : 0.31352518333224083
+								"weight" : 0.18552199043966638
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -574,7 +574,7 @@
 									"layer" : "0",
 									"neuron" : "2"
 								},
-								"weight" : -0.21344057433149055
+								"weight" : -0.082632323286037895
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -590,27 +590,11 @@
 									"layer" : "0",
 									"neuron" : "2"
 								},
-								"weight" : 0.07590297365123666
+								"weight" : 0.16005735408629609
 							},
 							"enabled" : true,
 							"frozen" : false,
 							"innovationID" : "173676443793"
-						},
-						{
-							"Connection" : {
-								"dest" : {
-									"layer" : "2",
-									"neuron" : "9"
-								},
-								"src" : {
-									"layer" : "0",
-									"neuron" : "2"
-								},
-								"weight" : -0.27950575626938756
-							},
-							"enabled" : true,
-							"frozen" : false,
-							"innovationID" : "173676443804"
 						},
 						{
 							"Connection" : {
@@ -622,7 +606,7 @@
 									"layer" : "0",
 									"neuron" : "2"
 								},
-								"weight" : -0.15791767175524957
+								"weight" : -0.1374872750388372
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -638,7 +622,7 @@
 									"layer" : "0",
 									"neuron" : "2"
 								},
-								"weight" : -0.12098410964153575
+								"weight" : 0.091248702494189926
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -654,7 +638,7 @@
 									"layer" : "0",
 									"neuron" : "2"
 								},
-								"weight" : 0.31369488215835434
+								"weight" : -0.26715785698317673
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -670,7 +654,7 @@
 									"layer" : "0",
 									"neuron" : "2"
 								},
-								"weight" : 0.11233787724741609
+								"weight" : -0.029387069093311569
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -686,7 +670,7 @@
 									"layer" : "0",
 									"neuron" : "3"
 								},
-								"weight" : -0.089186079294556575
+								"weight" : -0.069311947996265125
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -702,7 +686,7 @@
 									"layer" : "0",
 									"neuron" : "3"
 								},
-								"weight" : -0.060629381864206702
+								"weight" : 0.19491336378148888
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -718,7 +702,7 @@
 									"layer" : "0",
 									"neuron" : "3"
 								},
-								"weight" : 0.24593118760645374
+								"weight" : 0.32541783149956416
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -734,7 +718,7 @@
 									"layer" : "0",
 									"neuron" : "3"
 								},
-								"weight" : 0.050430352502770059
+								"weight" : -0.2073432236493879
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -750,7 +734,7 @@
 									"layer" : "0",
 									"neuron" : "3"
 								},
-								"weight" : -0.18392659938567224
+								"weight" : -0.04591672068410213
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -766,7 +750,7 @@
 									"layer" : "0",
 									"neuron" : "3"
 								},
-								"weight" : -0.056023778115060797
+								"weight" : -0.27243925313150269
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -782,7 +766,7 @@
 									"layer" : "0",
 									"neuron" : "3"
 								},
-								"weight" : -0.210187095857433
+								"weight" : 0.033420170407705875
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -798,7 +782,7 @@
 									"layer" : "0",
 									"neuron" : "3"
 								},
-								"weight" : 0.048119230749559483
+								"weight" : -0.030036746513549779
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -814,7 +798,7 @@
 									"layer" : "0",
 									"neuron" : "3"
 								},
-								"weight" : -0.14481832211637358
+								"weight" : -0.26919343694361908
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -830,7 +814,7 @@
 									"layer" : "0",
 									"neuron" : "3"
 								},
-								"weight" : -0.31157447610373101
+								"weight" : -0.0046923191558866
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -846,7 +830,7 @@
 									"layer" : "0",
 									"neuron" : "3"
 								},
-								"weight" : 0.11419398515776527
+								"weight" : -0.1107277480640724
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -862,7 +846,7 @@
 									"layer" : "0",
 									"neuron" : "3"
 								},
-								"weight" : 0.31965869175598671
+								"weight" : -0.27576044802049027
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -878,7 +862,7 @@
 									"layer" : "0",
 									"neuron" : "3"
 								},
-								"weight" : 0.055995034951894354
+								"weight" : 0.29476345425826206
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -894,16 +878,64 @@
 									"layer" : "0",
 									"neuron" : "3"
 								},
-								"weight" : -0.010175790319988793
+								"weight" : 0.063016779507459722
 							},
 							"enabled" : true,
 							"frozen" : false,
 							"innovationID" : "173676443856"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "9"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : 0.020689105097478528
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443804"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "1",
+									"neuron" : "0"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : 1
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443941"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "7"
+								},
+								"src" : {
+									"layer" : "1",
+									"neuron" : "0"
+								},
+								"weight" : -0.22378144287461069
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676439937"
 						}
 					],
 					"GenomeID" : "0",
 					"SpeciesID" : "0",
-					"cppn" : true,
+					"cppn" : false,
 					"fitness" : 0,
 					"nodeChromosomes" : [
 						{
@@ -947,7 +979,7 @@
 							"nrnType" : "output"
 						},
 						{
-							"actType" : "sigmoid",
+							"actType" : "tan",
 							"biasWeight" : 1,
 							"innovationID" : "2654435896",
 							"layerID" : "2",
@@ -955,7 +987,7 @@
 							"nrnType" : "output"
 						},
 						{
-							"actType" : "tan",
+							"actType" : "sinusoid",
 							"biasWeight" : 1,
 							"innovationID" : "2654435897",
 							"layerID" : "2",
@@ -963,7 +995,7 @@
 							"nrnType" : "output"
 						},
 						{
-							"actType" : "sigmoid",
+							"actType" : "tanh",
 							"biasWeight" : 1,
 							"innovationID" : "2654435902",
 							"layerID" : "2",
@@ -971,7 +1003,7 @@
 							"nrnType" : "output"
 						},
 						{
-							"actType" : "modulus",
+							"actType" : "sinusoid",
 							"biasWeight" : 1,
 							"innovationID" : "2654435903",
 							"layerID" : "2",
@@ -979,7 +1011,7 @@
 							"nrnType" : "output"
 						},
 						{
-							"actType" : "gaussian",
+							"actType" : "cosine",
 							"biasWeight" : 1,
 							"innovationID" : "2654435900",
 							"layerID" : "2",
@@ -987,7 +1019,7 @@
 							"nrnType" : "output"
 						},
 						{
-							"actType" : "steppedSigmoid",
+							"actType" : "exponential",
 							"biasWeight" : 1,
 							"innovationID" : "2654435901",
 							"layerID" : "2",
@@ -995,7 +1027,7 @@
 							"nrnType" : "output"
 						},
 						{
-							"actType" : "sigmoid",
+							"actType" : "exponential",
 							"biasWeight" : 1,
 							"innovationID" : "2654435906",
 							"layerID" : "2",
@@ -1003,7 +1035,7 @@
 							"nrnType" : "output"
 						},
 						{
-							"actType" : "square",
+							"actType" : "exponential",
 							"biasWeight" : 1,
 							"innovationID" : "2654435907",
 							"layerID" : "2",
@@ -1011,7 +1043,7 @@
 							"nrnType" : "output"
 						},
 						{
-							"actType" : "leakyRelu",
+							"actType" : "relu",
 							"biasWeight" : 1,
 							"innovationID" : "2654435904",
 							"layerID" : "2",
@@ -1027,7 +1059,7 @@
 							"nrnType" : "output"
 						},
 						{
-							"actType" : "noisyRelu",
+							"actType" : "cosine",
 							"biasWeight" : 1,
 							"innovationID" : "2654435910",
 							"layerID" : "2",
@@ -1035,7 +1067,7 @@
 							"nrnType" : "output"
 						},
 						{
-							"actType" : "cosine",
+							"actType" : "tan",
 							"biasWeight" : 1,
 							"innovationID" : "2654435911",
 							"layerID" : "2",
@@ -1043,12 +1075,20 @@
 							"nrnType" : "output"
 						},
 						{
-							"actType" : "tanh",
+							"actType" : "cosine",
 							"biasWeight" : 1,
 							"innovationID" : "2654435908",
 							"layerID" : "2",
 							"neuronID" : "13",
 							"nrnType" : "output"
+						},
+						{
+							"actType" : "cosine",
+							"biasWeight" : 1,
+							"innovationID" : "2654435832",
+							"layerID" : "1",
+							"neuronID" : "0",
+							"nrnType" : "hidden"
 						}
 					],
 					"rnnAllowed" : false
@@ -1065,7 +1105,7 @@
 									"layer" : "0",
 									"neuron" : "0"
 								},
-								"weight" : -0.0065454498128237892
+								"weight" : -0.32843407479679559
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -1081,7 +1121,7 @@
 									"layer" : "0",
 									"neuron" : "0"
 								},
-								"weight" : 0.036537605146091612
+								"weight" : 0.42160633341705833
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -1097,7 +1137,7 @@
 									"layer" : "0",
 									"neuron" : "0"
 								},
-								"weight" : 0.45891317759638006
+								"weight" : -0.071446317859876596
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -1113,7 +1153,7 @@
 									"layer" : "0",
 									"neuron" : "0"
 								},
-								"weight" : -0.35105545057672072
+								"weight" : -0.21471503465418179
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -1129,7 +1169,7 @@
 									"layer" : "0",
 									"neuron" : "1"
 								},
-								"weight" : 0.1288780449226159
+								"weight" : -0.46576985385245223
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -1145,7 +1185,7 @@
 									"layer" : "0",
 									"neuron" : "1"
 								},
-								"weight" : -0.16043583011399526
+								"weight" : -0.10781011491301734
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -1161,7 +1201,7 @@
 									"layer" : "0",
 									"neuron" : "1"
 								},
-								"weight" : -0.31527422247054282
+								"weight" : 0.42130249832701505
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -1177,7 +1217,7 @@
 									"layer" : "0",
 									"neuron" : "1"
 								},
-								"weight" : 0.45375962278854398
+								"weight" : 0.47737469562007229
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -1193,7 +1233,7 @@
 									"layer" : "0",
 									"neuron" : "2"
 								},
-								"weight" : 0.24243032730025971
+								"weight" : -0.36695329678731659
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -1203,29 +1243,13 @@
 							"Connection" : {
 								"dest" : {
 									"layer" : "2",
-									"neuron" : "1"
-								},
-								"src" : {
-									"layer" : "0",
-									"neuron" : "2"
-								},
-								"weight" : -0.1164153200079594
-							},
-							"enabled" : true,
-							"frozen" : false,
-							"innovationID" : "173676443812"
-						},
-						{
-							"Connection" : {
-								"dest" : {
-									"layer" : "2",
 									"neuron" : "2"
 								},
 								"src" : {
 									"layer" : "0",
 									"neuron" : "2"
 								},
-								"weight" : 0.08008905537215294
+								"weight" : 0.33420037531341551
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -1241,7 +1265,7 @@
 									"layer" : "0",
 									"neuron" : "2"
 								},
-								"weight" : -0.24082016454575228
+								"weight" : -0.4251914601268858
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -1257,7 +1281,7 @@
 									"layer" : "0",
 									"neuron" : "3"
 								},
-								"weight" : 0.19619816715167959
+								"weight" : 0.23396295002086132
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -1273,7 +1297,7 @@
 									"layer" : "0",
 									"neuron" : "3"
 								},
-								"weight" : 0.28864550402213485
+								"weight" : 0.13248679689469689
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -1289,7 +1313,7 @@
 									"layer" : "0",
 									"neuron" : "3"
 								},
-								"weight" : -0.23081407527501241
+								"weight" : 0.23838294591864939
 							},
 							"enabled" : true,
 							"frozen" : false,
@@ -1305,16 +1329,64 @@
 									"layer" : "0",
 									"neuron" : "3"
 								},
-								"weight" : -0.073753233885235636
+								"weight" : -0.0081556877762420932
 							},
 							"enabled" : true,
 							"frozen" : false,
 							"innovationID" : "173676443866"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "1"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "2"
+								},
+								"weight" : 0.17378677711249579
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443812"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "1",
+									"neuron" : "0"
+								},
+								"src" : {
+									"layer" : "0",
+									"neuron" : "1"
+								},
+								"weight" : 1
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676443941"
+						},
+						{
+							"Connection" : {
+								"dest" : {
+									"layer" : "2",
+									"neuron" : "1"
+								},
+								"src" : {
+									"layer" : "1",
+									"neuron" : "0"
+								},
+								"weight" : -0.10781011491301734
+							},
+							"enabled" : true,
+							"frozen" : false,
+							"innovationID" : "173676439959"
 						}
 					],
 					"GenomeID" : "1",
 					"SpeciesID" : "0",
-					"cppn" : true,
+					"cppn" : false,
 					"fitness" : 0,
 					"nodeChromosomes" : [
 						{
@@ -1343,14 +1415,14 @@
 						},
 						{
 							"actType" : "sigmoid",
-							"biasWeight" : 1,
+							"biasWeight" : 0.24155963695365834,
 							"innovationID" : "2654435772",
 							"layerID" : "0",
 							"neuronID" : "3",
 							"nrnType" : "input"
 						},
 						{
-							"actType" : "modulus",
+							"actType" : "sigmoid",
 							"biasWeight" : 1,
 							"innovationID" : "2654435899",
 							"layerID" : "2",
@@ -1358,7 +1430,7 @@
 							"nrnType" : "output"
 						},
 						{
-							"actType" : "square",
+							"actType" : "cube",
 							"biasWeight" : 1,
 							"innovationID" : "2654435896",
 							"layerID" : "2",
@@ -1366,7 +1438,7 @@
 							"nrnType" : "output"
 						},
 						{
-							"actType" : "tanh",
+							"actType" : "cube",
 							"biasWeight" : 1,
 							"innovationID" : "2654435897",
 							"layerID" : "2",
@@ -1374,12 +1446,20 @@
 							"nrnType" : "output"
 						},
 						{
-							"actType" : "square",
+							"actType" : "tan",
 							"biasWeight" : 1,
 							"innovationID" : "2654435902",
 							"layerID" : "2",
 							"neuronID" : "3",
 							"nrnType" : "output"
+						},
+						{
+							"actType" : "gaussian",
+							"biasWeight" : 1,
+							"innovationID" : "2654435832",
+							"layerID" : "1",
+							"neuronID" : "0",
+							"nrnType" : "hidden"
 						}
 					],
 					"rnnAllowed" : false
