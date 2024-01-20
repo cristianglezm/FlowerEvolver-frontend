@@ -7,21 +7,19 @@
         <div v-if="isMobile()">
             <img @click="showMenu=!showMenu" src="@/assets/x32/menu.png" alt="menuIcon" class="pointer"/>
             <div v-if="showMenu" class="mobileMenu">
-                <nav class="tabs" @click="showMenu=!showMenu" alt="tabs">
-                    <ul v-if="isPaginated()">
+                <nav class="tabs" v-if="isPaginated()" @click="showMenu=!showMenu" alt="tabs">
                         <router-link to="/Demo?page=0"> Demo </router-link>
                         <router-link to="/LastAdded"> Last Added </router-link>
                         <router-link to="/Browse?page=0"> Browse </router-link>
                         <router-link to="/Favourites?page=0"> Favourites </router-link>
                         <router-link to="/Downloads"> Downloads </router-link>
-                    </ul>
-                    <ul v-else>
+                </nav>
+                <nav class="tabs" v-else @click="showMenu=!showMenu" alt="tabs">
                         <router-link to="/Demo"> Demo </router-link>
                         <router-link to="/LastAdded"> Last Added </router-link>
                         <router-link to="/Browse"> Browse </router-link>
                         <router-link to="/Favourites"> Favourites </router-link>
                         <router-link to="/Downloads"> Downloads </router-link>
-                    </ul>
                 </nav>
                 <nav class="actions" alt="actions">
                     <div v-if="this.isLocal || blocked" style="display: flex; flex-flow: column wrap;z-index: 1;left: 0px;position: absolute;">
