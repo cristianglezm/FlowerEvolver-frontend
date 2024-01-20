@@ -55,4 +55,5 @@
         - this would process all flowers and it would redraw with the new params
     + [] add button to export local flowers | favourites? into a generation json for native FlowerEvolver
 * [x] make pagination component
-* [x] clean code, squash and merge branch.
+* [] update backend server with new version
+* [] clean code, squash and merge branch.
