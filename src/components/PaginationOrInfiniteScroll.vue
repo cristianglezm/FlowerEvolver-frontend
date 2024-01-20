@@ -53,7 +53,7 @@ const atStart = () => {
     return props.currentPage == 0;
 };
 const atEnd = () => {
-    return props.currentPage >= (props.totalPages - 1);
+    return props.currentPage >= (props.totalPages);
 };
 const nextPage = () => {
     if(!atEnd()){

@@ -9,17 +9,18 @@
                 + [x] add button to convert remote flowers into locals
                 + [] add button to delete local flowers.
                     - add modalYesNo
-                + [] add button to redraw flower (make a new flowers with params)
-                    - menu keeps open after clicking.
+                    - fix mutations delete error
+                + [x] add button to redraw flower (make a new flower with params)
                 + [] add button to share flowers with backend - [not sure]
             - Header
                 + [] add settings component tab
                 + [] add route for settings component.
+                + [] btn names too long, make them short
                 + [x] add pagination for tabs
         + views
             - Ancestors
-                + [] fix infinite scroll not working
-                + [] add pagination mode
+                + [x] fix infinite scroll not working
+                + [x] add pagination mode
                 * [] review limits settings
             - Browse
                 + [x] infinite scroll does not work
@@ -37,8 +38,8 @@
                 + [z] add pagination mode
                 * [] review limits settings
             - mutations
-                + [] fix infinite scroll not working
-                + [] add pagination mode
+                + [x] fix infinite scroll not working
+                + [x] add pagination mode
                 * [] review limits settings
         + [] change demo component name to Local?
 	+ [x] fix wasm module not loading in prod

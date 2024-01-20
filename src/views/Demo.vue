@@ -28,7 +28,7 @@
         mounted(){
             if(this.isPaginated()){
                 /// @todo add other limits?
-                this.$store.settings.limit = this.isMobile() ? 4:15;
+                this.$store.settings.limit = this.isMobile() ? 4:10;
                 this.getFlowersFrom(this.page);
                 this.getLocalFlowersCount().then(c => this.totalPages = Math.round(c / this.$store.settings.limit));
             }else{
@@ -38,7 +38,7 @@
         },
         data(){
             return {
-                /// @todo load genome and use drawFlower?
+                /// @todo load genome and use fe.drawFlower?
                 demoFlowers: [
                             {id: 1, genome: this.loadUrl('flowers/1.json'), image: this.loadUrl("flowers/1.png")},
                             {id: 2, genome: this.loadUrl('flowers/2.json'), image: this.loadUrl("flowers/2.png")},

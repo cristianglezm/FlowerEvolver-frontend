@@ -6,14 +6,20 @@
                 <div><Flower :id="flower2.id" :genome="flower2.genome" :image="flower2.image" :isLocal="isLocal"/></div>
             </div>
             <div class="header"><p><strong>Descendants of {{flower1.id}} and {{flower2.id}}</strong></p></div>
-            <FlowersTable :Flowers="ancestors" :isLocal="isLocal" :noFlowerMessage="'These Flowers have no descendants.'"/>
+            <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="ancestors.length" :currentPage="this.page" :totalPages="this.totalPages"
+                                    @next-page="nextPage" @prev-page="prevPage" @update-page="updateAncestors">
+                <FlowersTable :Flowers="ancestors" :isLocal="isLocal" :noFlowerMessage="'These Flowers have no descendants.'"/>
+            </PaginationOrInfiniteScroll>
         </div>
         <div v-else>
             <div class="fatherFlower">
                 <Flower :id="flower1.id" :genome="flower1.genome" :image="flower1.image" :isLocal="isLocal"/>
             </div>
             <div class="header"><p><strong>Descendants of {{flower1.id}}</strong></p></div>
-            <FlowersTable :Flowers="ancestors" :isLocal="isLocal" :noFlowerMessage="'This Flower has no descendants.'"/>
+            <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="ancestors.length" :currentPage="this.page" :totalPages="this.totalPages"
+                                    @next-page="nextPage" @prev-page="prevPage" @update-page="updateAncestors">
+                <FlowersTable :Flowers="ancestors" :isLocal="isLocal" :noFlowerMessage="'This Flower has no descendants.'"/>
+            </PaginationOrInfiniteScroll>
         </div>
     </div>
 </template>
@@ -23,6 +29,7 @@
 	import { useFlowersStore } from '../store';
 	import Flower from '../components/Flower.vue';
 	import FlowersTable from '../components/FlowersTable.vue';
+    import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
 	import { defineComponent } from 'vue';
 	
     export default defineComponent({
@@ -30,6 +37,7 @@
         components:{
             Flower,
             FlowersTable,
+            PaginationOrInfiniteScroll
         },
         created(){
             this.offset = 0;
@@ -38,10 +46,12 @@
         },
         mounted: function(){
             this.Init();
-            this.scroll();
         },
         data(){
             return {
+                offset: 0,
+                page: parseInt(this.$route.query.page, 10) || 0,
+                totalPages: 0,
                 flower1: {id:0, genome:"", image:""},
                 flower2: {id:0, genome:"", image:""}
             };
@@ -56,9 +66,14 @@
                 'getAncestors',
             ]),
             ...mapActions(useFlowersStore, [
+                'updateRemoteAncestors',
                 'updateAndConcatRemoteAncestors',
+                'updateLocalAncestors',
                 'updateAndConcatLocalAncestors',
-                'increaseOffset'
+                'getRemoteAncestorsCount',
+                'getLocalAncestorsCount',
+                'increaseOffset',
+                'calcOffset'
             ]),
             hasFatherOnly: function(){
                 return this.$route.params.mother === undefined;
@@ -79,31 +94,90 @@
                         this.flower2 = { id: momID, genome: momID + '.json', image: momID + '.png'};
                     }
                 }
-                this.updateAncestors(this.$store.settings.limit, this.offset);
+                if(this.isPaginated()){
+                    /// @todo add other limits?
+                    this.$store.settings.limit = this.isMobile() ? 4:10
+                    if(this.isLocal){
+                        if(this.hasFatherOnly()){
+                            this.getLocalAncestorsCount(this.flower1.id)
+                                .then(c => this.totalPages = Math.round(c / this.$store.settings.limit));;
+                        }else{
+                            this.getLocalAncestorsCount(this.flower1.id, this.flower2.id, this.flower2.id)
+                                .then(c => this.totalPages = Math.round(c / this.$store.settings.limit));;
+                        }
+                    }else{
+                        if(this.hasFatherOnly()){
+                            this.getRemoteAncestorsCount(this.flower1.id)
+                                .then(c => this.totalPages = Math.round(c / this.$store.settings.limit));;
+                        }else{
+                            this.getRemoteAncestorsCount(this.flower1.id, this.flower2.id)
+                                .then(c => this.totalPages = Math.round(c / this.$store.settings.limit));;
+                        }
+                    }
+                    this.getAncestorsFrom(this.page);
+                }else{
+                    this.updateAncestors();
+                }
             },
-            updateAncestors: function(limit, offset){
+            getAncestorsFrom: function(page){
+                this.$nextTick(() => {
+                    this.offset = this.calcOffset(page);
+                    if(this.isLocal){
+                        if(this.hasFatherOnly()){
+                            this.updateLocalAncestors({flower1: this.flower1, limit:this.$store.settings.limit, offset:this.offset});
+                        }else{
+                            this.updateLocalAncestors({flower1: this.flower1, flower2: this.flower2, limit:this.$store.settings.limit, offset:this.offset});
+                        }
+                    }else{
+                        if(this.hasFatherOnly()){
+                            this.updateRemoteAncestors({flower1: this.flower1, limit:this.$store.settings.limit, offset:this.offset});
+                        }else{
+                            this.updateRemoteAncestors({flower1: this.flower1, flower2: this.flower2, limit:this.$store.settings.limit, offset:this.offset});
+                        }
+                    }
+                });
+            },
+            updateAncestors: function(){
                 if(this.isLocal){
                     if(this.hasFatherOnly()){
-                        this.updateAndConcatLocalAncestors({flower1:this.flower1,limit:limit, offset:offset});
+                        this.updateAndConcatLocalAncestors({flower1:this.flower1,limit:this.$store.settings.limit, offset:this.offset});
                     }else{
-                        this.updateAndConcatLocalAncestors({flower1:this.flower1, flower2: this.flower2,limit:limit, offset:offset});
+                        this.updateAndConcatLocalAncestors({flower1:this.flower1, flower2: this.flower2,limit:this.$store.settings.limit, offset:this.offset});
                     }
                 }else{
                     if(this.hasFatherOnly()){
-                        this.updateAndConcatRemoteAncestors({flower1:this.flower1,limit:limit, offset:offset});
+                        this.updateAndConcatRemoteAncestors({flower1:this.flower1,limit:this.$store.settings.limit, offset:this.offset});
                     }else{
-                        this.updateAndConcatRemoteAncestors({flower1:this.flower1, flower2: this.flower2,limit:limit, offset:offset});
+                        this.updateAndConcatRemoteAncestors({flower1:this.flower1, flower2: this.flower2,limit:this.$store.settings.limit, offset:this.offset});
                     }
                 }
                 this.offset = this.increaseOffset(this.offset);
             },
-            scroll: function(){
-                window.onscroll = function(){
-                    var bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
-                    if(bottomOfWindow){
-                        this.updateAncestors(this.$store.settings.limit, this.offset);
-                    }
-                }.bind(this);
+            prevPage: function(){
+                if(this.page >= 1){
+                    this.page -= 1;
+                    this.pushRoute();
+                }
+            },
+            nextPage: function(){
+                if(this.page < this.totalPages){
+                    this.page += 1;
+                    this.pushRoute();
+                }
+            },
+            pushRoute: function(){
+                let localOr = this.isLocal ? "local":"remote";
+                if(this.hasFatherOnly()){
+                    this.$router.push({name:"DescendantsFatherOrMother", params: {father: this.flower1.id, isLocal: localOr}, query:{page:this.page}});
+                }else{
+                    this.$router.push({name:"DescendantsFatherAndMother", params: {father: this.flower1.id, mother: this.flower2.id, isLocal: localOr}, query:{page:this.page}});
+                }
+            },
+            isPaginated: function(){
+                return this.$store.settings.pagination;
+            },
+            isMobile: function(){
+                return screen.width <= 1280;
             },
         },
     });

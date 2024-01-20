@@ -103,17 +103,46 @@ export const useFlowersStore = defineStore('FlowersStore', {
 		async getFavouritesCount(){
 			return await this.db.favourites.count();
 		},
-		async getRemoteMutationsCount(){
+		async getRemoteMutationsCount(original){
 			try{
-				const response = await axios.get(API + 'mutations?count=1');
-				return response.data.count;
+				if(original === undefined || original === null){
+					const response = await axios.get(API + 'mutations?count=1');
+					return response.data.count;
+				}else{
+					const response = await axios.get(API + 'mutations/' + original + '?count=1');
+					return response.data.count;
+				}
 			}catch(e){
 				this.errors.push({message: e});
 			}
 			return 0;
 		},
-		async getLocalMutationsCount(){
-			return await this.db.mutations.where("original").equals(1).count();
+		async getLocalMutationsCount(original){
+			if(original === undefined || original === null){
+				return await this.db.mutations.count();
+			}else{
+				return await this.db.mutations.where("original").equals(original).count();
+			}
+		},
+		async getRemoteAncestorsCount(fatherID, motherID){
+			try{
+				if(motherID == undefined || motherID == null){
+					const response = await axios.get(API + 'ancestors/' + fatherID + '?count=1');
+					return response.data.count;
+				}else{
+					const response = await axios.get(API + 'ancestors/' + fatherID + '/' + motherID + '?count=1');
+					return response.data.count;
+				}
+			}catch(e){
+				this.errors.push({message: e});
+			}
+		},
+		async getLocalAncestorsCount(fatherID, motherID){
+			if(motherID === undefined || motherID === null){
+				return this.db.descendants.where("father").equals(fatherID).or("mother").equals(fatherID).count();
+			}else{
+				return this.db.descendants.where("father").equals(fatherID).and(d => d.mother == motherID).count();
+			}
 		},
 		setLoadDemoFlowers(load){
 			this.settings.loadDemoFlowers = load;
@@ -241,10 +270,10 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			try{
 				this.mutations = [];
 				const mutations = await this.db.mutations.where("original")
-									.equals(flower.id).offset(offset).limit(limit).toArray();
+									.equals(flower.id).offset(offset).limit(limit).reverse().toArray();
 				for(const m of mutations){
 					this.db.flowers.get(m.id).then((f) => {
-						this.mutations.unshift(f);
+						this.mutations.push(f);
 					});
 				}
 			}catch(e){
@@ -263,10 +292,10 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			try{
 				const mutations = await this.db.mutations.where("original")
 											.equals(flower.id).offset(offset)
-											.limit(limit).toArray();
+											.limit(limit).reverse().toArray();
 				for(const m of mutations){
 					this.db.flowers.get(m.id).then((f) => {
-						this.mutations.unshift(f);
+						this.mutations.push(f);
 					});
 				}
 			}catch(e){
@@ -291,23 +320,21 @@ export const useFlowersStore = defineStore('FlowersStore', {
 				this.ancestors = [];
 				if(flower2 === undefined || flower2 === null){
 					const descendants = await this.db.descendants.where("father")
-											.equals(flower1.id).offset(offset)
-											.limit(limit).toArray();
+											.equals(flower1.id).or("mother").equals(flower1.id)
+											.offset(offset).limit(limit).reverse().toArray();
 					for(const d of descendants){
-						console.log(d);
 						this.db.flowers.get(d.id)
 							.then((f) => {
-								this.ancestors.unshift(f);
+								this.ancestors.push(f);
 						});
 					}
 				}else{
 					const descendants = await this.db.descendants.where("father").equals(flower1.id)
-						.and(ds => ds.mother == flower2.id).offset(offset).limit(limit).toArray();
+						.and(ds => ds.mother == flower2.id).offset(offset).limit(limit).reverse().toArray();
 					for(const d of descendants){
-						console.log(d);
 						this.db.flowers.get(d.id)
 							.then((f) => {
-								this.ancestors.unshift(f);
+								this.ancestors.push(f);
 						});
 					}
 				}
@@ -331,21 +358,21 @@ export const useFlowersStore = defineStore('FlowersStore', {
 		async updateAndConcatLocalAncestors({flower1, flower2, limit, offset}){
 			try{
 				if(flower2 === undefined || flower2 === null){
-					const descendants = await this.db.descendants.where("father").equals(flower1.id)
-											.offset(offset).limit(limit).toArray();
+					const descendants = await this.db.descendants.where("father").equals(flower1.id).or("mother").equals(flower1.id)
+											.offset(offset).limit(limit).reverse().toArray();
 					for(const d of descendants){
 						this.db.flowers.get(d.id)
 							.then((f) => {
-								this.ancestors.unshift(f);
+								this.ancestors.push(f);
 						});
 					}
 				}else{
 					const descendants = await this.db.descendants.where("father").equals(flower1.id)
-						.and(ds => ds.mother == flower2.id).offset(offset).limit(limit).toArray();
+						.and(ds => ds.mother == flower2.id).offset(offset).limit(limit).reverse().toArray();
 					for(const d of descendants){
 						this.db.flowers.get(d.id)
 							.then((f) => {
-								this.ancestors.unshift(f);
+								this.ancestors.push(f);
 						});
 					}
 				}
@@ -438,6 +465,9 @@ export const useFlowersStore = defineStore('FlowersStore', {
 		async localReproduce(){
 			if(this.fe){
 				if(this.localSelected.flowers.length > 1){
+					if(!this.db.isOpen()){
+						this.db.open();
+					}
 					let f1 = await this.db.flowers.get(this.localSelected.flowers[0]);
 					let f2 = await this.db.flowers.get(this.localSelected.flowers[1]);
 					this.canvas.width = this.settings.params.radius * 2;
@@ -482,6 +512,9 @@ export const useFlowersStore = defineStore('FlowersStore', {
 		async makeLocalMutation(flower){
 			if(this.fe){
 				try{
+					if(!this.db.isOpen()){
+						this.db.open();
+					}
 					this.canvas.width = this.settings.params.radius * 2;
 					this.canvas.height = this.settings.params.radius * 3;
 					let genome = this.fe.mutate(flower.genome, 
@@ -502,7 +535,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					this.db.mutations.add({
 						id: id, 
 						original: flower.id
-					}).catch(e => createModal(e));
+					}).catch(e => this.errors.push({message: e}));
 					let f = await this.db.flowers.get(id);
 					this.localFlowers.unshift(f);
 					this.mutations.unshift(f);

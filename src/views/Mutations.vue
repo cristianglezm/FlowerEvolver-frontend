@@ -4,7 +4,10 @@
             <Flower :id="original.id" :genome="original.genome" :image="original.image" :isLocal="this.isLocal"/>
         </div>
         <div class="header"><p><strong>Mutations of {{original.id}}</strong></p></div>
-        <FlowersTable :Flowers="mutations" :isLocal="this.isLocal" :noFlowerMessage="'This Flower Has no Mutations.'"/>
+        <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="mutations.length" :currentPage="this.page" :totalPages="this.totalPages"
+                                    @next-page="nextPage" @prev-page="prevPage" @update-page="updateMutations">
+            <FlowersTable :Flowers="mutations" :isLocal="this.isLocal" :noFlowerMessage="'This Flower Has no Mutations.'"/>
+        </PaginationOrInfiniteScroll>
     </div>
 </template>
 
@@ -12,6 +15,7 @@
 	import { defineComponent } from 'vue';
     import Flower from '../components/Flower.vue';
     import FlowersTable from '../components/FlowersTable.vue';
+    import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
     import { mapActions, mapGetters } from 'pinia';
 	import { useFlowersStore } from '../store';
 	
@@ -20,19 +24,22 @@
         components:{
             Flower,
             FlowersTable,
+            PaginationOrInfiniteScroll
         },
         created(){
             this.offset = 0;
             this.$store.mutations = [];
-            this.isLocal = this.$route.params.isLocal === "local";
         },
         mounted: function(){
             this.Init();
-            this.scroll();
         },
         data(){
             return {
                 original: {id:0, genome:"", image:""},
+                offset: 0,
+                page: parseInt(this.$route.query.page, 10) || 0,
+                totalPages: 0,
+                isLocal: this.$route.params.isLocal === "local",
             };
         },
         computed:{
@@ -45,9 +52,14 @@
                 'getMutations',
             ]),
             ...mapActions(useFlowersStore, [
+                'updateRemoteMutations',
+                'updateLocalMutations',
                 'updateAndConcatRemoteMutations',
                 'updateAndConcatLocalMutations',
-                'increaseOffset'
+                'getRemoteMutationsCount',
+                'getLocalMutationsCount',
+                'increaseOffset',
+                'calcOffset'
             ]),
             Init: async function(){
                 let originalID = parseInt(this.$route.params.id);
@@ -56,23 +68,58 @@
                 }else{
                     this.original = { id: originalID, genome: originalID + '.json', image: originalID + '.png'};
                 }
-                this.updateMutations(this.$store.settings.limit, this.offset);
-            },
-            updateMutations: function(limit, offset){
-                if(this.isLocal){
-                    this.updateAndConcatLocalMutations({flower: this.original, limit: limit, offset: offset});
+                if(this.isPaginated()){
+                    /// @todo add other limits?
+                    this.$store.settings.limit = this.isMobile() ? 4:10;
+                    if(this.isLocal){
+                        this.getLocalMutationsCount(this.original.id).then(c => this.totalPages = Math.round(c / this.$store.settings.limit));;
+                    }else{
+                        this.getRemoteMutationsCount(this.original.id).then(c => this.totalPages = Math.round(c / this.$store.settings.limit));;
+                    }
+                    this.getMutationsFrom(this.page);
                 }else{
-                    this.updateAndConcatRemoteMutations({flower: this.original, limit: limit, offset: offset});
+                    this.updateMutations();
+                }
+            },
+            getMutationsFrom: function(page){
+                this.$nextTick(() => {
+                    this.offset = this.calcOffset(page);
+                    if(this.isLocal){
+                        this.updateLocalMutations({flower: this.original, limit:this.$store.settings.limit, offset:this.offset});
+                    }else{
+                        this.updateRemoteMutations({flower: this.original, limit:this.$store.settings.limit, offset:this.offset});
+                    }
+                });
+            },
+            updateMutations: function(){
+                if(this.isLocal){
+                    this.updateAndConcatLocalMutations({flower: this.original, limit:this.$store.settings.limit, offset:this.offset});
+                }else{
+                    this.updateAndConcatRemoteMutations({flower: this.original, limit:this.$store.settings.limit, offset:this.offset});
                 }
                 this.offset = this.increaseOffset(this.offset);
             },
-            scroll: function(){
-                window.onscroll = function(){
-                    var bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
-                    if(bottomOfWindow){
-                        this.updateMutations(this.$store.settings.limit, this.offset);
-                    }
-                }.bind(this);
+            prevPage: function(){
+                if(this.page >= 1){
+                    this.page -= 1;
+                    this.pushRoute();
+                }
+            },
+            nextPage: function(){
+                if(this.page < this.totalPages){
+                    this.page += 1;
+                    this.pushRoute();
+                }
+            },
+            pushRoute: function(){
+                let localOr = this.isLocal ? "local":"remote";
+                this.$router.push({name:"Mutations", params: {id: this.original.id, isLocal: localOr}, query:{page:this.page}});
+            },
+            isPaginated: function(){
+                return this.$store.settings.pagination;
+            },
+            isMobile: function(){
+                return screen.width <= 1280;
             },
         },
     });

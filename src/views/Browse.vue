@@ -27,7 +27,7 @@
         mounted(){
             if(this.isPaginated()){
                 /// @todo add other limits?
-                this.$store.settings.limit = this.isMobile() ? 4:15;
+                this.$store.settings.limit = this.isMobile() ? 4:10;
                 this.getFlowersFrom(this.page);
                 this.getRemoteFlowersCount().then(c => this.totalPages = Math.round(c / this.$store.settings.limit));
             }else{

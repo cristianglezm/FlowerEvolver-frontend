@@ -30,14 +30,13 @@
             this.page = parseInt(this.$route.query.page, 10) || 0;
         },
         mounted(){
+            this.$store.favourites = [];
             if(this.isPaginated()){
                 /// @todo add other limits?
-                this.$store.settings.limit = this.isMobile() ? 4:15;
-                this.$store.favourites = [];
+                this.$store.settings.limit = this.isMobile() ? 4:10;
                 this.getFlowersFrom(this.page);
                 this.getFavouritesCount().then(c => this.totalPages = Math.round(c / this.$store.settings.limit));
             }else{
-                this.$store.favourites = [];
                 this.updateFlowers();
             }
         },
