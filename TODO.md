@@ -42,15 +42,15 @@
     + [] fix deprecated mapGetters
     + [x] remake demo flowers (the images are different as activations from EvoAI were fixed)
 * [] Make Settings view
-    [] pagination or infinite scroll modes
-    [] fetch demo flowers at first visit option.
-    [] configure params(radius, numLayers, P, bias)
-    [] configure mutation rates
-    [] limit per page
-    [] add button to reapply new params to flowers in the db? [not sure]
+    + [] pagination or infinite scroll modes
+    + [] fetch demo flowers at first visit option.
+    + [] configure params(radius, numLayers, P, bias)
+    + [] configure mutation rates
+    + [] limit per page
+    + [] add button to reapply new params to flowers in the db? [not sure]
         - this would process all flowers and it would redraw with the new params
-    [] add button to export local flowers | favourites? into a generation json for native FlowerEvolver
-[x] make pagination component
-[] update backend server with new version
-[] update FlowerEvolver binaries to download
-[] clean code, squash and merge branch.
+    + [] add button to export local flowers | favourites? into a generation json for native FlowerEvolver
+* [x] make pagination component
+* [] update backend server with new version
+* [] update FlowerEvolver binaries to download
+* [] clean code, squash and merge branch.
