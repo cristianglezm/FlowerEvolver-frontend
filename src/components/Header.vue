@@ -71,18 +71,21 @@
             </div>
         </div>
         <Modal :errors="this.$store.errors" />
+        <ModalYesNo :channel="this.$emitter" :id="'globalConfirm'" :on="'showYesNo'" />
     </div>
 </template>
 <script>
     import { mapActions, mapGetters} from 'pinia';
 	import { useFlowersStore } from '../store';
     import Modal from './Modal.vue';
+    import ModalYesNo from './ModalYesNo.vue';
 	import { defineComponent } from 'vue';
-	
+
     export default defineComponent({
         name:'Header',
         components:{
             Modal,
+            ModalYesNo
         },
         props:{
             isLocal: Boolean,

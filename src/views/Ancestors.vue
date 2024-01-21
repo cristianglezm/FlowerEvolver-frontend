@@ -95,8 +95,6 @@
                     }
                 }
                 if(this.isPaginated()){
-                    /// @todo add other limits?
-                    this.$store.settings.limit = this.isMobile() ? 4:10
                     if(this.isLocal){
                         if(this.hasFatherOnly()){
                             this.getLocalAncestorsCount(this.flower1.id)

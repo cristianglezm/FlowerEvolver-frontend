@@ -1,7 +1,7 @@
 <template>
     <div class="Mutations">
         <div class="mutFlower">
-            <Flower :id="original.id" :genome="original.genome" :image="original.image" :isLocal="this.isLocal"/>
+            <Flower :id="original.id" :genome="original.genome" :image="original.image" :isLocal="isLocal"/>
         </div>
         <div class="header"><p><strong>Mutations of {{original.id}}</strong></p></div>
         <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="mutations.length" :currentPage="this.page" :totalPages="this.totalPages"
@@ -69,8 +69,6 @@
                     this.original = { id: originalID, genome: originalID + '.json', image: originalID + '.png'};
                 }
                 if(this.isPaginated()){
-                    /// @todo add other limits?
-                    this.$store.settings.limit = this.isMobile() ? 4:10;
                     if(this.isLocal){
                         this.getLocalMutationsCount(this.original.id).then(c => this.totalPages = Math.round(c / this.$store.settings.limit));;
                     }else{

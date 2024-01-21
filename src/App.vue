@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app-container">
     <Header :isLocal="isLocal()"/>
     <router-view :key="$route.fullPath" class="view"></router-view>
     <Footer />

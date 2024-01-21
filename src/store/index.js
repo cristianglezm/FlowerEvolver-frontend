@@ -432,15 +432,15 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			}
 		},
 		async deleteLocalFlower(id){
-			await this.db.favourites.delete(id)
-				.catch(e => this.errors.push({message: e}));
-			await this.db.descendants.delete(id)
-				.catch(e => this.errors.push({message: e}));
-			await this.db.flowers.delete(id)
-				.catch(e => this.errors.push({message: e}));
-// @todo fix mutations error when deleting
-//			await this.db.mutations.where("original").equals(id).or(":id").equals(id).delete()
-//				.catch(e => this.errors.push({message: e}));
+			const handleError = (e) => this.errors.push({message:e});
+			await this.db.favourites.delete(id).catch(handleError);
+			await this.db.descendants.delete(id).catch(handleError);
+			await this.db.flowers.delete(id).catch(handleError);
+			this.db.mutations.where("original").equals(id).or(":id").equals(id).toArray()
+				.then((ms) => {
+					let ids = ms.map(m => m.id);
+					this.db.mutations.bulkDelete(ids).catch(handleError);
+				}).catch(handleError);
 			this.localFlowers = this.localFlowers.filter(f => f.id != id);
 			this.favourites = this.favourites.filter(f => f.id != id);
 			this.ancestors = this.ancestors.filter(f => f.id != id);
