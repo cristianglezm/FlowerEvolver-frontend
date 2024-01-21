@@ -15,6 +15,6 @@ app.use(store);
 app.config.globalProperties.$store = store;
 app.use(router);
 const emitter = mitt();
-app.config.globalProperties.emitter = emitter;
+app.config.globalProperties.$emitter = emitter;
 app.mount('#app');
 

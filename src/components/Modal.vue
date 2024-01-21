@@ -1,25 +1,54 @@
 <template>
-    <div v-if="errors.length" class="Modal">
+    <div v-if="props.errors.length" class="Modal">
         <span @click="clearErrors()" class="close">&times;</span>
-        <div class="modal-content" v-for="error of errors" :key="error.id">
-            <p>{{error.message}}</p>
+        <div v-for="(error, id) in props.errors" :key="id">
+            <div class="modal-content" v-if="id === (props.errors.length - 1)">
+                <p>
+                    {{error.message}}
+                    <span style="border-radius: 128px; background-color: red; padding: 2px;">
+                        {{ props.errors.length }}
+                    </span>
+                </p>
+                <button @click="popError()">Ok.</button>
+            </div>
         </div>
-        <button @click="clearErrors()">Ok.</button>
     </div>
 </template>
 
-<script>
-    export default {
-        name:'Modal',
-        props:{
-           errors: Array, 
-        },
-        methods:{
-            clearErrors: function(){
-                this.$store.errors = [];
-            },
-        },
+<script setup>
+/**
+ * Error Modal Component
+ * 
+ * @prop {Array} errors - The array of error objects to be displayed in the modal.
+ *
+ * @example
+ * // usage in a parent component:
+ * <template>
+ *   <ErrorModal :errors="errorList" />
+ * </template>
+ *
+ * @example
+ * // usage in another component, view or store actions.
+ * const store = useFlowerStore();
+ * store.$state.errors.push({message: "error 1"});
+ * store.$state.errors.push({message: "error 2"});
+ */
+import { useFlowersStore } from '../store';
+
+const store = useFlowersStore();
+const props = defineProps({
+    errors:{
+        type: Array,
+        required: true,
     }
+});
+const clearErrors = () => {
+    store.$state.errors = [];
+};
+const popError = () => {
+    store.$state.errors.pop();
+};
+
 </script>
 
 <style scoped>
@@ -35,9 +64,6 @@
         box-shadow: 0px 16px 32px 0px rgba(0,0,0,0.3);
         overflow: auto;
         z-index: 1;
-    }
-    .border{
-        background-color: lightgreen;
     }
     p{
         font-size: 26px;

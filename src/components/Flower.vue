@@ -13,9 +13,8 @@
                         <li><a @click="downloadImage(); clicked = !clicked;">Download Image</a></li>
                         <li><a @click="showMutations(); clicked = !clicked;">Show Mutations</a></li>
                         <li><a @click="showAncestors(); clicked = !clicked;">Show Descendants</a></li>
-						<li><a @click="deleteLocalFlower(this.id); clicked = !clicked;">Delete Flower</a></li>
+                        <li><a @click="deleteThisFlower(); clicked = !clicked;">Delete Flower</a></li>
                         <li><a @click="redrawFlower({genome: this.genome}); clicked = !clicked;">Redraw Flower</a></li>
-<!--- @todo add modal confirm yes no --->
                     </ul>
                 </div>
             </div>
@@ -59,15 +58,15 @@
             isLocal: Boolean,
         },
         mounted(){
-            this.emitter.on('checkSelected', (e) => {
+            this.$emitter.on('checkSelected', (e) => {
                 this.selected = this.isSelected();
             });
             this.isFavourited(this.id)
-            .then((isFav) => {
-                if(isFav){
-                    this.heartIconSrc = this.loadImage("heart_full.png","x32");
-                }
-            });
+                .then((isFav) => {
+                    if(isFav){
+                        this.heartIconSrc = this.loadImage("heart_full.png","x32");
+                    }
+                });
         },
         data(){
             return{
@@ -101,6 +100,16 @@
                 'deleteLocalFlower',
                 'redrawFlower'
             ]),
+            deleteThisFlower: function(){
+                this.$emitter.emit('showYesNo', {
+                    title: 'Delete Action',
+                    message: 'Do you wanna delete flower ' + this.id + '?',
+                    onConfirm: (dialog) => {
+                        this.deleteLocalFlower(this.id);
+                        dialog.close();
+                    },
+                });
+            },
             loadImage: function(url, res){
                 return new URL(`/src/assets/${res}/${url}`, import.meta.url);
             },
@@ -117,7 +126,7 @@
                 }else{
                     this.selectRemoteFlower({id:this.id, genome:this.genome,image:this.image});
                 }
-				this.emitter.emit('checkSelected');
+                this.$emitter.emit('checkSelected');
             },
             showMutations: function(){
                 let localOr = this.isLocal ? "local":"remote";
