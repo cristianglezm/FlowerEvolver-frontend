@@ -16,5 +16,8 @@ app.config.globalProperties.$store = store;
 app.use(router);
 const emitter = mitt();
 app.config.globalProperties.$emitter = emitter;
+// steps towards composition api
+app.provide('appStore', store);
+app.provide('emitter', emitter);
 app.mount('#app');
 

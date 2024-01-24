@@ -7,7 +7,6 @@
             </div>
             <div id="linux">
                 Linux
-                <a :href="this.base_url + 'FlowerEvolver-x32-linux.tar'" download>download x86</a>
                 <a :href="this.base_url + 'FlowerEvolver-x64-linux.tar'">download x64</a>
             </div>
         </div>
