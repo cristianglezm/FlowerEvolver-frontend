@@ -14,9 +14,8 @@
                 + [x] add button to redraw flower (make a new flower with params)
                 + [] add button to share flowers with backend - [not sure]
             - Header
-                + [] add settings component tab
-                + [] add route for settings component.
-                + [] btn names too long, make them short
+                + [x] add settings component tab
+                + [x] add route for settings component.
                 + [x] add pagination for tabs
         + views
             - [x] Ancestors
@@ -38,19 +37,29 @@
                 + [x] fix infinite scroll not working
                 + [x] add pagination mode
         + [] change demo component name to Local?
+	+ [x] change name to Modal.vue and ModalYesNo.vue to ErrorModal, ConfirmModal
 	+ [x] fix wasm module not loading in prod
     + [] fix deprecated mapGetters
     + [x] remake demo flowers (the images are different as activations from EvoAI were fixed)
 * [] Make Settings view
-    + [] pagination or infinite scroll modes
-    + [] fetch demo flowers at first visit option.
-    + [] configure params(radius, numLayers, P, bias)
-    + [] configure mutation rates
-    + [] limit per page
-    + [] add button to reapply new params to flowers in the db? [not sure]
+    + [x] pagination or infinite scroll modes
+    + [x] fetch demo flowers at first visit option.
+    + [x] configure params(radius, numLayers, P, bias)
+    + [x] configure mutation rates
+    + [x] limit per page
+    + [x] add button to remove all flowers.
+    + [] make progressModal component
+        - [] fix progress not updating
+    + [] add button to redraw all flowers with the new params.
         - this would process all flowers and it would redraw with the new params
     + [] add button to export local flowers | favourites? into a generation json for native FlowerEvolver
+    + [] add button to import local flowers from a generation.json
+        - [] make uploadFileModal
+    + [] validate params and mutation rates.
+    + [] adapt css style to use the space better
 * [x] make pagination component
+* [] fix native app not drawing the same flowers
+* [] update fe-wasm - validation code, add exception handler?
 * [] update backend server with new version
 * [] update FlowerEvolver binaries to download
 * [] clean code, squash and merge branch.

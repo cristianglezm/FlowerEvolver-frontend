@@ -28,7 +28,14 @@ export default defineComponent({
 </script>
 
 <style>
+@font-face {
+  font-family: 'MonaspaceRadon-Regular';
+  src: url('MonaspaceRadon-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
 html {
+  font-family: 'MonaspaceRadon-Regular', Arial, Helvetica, sans-serif;
   background-color: green !important;
   scrollbar-color: rgb(28, 30, 31) rgb(47, 50, 52);
 }

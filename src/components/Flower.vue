@@ -104,6 +104,8 @@
                 this.$emitter.emit('showYesNo', {
                     title: 'Delete Action',
                     message: 'Do you wanna delete flower ' + this.id + '?',
+                    btnNo: 'No',
+                    btnYes: 'Delete Flower',
                     onConfirm: (dialog) => {
                         this.deleteLocalFlower(this.id);
                         dialog.close();
