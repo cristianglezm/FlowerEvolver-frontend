@@ -43,10 +43,10 @@ const props = defineProps({
     }
 });
 const clearErrors = () => {
-    store.$state.errors = [];
+    store.errors = [];
 };
 const popError = () => {
-    store.$state.errors.pop();
+    store.errors.pop();
 };
 
 </script>

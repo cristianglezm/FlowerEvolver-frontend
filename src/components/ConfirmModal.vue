@@ -23,10 +23,10 @@
  * @example
  * // component usage in another component, view etc
  * <template>
- *      <ConfirmModal :channel="this.$emitter" :id="'globalConfirm'" :on="'showYesNo'" />
+ *      <ConfirmModal :channel="emitter" :id="'globalConfirm'" :on="'showYesNo'" />
  * </template>
  * // some other component sending info
- *   this.$emitter.emit('showYesNo', {
+ *   emitter.emit('showYesNo', {
  *       title: 'Delete Action',
  *       message: 'Do you wanna delete flower ' + this.id + '?',
  *       btnNo: 'No',

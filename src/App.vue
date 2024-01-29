@@ -30,7 +30,7 @@ export default defineComponent({
 <style>
 @font-face {
   font-family: 'MonaspaceRadon-Regular';
-  src: url('MonaspaceRadon-Regular.otf') format('opentype');
+  src: url('/MonaspaceRadon-Regular.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
 }
