@@ -48,17 +48,24 @@
     + [x] configure mutation rates
     + [x] limit per page
     + [x] add button to remove all flowers.
-    + [] make progressModal component
-        - [] fix progress not updating
+        - [] fix autoincrement not reseting
+    + [] add button to remove all but favourites.
+        - [] fix error, delete all, then add fav back not working.(keys?)
+    + [x] make progressModal component
+        - [x] fix progress not updating
     + [] add button to redraw all flowers with the new params.
         - this would process all flowers and it would redraw with the new params
+        - [] fix OOM error in development, production works
     + [] add button to export local flowers | favourites? into a generation json for native FlowerEvolver
     + [] add button to import local flowers from a generation.json
         - [] make uploadFileModal
-    + [] validate params and mutation rates.
-    + [] adapt css style to use the space better
+    + [x] validate params and mutation rates.
+    + [x] adapt css style to use the space better
+    + [x] add Tooltip component
+    + [] add infoModal
+    + [] add storage usage stats
 * [x] make pagination component
-* [] fix native app not drawing the same flowers
+* [|] fix native app not drawing the same flowers [not a bug - make new demo flowers]
 * [] update fe-wasm - validation code, add exception handler?
 * [] update backend server with new version
 * [] update FlowerEvolver binaries to download

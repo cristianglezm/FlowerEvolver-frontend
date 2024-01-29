@@ -70,7 +70,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			this.fe = await fe();
 		},
 		async convertImageArrayBufferToDataURL(data){
-			const ctx = this.canvas.getContext("2d");
+			const ctx = this.canvas.getContext("2d", { willReadFrequently: true });
 			let img = new Image();
 			let canvas = this.canvas;
 			img.onload = function(){
