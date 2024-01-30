@@ -21,7 +21,8 @@ export default defineComponent({
     isLocal(){
       return this.$route.path === '/Demo' || 
               this.$route.path === '/Favourites' || 
-              this.$route.params.isLocal === 'local';
+              this.$route.params.isLocal === 'local' || 
+              this.$route.path === '/Settings';
     }
   },
 });

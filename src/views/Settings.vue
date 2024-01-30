@@ -16,7 +16,7 @@
                 </div>
                 <div>
                     <div id="limit-settings" class="option-box labelInputArea">
-                        <ToolTip :info="'limit for how many flowers will it load at a time.'" />
+                        <ToolTip :info="'limit for how many flowers it will load at a time.'" />
                         <label for="setLimit">Limit per Page: </label>
                         <input type="number" id="setLimit" min="1" v-model.number="store.$state.settings.limit" />
                     </div>
@@ -96,8 +96,8 @@
             <button @click="deleteAllFlowers()"> Delete All Flowers </button>
             <button @click="deleteNonFavourites()"> Delete non Favourites </button>
             <button @click="showRedrawFlowers()"> redraw local Flowers </button>
-            <button @click="exportFavourites()"> Export favourite flowers </button>
-            <button @click="exportLocals()"> Export local Flowers</button>
+            <button @click="showExport('favourites')"> Export favourite flowers </button>
+            <button @click="showExport('all')"> Export local Flowers</button>
         </div>
     </div>
 </template>
@@ -106,9 +106,10 @@
 /// @todo document, impl workers for export and import, fix oom bug in dev
 import { reactive, inject, toRaw, onBeforeUnmount } from 'vue';
 import ToolTip from '../components/ToolTip.vue';
-import { useFlowersStore } from '../store';
+import { useFlowersStore, STORAGE_KEY } from '../store';
 import progressModal from '../components/progressModal.vue';
 import redrawWorker from '../workers/redraw.worker?worker';
+import exportWorker from '../workers/export.worker?worker';
 
 const store = useFlowersStore();
 let emitter = inject('emitter');
@@ -132,24 +133,28 @@ const mutationRates = reactive({
 
 const workers = {
     redrawWorker: redrawWorker(),
-    exportWorker: null,
+    exportWorker: exportWorker(),
     importWorker: null
 };
 
 onBeforeUnmount(() => {
     workers.redrawWorker.terminate();
     /// @todo uncomment
-    //workers.exportWorker.terminate();
+    workers.exportWorker.terminate();
     //workers.importWorker.terminate();
 });
 
 const clamp = (val, min, max) => {
     return Math.min(max, Math.max(val, min));
 }
+const saveSettings = () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(store.settings));
+};
 const validateParams = () => {
     params.radius = clamp(params.radius, 4, 258);
     params.numLayers = Math.max(1, params.numLayers);
     store.settings.params = params;
+    saveSettings();
 };
 const validateMutationRates = () => {
     mutationRates.actTypeRate = clamp(mutationRates.actTypeRate, 0.0, 1.0);
@@ -160,44 +165,43 @@ const validateMutationRates = () => {
     mutationRates.perturbWeightsRate = clamp(mutationRates.perturbWeightsRate, 0.0, 1.0)
     mutationRates.removeConnRate = clamp(mutationRates.removeConnRate, 0.0, 1.0)
     store.settings.mutationRates = mutationRates;
+    saveSettings();
 };
 const deleteAllFlowers = () => {
-    /// @todo review autoincrement needs to reset.
     emitter.emit('showYesNo', {
         title: 'delete all flowers',
         message: 'Are you sure you want to delete all flowers?',
         btnNo: 'no',
         btnYes: 'Delete all',
         onConfirm: (dialog) => {
-            store.db.flowers.clear();
-            store.db.favourites.clear();
-            store.db.mutations.clear();
-            store.db.descendants.clear();
+            store.db.delete();
+            store.db.open();
             dialog.close();
         },
     });
 };
 const deleteNonFavourites = () => {
-    /// @todo fix error - delete all
     emitter.emit('showYesNo', {
         title: 'Delete non favourites',
         message: 'Are you sure you want to delete all flowers but favourites?',
         btnNo: 'no',
         btnYes: 'Delete non favourites',
         onConfirm: async (dialog) => {
-            let favs = await store.db.favourites.toArray();
-            let ids = favs.map((f) => f.id);
+            let ids = await store.db.favourites.toArray();
             let flowers = await store.db.flowers.bulkGet(ids);
-            store.db.flowers.clear();
-            store.db.mutations.clear();
-            store.db.descendants.clear();
+            for(let id = 1;id < flowers.length; ++id){
+                ids[id] = id;
+                flowers[id].id = id;
+            }
+            store.db.delete();
+            store.db.open();
             store.db.flowers.bulkAdd(flowers);
+            store.db.favourites.bulkAdd(ids, ids);
             dialog.close();
         }
     });
 };
 const redrawLocalFlowers = async () => {
-    /// @todo fix oom error in web worker when env = dev
     workers.redrawWorker.onmessage = (e) => {
         emitter.emit('updateProgress', {
             progress: e.data.progress,
@@ -218,6 +222,31 @@ const showRedrawFlowers = () => {
         }
     });
 };
+const showExport = (type) => {
+    if(type == "favourites"){
+        store.db.favourites.count((totalFlowers) => {
+            if(totalFlowers != 0){
+                showProgressBar('exporting favourite flowers', totalFlowers, 
+                    () => {
+                        exportFlowers(type);
+                    });
+            }else{
+                store.errors.push({message: "You have no favourites to export"});
+            }
+        });
+    }else{
+        store.db.flowers.count((totalFlowers) => {
+            if(totalFlowers != 0){
+                showProgressBar('exporting flowers', totalFlowers, 
+                    () => {
+                        exportFlowers(type);
+                    });
+            }else{
+                store.errors.push({message: "You have no flowers to export"});
+            }
+        });
+    }
+};
 const showProgressBar = (title, total, fn) => {
     emitter.emit('showProgress', {
         title: title,
@@ -226,39 +255,44 @@ const showProgressBar = (title, total, fn) => {
         onLoad: fn
     });
 };
-const exportArray = (array, downName) => {
-    /// @todo use progressModal and move this into worker.
-    let gen = {
-        Generation: [],
+const exportFlowers = (type) => {
+    workers.exportWorker.onmessage = (e) => {
+        let type = e.data.type;
+        let ready = e.data.ready;
+        if(type == "favourites"){
+            if(ready){
+                let gen = e.data.filedata;
+                const a = document.createElement("a");
+                a.href = 'data:text/json;charset=utf-8,' + JSON.stringify(gen);
+                a.download = "favouritesFlowers.json";
+                a.click();
+            }else{
+                emitter.emit('updateProgress', {
+                    progress: e.data.progress,
+                });
+            }
+        }else if(type == "all"){
+            if(ready){
+                let gen = e.data.filedata;
+                const a = document.createElement("a");
+                a.href = 'data:text/json;charset=utf-8,' + JSON.stringify(gen);
+                a.download = "localFlowers.json";
+                a.click();
+            }else{
+                emitter.emit('updateProgress', {
+                    progress: e.data.progress,
+                });
+            }
+        }
     };
-    array.forEach(f => {
-        let json = JSON.parse(f.genome);
-        gen.Generation.push(json.Flower);
+    workers.exportWorker.onerror = (e) => {
+        store.errors.push({message: "export Web Worker had an error."});
+    };
+    workers.exportWorker.postMessage({
+        type: type
     });
-    const a = document.createElement("a");
-    a.href = 'data:text/json;charset=utf-8,' + JSON.stringify(gen);
-    a.download = downName;
-    a.click();
 };
-const exportFavourites = () => {
-    const handleError = (e) => {
-        store.errors.push({message:e});
-    };
-    store.db.favourites.toArray()
-        .then((favs) => {
-            let ids = favs.map((f) => f.id);
-            store.db.flowers.bulkGet(ids)
-                .then((flowers) => {
-                    exportArray(flowers, "favouriteFlowers.json");
-                }).catch(handleError);
-        }).catch(handleError);
-};
-const exportLocals = () => {
-    store.db.flowers.toArray()
-        .then((flowers) => {
-            exportArray(flowers, "localFlowers.json");
-        }).catch((e) => store.errors.push({message:e}));
-};
+
 </script>
 
 <style scoped>

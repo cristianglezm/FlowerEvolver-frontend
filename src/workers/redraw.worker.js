@@ -4,17 +4,21 @@ import fe from '@cristianglezm/flower-evolver-wasm';
 const updateFlowers = (flowers) => {
     db.flowers.bulkPut(flowers);
 };
-/// @todo fix OOM error when in development.
+
+let FE;
+
 self.onmessage = async (e) => {
     self.canvas = e.data.canvas;
     let params = e.data.params;
+    if(!FE){
+        FE = await fe();
+    }
     self.canvas.width = params.radius * 2;
     self.canvas.height = params.radius * 3;
-    let FE = await fe();
     let batchSize = 100;
     let totalCount = await db.flowers.count();
     let totalBatches = Math.ceil(totalCount / batchSize);
-    for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++){
+    for(let batchIndex = 0; batchIndex < totalBatches; batchIndex++){
         let flowers = await db.flowers.offset(batchIndex * batchSize)
                                 .limit(batchSize).toArray();
         let progress = batchIndex * batchSize + 1;
