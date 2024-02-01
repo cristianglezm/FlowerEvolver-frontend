@@ -2,13 +2,13 @@
 
 * make website local first
     + [x] add dexie to use indexedDB to store flowers
-    + [] adapt components and views to work with local and remote flowers
+    + [x] adapt components and views to work with local and remote flowers
         + [x] remove message of 2s wait for disabled buttons?
         + components
             - Flower
                 + [x] add button to convert remote flowers into locals
                 + [x] add button to delete local flowers.
-                    - [x] add modalYesNo
+                    - [x] add ConfirmModal
                     - [x] fix mutations delete error
                 + [] fix error favourite icon not correctly loading in mutations and ancestors.
                 + [x] add button to redraw flower (make a new flower with params)
@@ -24,7 +24,7 @@
             - [x] Browse
                 + [x] infinite scroll does not work
                 + [x] add pagination mode
-            - [x] Demo
+            - [x] Local
                 + [x] load demo flowers
                 + [x] add pagination mode
                 + [x] fix infinite scroll not working
@@ -36,10 +36,10 @@
             - [x] mutations
                 + [x] fix infinite scroll not working
                 + [x] add pagination mode
-        + [] change demo component name to Local?
+        + [x] change demo component name to Local?
 	+ [x] change name to Modal.vue and ModalYesNo.vue to ErrorModal, ConfirmModal
 	+ [x] fix wasm module not loading in prod
-    + [] fix deprecated mapGetters
+    + [x] fix deprecated mapGetters
     + [x] remake demo flowers (the images are different as activations from EvoAI were fixed)
 * [] Make Settings view
     + [x] pagination or infinite scroll modes
@@ -59,15 +59,15 @@
                 wasm module and it gave errors) forced it to executing npm run dev -- optimize --force
     + [x] add button to export local flowers | favourites? into a generation json for native FlowerEvolver
     + [] add button to import local flowers from a generation.json
+        - [] make web worker
     + [x] validate params and mutation rates.
     + [x] save settings to localStorage when modified.
     + [x] adapt css style to use the space better
     + [x] add Tooltip component
-    + [] add infoModal
-    + [] add storage usage stats
+    + [x] add storage usage stats
     + [] add uploadFileModal
 * [x] make pagination component
-* [|] fix native app not drawing the same flowers [not a bug - make new demo flowers]
+* [] fix native app not drawing the same flowers [not a bug - make new demo flowers]
 * [] update fe-wasm - validation code, add exception handler?
 * [] update backend server with new version
 * [] update FlowerEvolver binaries to download

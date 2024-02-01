@@ -1,6 +1,6 @@
 <template>
     <div class="Header">
-        <div v-if="showWarning" role="warning" id="warning"><span @click="showWarning = false">X</span><p>Flowers are deleted daily at 00:00 UTC</p></div>
+        <div v-if="showWarning" role="warning" id="warning"><span @click="showWarning = false">X</span><p>Remote flowers are deleted daily at 00:00 UTC</p></div>
         <header id="appTitle">
             <a :href="this.base_url" style="text-decoration: none; position: relative; z-index: 1;"><h1>Flower Evolver</h1></a>
             <canvas id="flowerGarden" :width="flowerGardenRect.width" :height="flowerGardenRect.height"></canvas>
@@ -9,7 +9,7 @@
             <img @click="showMenu=!showMenu" src="@/assets/x32/menu.png" alt="menuIcon" class="pointer"/>
             <div v-if="showMenu" class="mobileMenu">
                 <nav class="tabs" v-if="isPaginated()" @click="showMenu=!showMenu" alt="tabs">
-                        <router-link to="/Demo?page=0"> Demo </router-link>
+                        <router-link to="/Local?page=0"> Local </router-link>
                         <router-link to="/LastAdded"> Last Added </router-link>
                         <router-link to="/Browse?page=0"> Browse </router-link>
                         <router-link to="/Favourites?page=0"> Favourites </router-link>
@@ -17,7 +17,7 @@
                         <router-link to="/Settings"> Settings </router-link>
                 </nav>
                 <nav class="tabs" v-else @click="showMenu=!showMenu" alt="tabs">
-                        <router-link to="/Demo"> Demo </router-link>
+                        <router-link to="/Local"> Local </router-link>
                         <router-link to="/LastAdded"> Last Added </router-link>
                         <router-link to="/Browse"> Browse </router-link>
                         <router-link to="/Favourites"> Favourites </router-link>
@@ -41,7 +41,7 @@
         <div v-else>
             <nav class="tabs" alt="tabs">
                 <ul v-if="isPaginated()">
-                    <router-link to="/Demo?page=0"> Demo </router-link>
+                    <router-link to="/Local?page=0"> Local </router-link>
                     <router-link to="/LastAdded"> Last Added </router-link>
                     <router-link to="/Browse?page=0"> Browse </router-link>
                     <router-link to="/Favourites?page=0"> Favourites </router-link>
@@ -49,7 +49,7 @@
                     <router-link to="/Settings"> Settings </router-link>
                 </ul>
                 <ul v-else>
-                    <router-link to="/Demo"> Demo </router-link>
+                    <router-link to="/Local"> Local </router-link>
                     <router-link to="/LastAdded"> Last Added </router-link>
                     <router-link to="/Browse"> Browse </router-link>
                     <router-link to="/Favourites"> Favourites </router-link>
@@ -80,7 +80,7 @@
     </div>
 </template>
 <script>
-    import { mapActions, mapGetters} from 'pinia';
+    import { mapActions, mapState} from 'pinia';
 	import { useFlowersStore } from '../store';
     import ErrorModal from './ErrorModal.vue';
     import ConfirmModal from './ConfirmModal.vue';
@@ -114,10 +114,10 @@
             }
         },
         methods:{
-            ...mapGetters(useFlowersStore, [
-				'getRemoteSelected',
-				'getLocalSelected'
-            ]),
+            ...mapState(useFlowersStore, {
+                getRemoteSelected: 'getRemoteSelected',
+                getLocalSelected: 'getLocalSelected'
+            }),
             ...mapActions(useFlowersStore, [
 				'makeRemoteFlower',
 				'makeLocalFlower',

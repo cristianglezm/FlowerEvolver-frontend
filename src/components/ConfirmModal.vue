@@ -93,8 +93,13 @@ onBeforeUnmount(() => {
         left: 40%;
         box-shadow: 0px 16px 32px 0px rgba(0,0,0,0.3);
         overflow: auto;
+        overflow-wrap: break-word;
         z-index: 1;
         padding: 2px;
+    }
+    .ConfirmModal-container p{
+        overflow: auto;
+        overflow-wrap: break-word;
     }
     .ConfirmModal-container button{
         background-color: green;
