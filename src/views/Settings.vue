@@ -14,28 +14,37 @@
                     <label for="loadDemoFlowers">Load Demo Flowers: </label>
                     <input type="checkbox" id="loadDemoFlowers" v-model="store.$state.settings.loadDemoFlowers" />
                 </div>
+                <div id="persists-option" class="option-box labelInputArea">
+                    <ToolTip :info="'it will keep data even when low on space'" />
+                    <label for="persist">Persistent storage: </label>
+                    <input type="checkbox" id="persist" v-model="data.persisted" @change="persist()"/>
+                </div>
                 <div>
                     <div id="limit-settings" class="option-box labelInputArea">
                         <ToolTip :info="'limit for how many flowers it will load at a time.'" />
                         <label for="setLimit">Limit per Page: </label>
                         <input type="number" id="setLimit" min="1" v-model.number="store.$state.settings.limit" />
                     </div>
+                    <div style="color: lightgreen; text-align: center;"> 
+                        <ToolTip :info="'Space used by the flowers (usage / quota)'" />
+                        {{ data.spaceUsage.toFixed(2) }} / {{ data.spaceQuota.toFixed(2) }} MB
+                    </div>
                 </div>
             </div>
             <div id="params-settings" class="settings-box">
                 <h2>Creation parameters</h2>
                 <div class="labelInputArea">
-                    <ToolTip :info="'radius of the flower'" />
+                    <ToolTip :info="'radius of the flower, min: 4 and max: 258, for bigger radius use the native app.'" />
                     <label for="params-radius">Radius: </label>
                     <input type="number" id="params-radius" min="4" max="258" v-model.number="params.radius" @change="validateParams()"/>
                 </div>
                 <div class="labelInputArea">
-                    <ToolTip :info="'number of layers, a layer is defined by radius / 2.0, the drawing algorithm will do another pass at half radius for each layer.'" />
+                    <ToolTip :info="'A layer is defined by radius / 2.0, the drawing algorithm will do another pass at half radius for each layer.'" />
                     <label for="params-num-layers">Number of Layers: </label>
                     <input type="number" id="params-num-layers" min="1" v-model.number="params.numLayers" @change="validateParams()"/>
                 </div>
                 <div class="labelInputArea">
-                    <ToolTip :info="'the P parameter controls how many petals the flower will have.'" />
+                    <ToolTip :info="'It controls how many petals the flower will have.'" />
                     <label for="params-p">P: </label>
                     <input type="number" id="params-p" v-model.number="params.P" @change="validateParams()"/>
                 </div>
@@ -92,19 +101,24 @@
             </div>
         </div>
         <div id="actions-settings" class="settings-box">
-            <h2 style="color:red;">Actions - Danger Zone</h2>
-            <button @click="deleteAllFlowers()"> Delete All Flowers </button>
-            <button @click="deleteNonFavourites()"> Delete non Favourites </button>
-            <button @click="showRedrawFlowers()"> redraw local Flowers </button>
-            <button @click="showExport('favourites')"> Export favourite flowers </button>
-            <button @click="showExport('all')"> Export local Flowers</button>
+            <div id="actions-safe">
+                <h2 style="color:lightgreen;">Actions</h2>
+                <button @click="showRedrawFlowers()"> redraw local Flowers </button>
+                <button @click="showExport('favourites')"> Export favourite flowers </button>
+                <button @click="showExport('all')"> Export local Flowers </button>
+            </div>
+            <div id="actions-danger">
+                <h2 style="color:red;">Danger Zone</h2>
+                <button @click="deleteAllFlowers()"> Delete All Flowers </button>
+                <button @click="deleteNonFavourites()"> Delete non Favourites </button>
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
-/// @todo document, impl workers for export and import, fix oom bug in dev
-import { reactive, inject, toRaw, onBeforeUnmount } from 'vue';
+/// @todo document, impl import worker
+import { reactive, inject, toRaw, onBeforeUnmount, onMounted } from 'vue';
 import ToolTip from '../components/ToolTip.vue';
 import { useFlowersStore, STORAGE_KEY } from '../store';
 import progressModal from '../components/progressModal.vue';
@@ -130,13 +144,43 @@ const mutationRates = reactive({
     disableRate: store.settings.mutationRates.disableRate,
     actTypeRate: store.settings.mutationRates.actTypeRate
 });
-
 const workers = {
     redrawWorker: redrawWorker(),
     exportWorker: exportWorker(),
     importWorker: null
 };
 
+const persist = async () => {
+    if(!navigator.storage && !navigator.storage.persist){
+        return;
+    }
+    data.persisted  = await navigator.storage.persist();
+};
+const isPersisted = async () => {
+    if(!navigator.storage && !navigator.storage.persisted){
+        return false;
+    }
+    return await navigator.storage.persisted();
+};
+const calcSpace = async () => {
+    if(navigator.storage && navigator.storage.estimate){
+        const estimation = await navigator.storage.estimate();
+        data.spaceUsage = (estimation.usage / 1e+6);
+        data.spaceQuota = (estimation.quota / 1e+6);
+    }else{
+        data.spaceUsage = 0.0;
+        data.spaceQuota = 0.0;
+    }
+};
+const data = reactive({
+    persisted: false,
+    spaceUsage: 0.0,
+    spaceQuota: 0.0
+});
+onMounted(() => {
+    isPersisted().then(p => data.persisted = p);
+    calcSpace();
+});
 onBeforeUnmount(() => {
     workers.redrawWorker.terminate();
     /// @todo uncomment
@@ -216,33 +260,61 @@ const redrawLocalFlowers = async () => {
         params: structuredClone(toRaw(params))}, [wcanvas]);
 };
 const showRedrawFlowers = () => {
-    store.db.flowers.count((totalFlowers) => {
-        if(totalFlowers != 0){
-            showProgressBar('re-drawing flowers', totalFlowers, redrawLocalFlowers);   
-        }
+    emitter.emit('showYesNo', {
+        title: 'Redraw local flowers',
+        message: 'Are you sure you want to redraw local flowers?',
+        btnNo: 'no',
+        btnYes: 'redraw local flowers',
+        onConfirm: (dialog) => {
+            store.db.flowers.count((totalFlowers) => {
+                if(totalFlowers != 0){
+                    showProgressBar('re-drawing flowers', totalFlowers, redrawLocalFlowers);   
+                }
+            });
+            dialog.close();
+        },
     });
 };
+// @todo add confirmModal?
 const showExport = (type) => {
     if(type == "favourites"){
-        store.db.favourites.count((totalFlowers) => {
-            if(totalFlowers != 0){
-                showProgressBar('exporting favourite flowers', totalFlowers, 
-                    () => {
-                        exportFlowers(type);
-                    });
-            }else{
-                store.errors.push({message: "You have no favourites to export"});
+        emitter.emit('showYesNo', {
+            title: 'Export Favourite flowers',
+            message: 'Are you sure you want to export your favourite flowers?',
+            btnNo: 'no',
+            btnYes: 'Export favourite flowers',
+            onConfirm: (dialog) => {
+                store.db.favourites.count((totalFlowers) => {
+                    if(totalFlowers != 0){
+                        showProgressBar('exporting favourite flowers', totalFlowers, 
+                            () => {
+                                exportFlowers(type);
+                            });
+                    }else{
+                        store.errors.push({message: "You have no favourites to export"});
+                    }
+                });
+                dialog.close();
             }
         });
     }else{
-        store.db.flowers.count((totalFlowers) => {
-            if(totalFlowers != 0){
-                showProgressBar('exporting flowers', totalFlowers, 
-                    () => {
-                        exportFlowers(type);
-                    });
-            }else{
-                store.errors.push({message: "You have no flowers to export"});
+        emitter.emit('showYesNo', {
+            title: 'Export all flowers',
+            message: 'Are you sure you want to export all local flowers?',
+            btnNo: 'no',
+            btnYes: 'Export all local flowers',
+            onConfirm: (dialog) => {
+                store.db.flowers.count((totalFlowers) => {
+                    if(totalFlowers != 0){
+                        showProgressBar('exporting flowers', totalFlowers, 
+                            () => {
+                                exportFlowers(type);
+                            });
+                    }else{
+                        store.errors.push({message: "You have no flowers to export"});
+                    }
+                });
+                dialog.close();
             }
         });
     }
@@ -367,14 +439,35 @@ const exportFlowers = (type) => {
         border-radius: 20px;
     }
     #actions-settings{
-        border: solid red;
+        border: solid lightgreen;
         padding: 10px;
         margin-bottom: 20px;
         text-align: center;
         background-color: rgb(37, 39, 41);
         font-size: 20px;
     }
-    #actions-settings button{
+    #actions-safe{
+        padding: 10px;
+    }
+    #actions-danger{
+        border: solid red;
+        border-radius: 20px;
+        padding: 10px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    #actions-safe button{
+        border-radius: 120px;
+        position: relative;
+        font-size: 20px;
+        border-radius: 315px 335px 155px 135px;
+        margin: 10px 10px 0px 2px;
+        cursor: pointer;
+        border-color: lightgreen;
+        background-color: green;
+        color: lightgreen;
+    }
+    #actions-danger button{
         border-radius: 120px;
         position: relative;
         font-size: 20px;

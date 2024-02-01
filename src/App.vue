@@ -19,7 +19,7 @@ export default defineComponent({
   },
   methods:{
     isLocal(){
-      return this.$route.path === '/Demo' || 
+      return this.$route.path === '/Local' || 
               this.$route.path === '/Favourites' || 
               this.$route.params.isLocal === 'local' || 
               this.$route.path === '/Settings';

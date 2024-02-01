@@ -11,7 +11,7 @@
 	import { defineComponent } from 'vue';
     import FlowersTable from '../components/FlowersTable.vue';
     import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
-    import { mapActions, mapGetters } from 'pinia';
+    import { mapActions, mapState } from 'pinia';
 	import { useFlowersStore } from '../store';
 	
     export default defineComponent({
@@ -40,14 +40,11 @@
             }
         },
         computed:{
-            flowers(){
-                return this.$store.getRemoteFlowers();
-            },
+            ...mapState(useFlowersStore, {
+                flowers: store => store.getRemoteFlowers()
+            })
         },
         methods:{
-            ...mapGetters(useFlowersStore, [
-                'getRemoteFlowers',
-            ]),
             ...mapActions(useFlowersStore, [
                 'updateRemoteFlowers',
                 'updateAndConcatRemoteFlowers',

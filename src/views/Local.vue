@@ -1,5 +1,5 @@
 <template>
-    <div class="Demo">
+    <div class="Local">
         <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="flowers.length" :currentPage="this.page" :totalPages="this.totalPages"
                                     @next-page="this.nextPage" @prev-page="this.prevPage" @update-page="this.nextBatch">
             <FlowersTable :Flowers="flowers" :isLocal="true" :noFlowerMessage="'There are no Flowers'"/>
@@ -11,11 +11,11 @@
     import { defineComponent } from 'vue';
     import FlowersTable from '../components/FlowersTable.vue';
     import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
-    import { mapActions, mapGetters } from 'pinia';
+    import { mapActions, mapState } from 'pinia';
     import { useFlowersStore } from '../store';
 
     export default defineComponent({
-        name:'Demo',
+        name:'Local',
         components:{
             FlowersTable,
             PaginationOrInfiniteScroll
@@ -36,7 +36,7 @@
         },
         data(){
             return {
-                /// @todo load genome and use fe.drawFlower?
+                /// @todo replace with web worker import - delete flower images from assets, change #.json for a generation.json?
                 demoFlowers: [
                             {id: 1, genome: this.loadUrl('flowers/1.json'), image: this.loadUrl("flowers/1.png")},
                             {id: 2, genome: this.loadUrl('flowers/2.json'), image: this.loadUrl("flowers/2.png")},
@@ -56,14 +56,11 @@
             }
         },
         computed:{
-            flowers(){
-                return this.$store.getLocalFlowers();
-            },
+            ...mapState(useFlowersStore, {
+                flowers: store => store.getLocalFlowers()
+            })
         },
         methods:{
-            ...mapGetters(useFlowersStore, [
-                'getLocalFlowers',
-            ]),
             ...mapActions(useFlowersStore, [
                 'updateLocalFlowers',
                 'updateAndConcatLocalFlowers',
@@ -91,13 +88,13 @@
             prevPage: function(){
                 if(this.page >= 1){
                     this.page -= 1;
-                    this.$router.push({path:"Demo", query:{page:this.page}});
+                    this.$router.push({path:"Local", query:{page:this.page}});
                 }
             },
             nextPage: function(){
                 if(this.page < this.totalPages){
                     this.page += 1;
-                    this.$router.push({path:"Demo", query:{page:this.page}});
+                    this.$router.push({path:"Local", query:{page:this.page}});
                 }
             },
             isPaginated: function(){
@@ -152,7 +149,7 @@
 </script>
 
 <style scoped>
-    .Demo{
+    .Local{
         background-color: black;
     }
 </style>

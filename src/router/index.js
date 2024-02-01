@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
-import Demo from '../views/Demo.vue';
+import Local from '../views/Local.vue';
 import LastAdded from '../views/LastAdded.vue';
 import Mutations from '../views/Mutations.vue';
 import Ancestors from '../views/Ancestors.vue';
@@ -11,7 +11,7 @@ import Settings from '../views/Settings.vue';
 
 const routes = [
   { path: '/', redirect: 'LastAdded' },
-  { path: '/Demo', name: 'Demo', component: Demo },
+  { path: '/Local', name: 'Local', component: Local },
   { path: '/LastAdded', name: 'LastAdded', component: LastAdded },
   { path: '/Browse', name: 'Browse', component: Browse },
   { path: '/Favourites', name: 'Favourites', component: Favourites },

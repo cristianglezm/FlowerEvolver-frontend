@@ -25,7 +25,7 @@
 </template>
 
 <script>
-	import { mapActions, mapGetters } from 'pinia';
+	import { mapActions, mapState } from 'pinia';
 	import { useFlowersStore } from '../store';
 	import Flower from '../components/Flower.vue';
 	import FlowersTable from '../components/FlowersTable.vue';
@@ -57,14 +57,11 @@
             };
         },
         computed:{
-            ancestors(){
-                return this.$store.getAncestors();
-            },
+            ...mapState(useFlowersStore, {
+                ancestors: store => store.getAncestors()
+            })
         },
         methods:{
-            ...mapGetters(useFlowersStore, [
-                'getAncestors',
-            ]),
             ...mapActions(useFlowersStore, [
                 'updateRemoteAncestors',
                 'updateAndConcatRemoteAncestors',

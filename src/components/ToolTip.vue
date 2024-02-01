@@ -46,6 +46,9 @@ const toggleInfo = () => {
         border-radius: 20px;
         float:right;
         position: absolute;
+        padding:  10px;
+        overflow: auto;
+        overflow-wrap: break-word;
         z-index: 1;
     }
 </style>
