@@ -4,45 +4,27 @@
     </div>
 </template>
 
-<script>
+<script setup>
+
     import FlowersTable from '../components/FlowersTable.vue';
-    import { mapActions } from 'pinia';
-	import { useFlowersStore } from '../store';
-	import { defineComponent } from 'vue';
-	
-    export default defineComponent({
-        name:'LastAdded',
-        components:{
-            FlowersTable,
-        },
-        created(){
-            this.updateList(30,0);
-        },
-        computed:{
-            flowers: {
-                get(){
-                    return this.$store.lastAdded;
-                },
-                set(){
-                    
-                },
-            },
-        },
-        beforeUnmount(){
-            window.clearInterval(this.$store.timer);
-            this.$store.timer = 0;
-        },
-        mounted: function(){
-            this.$store.timer = window.setInterval(this.updateList, 30000, 30, 0);
-        },
-        methods:{
-            ...mapActions(useFlowersStore, ['updateLastAdded']),
-            updateList: function(limit, offset){
-                this.updateLastAdded({limit:limit, offset:offset});
-                this.flowers = this.$store.lastAdded;
-            },
-        },
+    import { useFlowersStore } from '../store';
+    import { onMounted, onUnmounted, computed } from 'vue';
+
+    const store = useFlowersStore();
+    let flowers = computed(() => {
+        return store.lastAdded
     });
+    onMounted( () => {
+        updateList(30, 0);
+        store.timer = window.setInterval(updateList, 30000, 30, 0);
+    });
+    onUnmounted(() => {
+        window.clearInterval(store.timer);
+        store.timer = 0;
+    });
+    const updateList = (limit, offset) => {
+        store.updateLastAdded({limit: limit, offset: offset});
+    };
 </script>
 
 <style scoped>

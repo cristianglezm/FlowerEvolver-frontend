@@ -1,26 +1,21 @@
 <template>
     <div class="Footer">
-        <p><strong>Copyright&COPY; 2024 FlowerEvolver</strong></p><a href="https://github.com/cristianglezm/FlowerEvolver-frontend"><img :src="this.base_url + 'find-on-github.png'"/></a>
+        <p><strong>Copyright&COPY; 2024 FlowerEvolver</strong></p><a href="https://github.com/cristianglezm/FlowerEvolver-frontend"><img :src="data.base_url + 'find-on-github.png'"/></a>
     </div>
 </template>
 
-<script>
-	import { defineComponent } from 'vue';
+<script setup>
 
-    export default defineComponent({
-        name:'Footer',
-        data(){
-            return {
-                base_url: import.meta.env.BASE_URL,
-            }
-        },
-    });
+const data = {
+    base_url: import.meta.env.BASE_URL
+}
+
 </script>
 
 <style scoped>
     .Footer{
         background-color: rgb(37, 39, 41);
-        color: white;
+        color: lightgreen;
         display: grid;
         grid-template-columns: auto auto;
         justify-items: stretch;
@@ -28,14 +23,14 @@
     .Footer img{
         float: right;
         position: relative;
-        top: 20px;
-        right: 20px;
+        top: 1.2rem;
+        right: 1.2rem;
     }
     .Footer p{
-        margin-left: 20px;
+        margin-left: 2rem;
         float: left;
         position: relative;
-        bottom: 20px;
-        padding: 40px 40px 0px 0px;
+        bottom: 1.2rem;
+        padding: 2rem 2rem 0rem 0rem;
     }
 </style>

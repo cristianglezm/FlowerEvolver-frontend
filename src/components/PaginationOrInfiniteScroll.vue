@@ -68,7 +68,7 @@ const prevPage = () => {
 if(!props.pagination){
     onMounted(() => {
         window.onscroll = () => {
-            var bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
+            var bottomOfWindow = document.documentElement.scrollTop + window.innerHeight >= document.documentElement.offsetHeight;
             if(bottomOfWindow){
                 emit('update-page');
             }

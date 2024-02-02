@@ -1,50 +1,53 @@
 <template>
-    <div class="grid" v-if="Flowers && Flowers.length">
-        <div v-for="flower in Flowers"  :key="flower.id">
-            <Flower :id="flower.id" :genome="flower.genome" :image="flower.image" :isLocal="isLocal"/>
+    <div class="grid" v-if="props.Flowers && props.Flowers.length">
+        <div v-for="flower in props.Flowers"  :key="flower.id">
+            <Flower :id="flower.id" :genome="flower.genome" :image="flower.image" :isLocal="props.isLocal"/>
         </div>
     </div>
     <div class="error" v-else>
-        <p>{{noFlowerMessage}}</p>
+        <p>{{ props.noFlowerMessage }}</p>
     </div>
 </template>
 
-<script>
-	import { defineComponent } from 'vue';
-    import Flower from './Flower.vue';
+<script setup>
 
-    export default defineComponent({
-        name:'FlowersTable',
-        components:{
-            Flower,
-        },
-        props:{
-            Flowers: Array,
-            isLocal: Boolean,
-            noFlowerMessage: String,
-        },
-    });
+import Flower from './Flower.vue';
+
+const props = defineProps({
+    Flowers:{
+        type: Array,
+        required: true
+    },
+    isLocal: {
+        type: Boolean,
+        required: true
+    },
+    noFlowerMessage: {
+        type: String,
+        required: true
+    }
+});
 </script>
 
 <style scoped>
     .grid{
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-        grid-gap: 10px;
+        grid-template-columns: repeat(auto-fill, minmax(14.3rem, 1fr));
+        grid-gap: 1rem;
         background-color: black;
     }
     @media only screen and (max-width: 1280px){
         .grid{
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            grid-gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+            grid-gap: 1rem;
             background-color: black;
         }
     }
     .error{
         color: lightgreen;
-        font-size: 20px;
+        font-size: 1.2rem;
         text-align: center;
-        padding-bottom: 10px;
+        padding-bottom: 0.8rem;
     }
 </style>

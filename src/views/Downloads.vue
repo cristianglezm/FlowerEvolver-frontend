@@ -3,28 +3,23 @@
         <div class="blocks">
             <div id="windows">
                 Windows
-                <a :href="this.base_url + 'FlowerEvolver_win64.zip'">download x64</a>
+                <a :href="data.base_url + 'FlowerEvolver_win64.zip'">download x64</a>
             </div>
             <div id="linux">
                 Linux
-                <a :href="this.base_url + 'FlowerEvolver-x64-linux.tar'">download x64</a>
+                <a :href="data.base_url + 'FlowerEvolver-x64-linux.tar'">download x64</a>
             </div>
         </div>
-        <img id="image" :src="this.base_url + 'FlowerEvolverNative.png'"/>
+        <img id="image" :src="data.base_url + 'FlowerEvolverNative.png'"/>
     </div>
 </template>
 
-<script>
-	import { defineComponent } from 'vue';
-	
-    export default defineComponent({
-        name:'Downloads',
-        data(){
-            return {
-                base_url: import.meta.env.BASE_URL,
-            }
-        },
-    });
+<script setup>
+
+	const data = {
+        base_url: import.meta.env.BASE_URL
+    };
+
 </script>
 
 <style scoped>
@@ -33,27 +28,27 @@
         background-color: rgb(37, 39, 41);
     }
     .blocks{
-        margin: 50px 50px 50px 50px;
+        margin: 3.1rem 1.5rem 3.1rem 1.5rem;
         display: grid;
         grid-template-columns: auto auto;
-        grid-gap: 10px;
-        font-size: 58px;
-        padding: 10px;
-        border-radius: 12px;
+        grid-gap: 0.6rem;
+        font-size: 3.6rem;
+        padding: 0.6rem;
+        border-radius: 0.75rem;
     }
     #image{
-        width:100%;
+        width: 100%;
     }
     .blocks a{
         border: outset lightgreen;
         text-align: center;
         text-decoration: none;
-        text-indent: 10px;
-        font-size: 58px;
-        padding: 2px 10px 0px 0px;
-        margin: 10px 0px 0px 5px;
+        text-indent: 0.6rem;
+        font-size: 3.6rem;
+        padding: 0.1rem 0.6rem 0rem 0rem;
+        margin: 0.6rem 0rem 0rem 0.3rem;
         color: lightgreen;
-        border-radius: 315px 335px 155px 135px;
+        border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
         background-color: green;
         cursor: pointer;
     }
@@ -64,24 +59,24 @@
     }
     @media only screen and (max-width: 1280px){
         .blocks{
-            margin: 30px 30px 30px 30px;
+            margin: 1.8rem 0.5rem 1.8rem 0.5rem;
             display: grid;
             grid-template-columns: auto auto;
-            grid-gap: 10px;
+            grid-gap: 0.6rem;
             background-color: green;
-            font-size: 25px;
-            padding: 10px;
-            border-radius: 12px;
+            font-size: 1.5rem;
+            padding: 0.6rem;
+            border-radius: 0.75rem;
             cursor: pointer;
         }
         .blocks a{
             text-decoration: none;
-            text-indent: 10px;
-            font-size: 25px;
-            padding: 2px 10px 0px 0px;
-            margin: 10px 0px 0px 5px;
+            text-indent: 0.6rem;
+            font-size: 1.5rem;
+            padding: 0.1rem 0.6rem 0rem 0rem;
+            margin: 0.6rem 0rem 0rem 0.3rem;
             color: lightgreen;
-            border-radius: 12px 12px 12px 12px;
+            border-radius: 0.75rem 0.75rem 0.75rem 0.75rem;
             border-color: lightgreen;
             background-color: green;
             display: inline flex;
