@@ -1,6 +1,6 @@
 <template>
     <dialog :id="props.id">
-        <div id="progress-container">
+        <div id="progress-container" class="center">
             <div>
                 <h1> {{ data.title }}</h1>
             </div>
@@ -77,8 +77,8 @@ const getProgress = computed(() => {
 });
 const updateBar = () =>{
     const bar = document.getElementById("Bar");
-    let width = (data.progress / data.total * 100) + "%"
-    bar.setAttribute("style", "width: " + width + "; background-color: lightgreen; height: 50px;");
+    let width = ((data.progress / data.total) * 100) + "%"
+    bar.setAttribute("style", "width: " + width + "; background-color: lightgreen; height: 3.125rem;");
 };
 
 onMounted(() => {
@@ -115,16 +115,19 @@ const closeModal = () => {
 </script>
 
 <style scoped>
+    .center{
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
     #progress-container{
         background-color: green;
         color: lightgreen;
         position: fixed;
-        border: solid;
-        border-color: lightgreen;
-        border-radius: 5px;
-        top: 40%;
-        left: 40%;
-        box-shadow: 0px 16px 32px 0px rgba(0,0,0,0.3);
+        border: solid lightgreen;
+        border-radius: 0.31rem;
+        box-shadow: 0rem 1rem 2rem 0rem rgba(0,0,0,0.3);
         overflow: auto;
         z-index: 1;
         padding: 2px;
@@ -132,6 +135,8 @@ const closeModal = () => {
     }
     #progress-bar{
         background-color: rgba(4, 97, 43, 0.986);
+        box-shadow: inset 0rem 0rem 0.6rem 0.125rem black;
+        margin: 0.6rem;
     }
     ::backdrop{
         background-color: white;

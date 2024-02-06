@@ -1,43 +1,23 @@
 <template>
     <dialog :id="props.id">
-        <div class="ConfirmModal-container center">
+        <div class="uploadFile-container center">
             <div class="inlined">
-                <h2>{{ data.title }}</h2>
+                <h2>{{ data.title }} </h2>
                 <span @click="closeModal()" class="close">&times;</span>
             </div>
-            <p>{{ data.message }}</p>
-            <button @click="closeModal()">{{ data.btnNo}}</button>
-            <button @click="data.accept(data.dialog)">{{ data.btnYes }}</button>
+            <label for="uploadFiles" class="FileInput">
+                <input id="uploadFiles" type="file" multiple accept="application/json" @change="updateMessage()"/>
+                <p>{{ data.message }}</p>
+            </label>
+            <div>
+                <button @click="closeModal()">{{ data.btnCancel}}</button>
+                <button @click="data.onUpload(data.dialog, data.files.files)">{{ data.btnUpload }}</button>
+            </div>
         </div>
     </dialog>
 </template>
 
 <script setup>
-/**
- * ConfirmModal Component
- * Vue component for a confirmation modal dialog.
- * 
- * @prop {String} id - The unique identifier for the modal dialog.
- * @prop {Object} channel - The communication channel to listen for events.
- * @prop {String} on - The event to listen for on the channel.
- * 
- * @example
- * // component usage in another component, view etc
- * <template>
- *      <ConfirmModal :channel="emitter" :id="'globalConfirm'" :on="'showYesNo'" />
- * </template>
- * // some other component sending info
- *   emitter.emit('showYesNo', {
- *       title: 'Delete Action',
- *       message: 'Do you wanna delete flower ' + this.id + '?',
- *       btnNo: 'No',
- *       btnYes: 'Delete Flower',
- *       onConfirm: (dialog) => {
- *           this.deleteLocalFlower(this.id);
- *           dialog.close();
- *       },
- *   });
- */
 import { reactive, onMounted, onBeforeUnmount } from 'vue';
 
 const props = defineProps({
@@ -63,15 +43,26 @@ const openModal = () => {
 const closeModal = () => {
     data.dialog.close();
 };
-
+const updateMessage = () => {
+    let length = data.files.files.length;
+    data.message = length + " files selected (";
+    for(let i = 0;i<length; ++i){
+        data.message += data.files.files[i].name;
+        if(i != length - 1){
+            data.message += ", ";
+        }
+    }
+    data.message += ")";
+};
 onMounted(() => {
+    data.message = "select files to import (Flower, Generation, Session)";
     data.dialog = document.getElementById(props.id);
+    data.files = document.getElementById("uploadFiles");
     props.channel.on(props.on, (e) => {
         data.title = e.title;
-        data.message = e.message;
-        data.btnNo = e.btnNo;
-        data.btnYes = e.btnYes;
-        data.accept = e.onConfirm;
+        data.btnCancel = e.btnCancel;
+        data.btnUpload = e.btnUpload;
+        data.onUpload = e.onUpload;
         openModal();
     });
 });
@@ -79,7 +70,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
     props.channel.off(props.on);
 });
-
 </script>
 
 <style scoped>
@@ -96,36 +86,50 @@ onBeforeUnmount(() => {
         top: 50%;
         transform: translate(-50%, -50%);
     }
-    .ConfirmModal-container{
+    .uploadFile-container{
         background-color: green;
         color: lightgreen;
         position: fixed;
         border: solid;
         border-color: lightgreen;
         border-radius: 0.31rem;
-        box-shadow: 0rem 1rem 2rem 0rem rgba(0,0,0,0.3);
+        box-shadow: 0rem 1rem 2rem 0rem black;
         overflow: auto;
         overflow-wrap: break-word;
         z-index: 1;
-        padding: 0.125rem;
+        padding: 0.12rem;
     }
-    .ConfirmModal-container p{
+    .FileInput{
+        display: inline-block;
+        background-color: green;
+        border: solid lightgreen;
+        margin: 0.6rem;
+        padding: 0.3rem 0.6rem;
+        cursor: pointer;
+        overflow: auto;
+        overflow-wrap: break-word;
+        box-shadow: inset 0rem 0rem 0.6rem 0.125rem black;
+    }
+    .FileInput input{
+        display: none;
+    }
+    .uploadFile-container p{
         overflow: auto;
         overflow-wrap: break-word;
     }
-    .ConfirmModal-container button{
+    .uploadFile-container button{
         background-color: green;
         color: lightgreen;
         border-color: lightgreen;
         position: relative;
-        left:35%;
-        margin-bottom: 0.6rem;
+        left: 40%;
         cursor: pointer;
+        margin-bottom: 0.6rem;
         margin-left: 0.31rem;
         font-size: 1.25rem;
         border-radius: 2.1rem;
     }
-    .ConfirmModal-container button:hover{
+    .uploadFile-container button:hover{
         border-color: green;
         background-color: lightgreen;
         color: green;
@@ -134,7 +138,7 @@ onBeforeUnmount(() => {
         color: lightgreen;
         margin-right: 1%;
         float: right;
-        font-size: 2.3rem;
+        font-size: 2.37rem;
         font-weight: bold;
     }
     .close:hover,
@@ -142,10 +146,6 @@ onBeforeUnmount(() => {
         color: black;
         text-decoration: none;
         cursor: pointer;
-    }
-    .ConfirmModal-container p{
-        font-size: 1.6rem;
-        overflow: auto;
     }
     ::backdrop{
         background-color: white;

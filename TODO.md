@@ -7,6 +7,7 @@
         + components
             - Flower
                 + [x] add button to convert remote flowers into locals
+                    - [] use fe.drawFlower?
                 + [x] add button to delete local flowers.
                     - [x] add ConfirmModal
                     - [x] fix mutations delete error
@@ -17,6 +18,7 @@
                 + [x] add settings component tab
                 + [x] add route for settings component.
                 + [x] add pagination for tabs
+                + [] use worker for flower garden?
         + views
             - [x] Ancestors
                 + [x] fix infinite scroll not working
@@ -26,6 +28,8 @@
                 + [x] add pagination mode
             - [x] Local
                 + [x] load demo flowers
+                    - [] refactor load with import worker
+                    - [] remove old demo flowers and add a generation.json to load and sent to importWorker.
                 + [x] add pagination mode
                 + [x] fix infinite scroll not working
             - [x] Favourites
@@ -41,7 +45,7 @@
 	+ [x] fix wasm module not loading in prod
     + [x] fix deprecated mapGetters
     + [x] remake demo flowers (the images are different as activations from EvoAI were fixed)
-* [] Make Settings view
+* [x] Make Settings view
     + [x] pagination or infinite scroll modes
     + [x] fetch demo flowers at first visit option.
     + [x] configure params(radius, numLayers, P, bias)
@@ -58,15 +62,15 @@
             + (vite cache wasn't invalidaded and it didn't update the 
                 wasm module and it gave errors) forced it to executing npm run dev -- optimize --force
     + [x] add button to export local flowers | favourites? into a generation json for native FlowerEvolver
-    + [] add button to import local flowers from a generation.json
-        - [] make web worker
+    + [x] add button to import local | favs flowers from a generation.json, Session.json or individual Flower.json
     + [x] validate params and mutation rates.
     + [x] save settings to localStorage when modified.
     + [x] adapt css style to use the space better
     + [x] add Tooltip component
     + [x] add storage usage stats
-    + [] add uploadFileModal
+    + [x] add uploadFileModal
 * [x] make pagination component
+* [] replace px with rem.
 * [] fix native app not drawing the same flowers [not a bug - make new demo flowers]
 * [] update fe-wasm - validation code, add exception handler?
 * [] update backend server with new version

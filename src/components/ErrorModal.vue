@@ -1,5 +1,5 @@
 <template>
-    <div v-if="props.errors.length" class="ErrorModal">
+    <div v-if="props.errors.length" class="ErrorModal center">
         <span @click="clearErrors()" class="close">&times;</span>
         <div v-for="(error, id) in props.errors" :key="id">
             <div class="ErrorModal-content" v-if="id === (props.errors.length - 1)">
@@ -52,26 +52,30 @@ const popError = () => {
 </script>
 
 <style scoped>
+    .center{
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
     .ErrorModal{
         background-color: green;
         color: lightgreen;
         position: fixed;
         border: solid;
         border-color: lightgreen;
-        border-radius: 5px;
-        top: 40%;
-        left: 40%;
-        box-shadow: 0px 16px 32px 0px rgba(0,0,0,0.3);
+        border-radius: 0.31rem;
+        box-shadow: 0rem 1rem 2rem 0rem black;
         overflow: auto;
         z-index: 1;
     }
     p{
-        font-size: 26px;
+        font-size: 1.6rem;
         overflow: auto;
     }
     .ErrorModal-content{
         margin: 15% auto;
-        padding: 20px;
+        padding: 1.25rem;
         width: 80%;
         overflow: auto;
     }
@@ -80,14 +84,20 @@ const popError = () => {
         color: lightgreen;
         border-color: lightgreen;
         position: relative;
-        left:45%;
-        margin-bottom: 10px;
+        left: 45%;
+        margin-bottom: 0.6rem;
+        cursor: pointer;
+    }
+    .ErrorModal button:hover{
+        color: green;
+        border-color: green;
+        background-color: lightgreen;
     }
     .close{
         color: lightgreen;
-        margin-right: 5px;
+        margin-right: 0.31rem;
         float: right;
-        font-size: 38px;
+        font-size: 2.3rem;
         font-weight: bold;
     }
     .close:hover,

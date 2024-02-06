@@ -89,6 +89,6 @@
 
 <style scoped>
     .Browse{
-        background-color: black;
+        background-color: rgb(37, 39, 41);
     }
 </style>

@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia';
-import plugins from './plugins';
 import { db as ddb } from './db';
 import axios from 'axios';
 
@@ -548,5 +547,4 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			}
 		},
 	},
-	plugins,
 });
