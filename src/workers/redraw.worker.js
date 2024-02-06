@@ -8,17 +8,17 @@ const updateFlowers = (flowers) => {
 let FE;
 
 self.onmessage = async (e) => {
-    self.canvas = e.data.canvas;
+    self.canvas = new OffscreenCanvas(128, 192);
     let params = e.data.params;
+    let batchSize = e.data.batchSize;
     if(!FE){
         FE = await fe();
     }
     self.canvas.width = params.radius * 2;
     self.canvas.height = params.radius * 3;
-    let batchSize = 100;
     let totalCount = await db.flowers.count();
     let totalBatches = Math.ceil(totalCount / batchSize);
-    for(let batchIndex = 0; batchIndex < totalBatches; batchIndex++){
+    for(let batchIndex = 0; batchIndex < totalBatches; ++batchIndex){
         let flowers = await db.flowers.offset(batchIndex * batchSize)
                                 .limit(batchSize).toArray();
         let progress = batchIndex * batchSize + 1;

@@ -2,17 +2,18 @@
     <div style="background-color: rgb(37, 39, 41); padding: 10px;">
         <div id="settings-container">
             <progressModal :id="'progressBar'" :channel="emitter" :on="'showProgress'" :update="'updateProgress'" />
+            <UploadFileModal :id="'importModal'" :channel="emitter" :on="'showImport'" />
             <div id="settings-options" class="settings-box">
                 <h2>Options</h2>
                 <div id="pagination-option" class="option-box labelInputArea">
-                    <ToolTip :info="'if true pagination will be used, infinite Scroll otherwise.'" />
+                    <ToolTip :info="'if checked pagination will be used, infinite Scroll otherwise.'" />
                     <label for="pagination">Pagination: </label>
-                    <input type="checkbox" id="pagination" v-model="store.$state.settings.pagination" />
+                    <input type="checkbox" id="pagination" v-model="store.settings.pagination" @change="saveSettings()"/>
                 </div>
                 <div id="loadDemoFlowers-option" class="option-box labelInputArea">
-                    <ToolTip :info="'if true the demo flowers will load in Local.'" />
+                    <ToolTip :info="'if checked the demo flowers will load in Local.'" />
                     <label for="loadDemoFlowers">Load Demo Flowers: </label>
-                    <input type="checkbox" id="loadDemoFlowers" v-model="store.$state.settings.loadDemoFlowers" />
+                    <input type="checkbox" id="loadDemoFlowers" v-model="store.settings.loadDemoFlowers" @change="saveSettings()"/>
                 </div>
                 <div id="persists-option" class="option-box labelInputArea">
                     <ToolTip :info="'it will keep data even when low on space'" />
@@ -23,10 +24,10 @@
                     <div id="limit-settings" class="option-box labelInputArea">
                         <ToolTip :info="'limit for how many flowers it will load at a time.'" />
                         <label for="setLimit">Limit per Page: </label>
-                        <input type="number" id="setLimit" min="1" v-model.number="store.$state.settings.limit" />
+                        <input type="number" id="setLimit" min="1" v-model.number="store.settings.limit" @change="saveSettings()"/>
                     </div>
                     <div style="color: lightgreen; text-align: center;"> 
-                        <ToolTip :info="'Space used by the flowers (usage / quota)'" />
+                        <ToolTip :info="'Space used by the flowers (usage / quota) if persistent storage is enabled it will use a bit more space.'" />
                         {{ data.spaceUsage.toFixed(2) }} / {{ data.spaceQuota.toFixed(2) }} MB
                     </div>
                 </div>
@@ -34,9 +35,9 @@
             <div id="params-settings" class="settings-box">
                 <h2>Creation parameters</h2>
                 <div class="labelInputArea">
-                    <ToolTip :info="'radius of the flower, min: 4 and max: 258, for bigger radius use the native app.'" />
+                    <ToolTip :info="'radius of the flower, min: 4 and max: 256, for bigger radius use the native app.'" />
                     <label for="params-radius">Radius: </label>
-                    <input type="number" id="params-radius" min="4" max="258" v-model.number="params.radius" @change="validateParams()"/>
+                    <input type="number" id="params-radius" min="4" max="256" v-model.number="params.radius" @change="validateParams()"/>
                 </div>
                 <div class="labelInputArea">
                     <ToolTip :info="'A layer is defined by radius / 2.0, the drawing algorithm will do another pass at half radius for each layer.'" />
@@ -57,55 +58,57 @@
             <div id="mutationRates-settings" class="settings-box">
                 <h2>Mutation Rates</h2>
                 <div class="labelInputArea">
-                    <ToolTip :info="'the ratio for adding nodes into the Genome of the Flower.'" />
+                    <ToolTip :info="'the rate for adding nodes into the Genome of the Flower.'" />
                     <label for="mutation-addNodeRate">Add Node Rate: </label>
                     <input type="number" id="mutation-addNodeRate" min="0.0" max="1.0" 
                         v-model.number="mutationRates.addNodeRate" @change="validateMutationRates()" />
                 </div>
                 <div class="labelInputArea">
-                    <ToolTip :info="'The ratio for adding connections into the Genome of the flower.'" />
+                    <ToolTip :info="'The rate for adding connections into the Genome of the flower.'" />
                     <label for="mutation-addConnRate">Add Connection Rate: </label>
                     <input type="number" id="mutation-addConnRate" min="0.0" max="1.0" 
                         v-model.number="mutationRates.addConnRate" @change="validateMutationRates()" />
                 </div>
                 <div class="labelInputArea">
-                    <ToolTip :info="'The ratio for removing connections from the Genome of the flower.'" />
+                    <ToolTip :info="'The rate for removing connections from the Genome of the flower.'" />
                     <label for="mutation-removeConnRate">Remove Connection Rate: </label>
                     <input type="number" id="mutation-removeConnRate" min="0.0" max="1.0" 
                         v-model.number="mutationRates.removeConnRate" @change="validateMutationRates()" />
                 </div>
                 <div class="labelInputArea">
-                    <ToolTip :info="'The ratio to perturb the weights of connections'" />
+                    <ToolTip :info="'The rate to perturb the weights of connections'" />
                     <label for="mutation-perturbWeightsRate">Perturb Weights Rate: </label>
                     <input type="number" id="mutation-perturbWeightsRate" min="0.0" max="1.0" 
                         v-model.number="mutationRates.perturbWeightsRate" @change="validateMutationRates()" />
                 </div>
                 <div class="labelInputArea">
-                    <ToolTip :info="'The ratio to enable connections'" />
+                    <ToolTip :info="'The rate to enable connections'" />
                     <label for="mutation-enableRate">Enable Rate: </label>
                     <input type="number" id="mutation-enableRate" min="0.0" max="1.0" 
                         v-model.number="mutationRates.enableRate" @change="validateMutationRates()" />
                 </div>
                 <div class="labelInputArea">
-                    <ToolTip :info="'The ratio to disable connections'" />
+                    <ToolTip :info="'The rate to disable connections'" />
                     <label for="mutation-disableRate">Disable Rate: </label>
                     <input type="number" id="mutation-disableRate" min="0.0" max="1.0" 
                         v-model.number="mutationRates.disableRate" @change="validateMutationRates()" />
                 </div>
                 <div class="labelInputArea">
-                    <ToolTip :info="'The ratio to change the actiovation from a random node'" />
+                    <ToolTip :info="'The rate to change the activation type in a random node'" />
                     <label for="mutation-actTypeRate">Activation Type Rate: </label>
                     <input type="number" id="mutation-actTypeRate" min="0.0" max="1.0" 
                         v-model.number="mutationRates.actTypeRate" @change="validateMutationRates()" />
                 </div>
             </div>
         </div>
-        <div id="actions-settings" class="settings-box">
+        <div id="actions-settings">
             <div id="actions-safe">
                 <h2 style="color:lightgreen;">Actions</h2>
                 <button @click="showRedrawFlowers()"> redraw local Flowers </button>
                 <button @click="showExport('favourites')"> Export favourite flowers </button>
                 <button @click="showExport('all')"> Export local Flowers </button>
+                <button @click="showImport(false)"> Import Flowers </button>
+                <button @click="showImport(true)"> Import Flowers to favourites </button>
             </div>
             <div id="actions-danger">
                 <h2 style="color:red;">Danger Zone</h2>
@@ -117,13 +120,15 @@
 </template>
 
 <script setup>
-/// @todo document, impl import worker
+/// @todo document
 import { reactive, inject, toRaw, onBeforeUnmount, onMounted } from 'vue';
 import ToolTip from '../components/ToolTip.vue';
 import { useFlowersStore, STORAGE_KEY } from '../store';
 import progressModal from '../components/progressModal.vue';
+import UploadFileModal from '../components/UploadFileModal.vue';
 import redrawWorker from '../workers/redraw.worker?worker';
 import exportWorker from '../workers/export.worker?worker';
+import importWorker from '../workers/import.worker?worker';
 
 const store = useFlowersStore();
 let emitter = inject('emitter');
@@ -147,7 +152,7 @@ const mutationRates = reactive({
 const workers = {
     redrawWorker: redrawWorker(),
     exportWorker: exportWorker(),
-    importWorker: null
+    importWorker: importWorker()
 };
 
 const persist = async () => {
@@ -183,9 +188,8 @@ onMounted(() => {
 });
 onBeforeUnmount(() => {
     workers.redrawWorker.terminate();
-    /// @todo uncomment
     workers.exportWorker.terminate();
-    //workers.importWorker.terminate();
+    workers.importWorker.terminate();
 });
 
 const clamp = (val, min, max) => {
@@ -195,7 +199,7 @@ const saveSettings = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(store.settings));
 };
 const validateParams = () => {
-    params.radius = clamp(params.radius, 4, 258);
+    params.radius = clamp(params.radius, 4, 256);
     params.numLayers = Math.max(1, params.numLayers);
     store.settings.params = params;
     saveSettings();
@@ -254,10 +258,10 @@ const redrawLocalFlowers = async () => {
     workers.redrawWorker.onerror = (e) => {
         store.errors.push({message: "redraw Web Worker had an error."});
     };
-    let wcanvas = document.createElement("canvas").transferControlToOffscreen();
     workers.redrawWorker.postMessage({
-        canvas: wcanvas, 
-        params: structuredClone(toRaw(params))}, [wcanvas]);
+        batchSize: store.settings.limit,
+        params: structuredClone(toRaw(params))
+    });
 };
 const showRedrawFlowers = () => {
     emitter.emit('showYesNo', {
@@ -269,13 +273,14 @@ const showRedrawFlowers = () => {
             store.db.flowers.count((totalFlowers) => {
                 if(totalFlowers != 0){
                     showProgressBar('re-drawing flowers', totalFlowers, redrawLocalFlowers);   
+                }else{
+                    store.errors.push({message: "You have no local flowers to redraw."});
                 }
             });
             dialog.close();
         },
     });
 };
-// @todo add confirmModal?
 const showExport = (type) => {
     if(type == "favourites"){
         emitter.emit('showYesNo', {
@@ -319,6 +324,42 @@ const showExport = (type) => {
         });
     }
 };
+const importFiles = async (files, toFavs) => {
+    if(!files.length){
+        store.errors.push({message: "You must upload at least one json file."});
+        return;
+    }
+    workers.importWorker.onmessage = (e) => {
+        let type = e.data.type;
+        if(type === "showProgress"){
+            showProgressBar(e.data.title, e.data.total, () => {});
+        }else if(type === "updateProgress"){
+            emitter.emit('updateProgress', {
+                progress: e.data.progress,
+            });
+        }
+    };
+    workers.importWorker.onerror = (e) => {
+        store.errors.push({message: e});
+    };
+    workers.importWorker.postMessage({
+        files: files,
+        toFavs: toFavs,
+        batchSize: store.settings.limit,
+        params: structuredClone(toRaw(params))
+    });
+};
+const showImport = (toFavs) => {
+    emitter.emit('showImport', {
+        title: "Import Flowers",
+        btnCancel: "Cancel",
+        btnUpload: "Import Files",
+        onUpload: async (dialog, files) => {
+            await importFiles(files, toFavs);
+            dialog.close();
+        }
+    });
+};
 const showProgressBar = (title, total, fn) => {
     emitter.emit('showProgress', {
         title: title,
@@ -361,39 +402,41 @@ const exportFlowers = (type) => {
         store.errors.push({message: "export Web Worker had an error."});
     };
     workers.exportWorker.postMessage({
-        type: type
+        type: type,
+        batchSize: store.settings.limit
     });
 };
 
 </script>
 
 <style scoped>
-
     #settings-container{
         color: lightgreen;
         background-color: rgb(37, 39, 41);
-        font-size: 20px;
+        font-size: 1.25rem;
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(430px, 1fr));
-        grid-gap: 10px;
+        grid-template-columns: repeat(auto-fill, minmax(26.8rem, 1fr));
+        grid-gap: 0.6rem;
         position: relative;
     }
     #settings-options{
         margin: 1em 1em;
+        background-color: green;
     }
     #params-settings{
         display: flex;
         flex-flow: column wrap;
         margin: 1em 1em;
+        background-color: green;
     }
     .labelInputArea {
-        display:block;
-        padding-top:5px;
+        display: block;
+        padding-top: 0.31rem;
     }
     .labelInputArea label{
-        width: 293px;
+        width: 18.3rem;
         display: inline-block;
-        margin: 0px 0px 0px 15px;
+        margin: 0rem 0rem 0rem 0.93rem;
     }
     .labelInputArea input[type=checkbox]{
         background-color: green;
@@ -408,6 +451,7 @@ const exportFlowers = (type) => {
         font-weight: bold;
         -webkit-appearance: none;
         appearance: none;
+        box-shadow: inset 0rem 0rem 0.2rem 0.125rem black;
     }
     .labelInputArea input[type="checkbox"]::before {
         content: "";
@@ -427,8 +471,8 @@ const exportFlowers = (type) => {
         background-color: green;
         color: lightgreen;
         border: solid lightgreen;
-        border-radius: 129px;
-        margin: 2px 0px 0px 2px;
+        border-radius: 8rem;
+        margin: 0.125rem 0rem 0rem 0.125rem;
         width: 15%;
         text-align: center;
     }
@@ -436,69 +480,86 @@ const exportFlowers = (type) => {
         display: flex;
         flex-flow: column wrap;
         margin: 1em 1em;
-        border-radius: 20px;
+        border-radius: 1.25rem;
+        background-color: green;
     }
     #actions-settings{
-        border: solid lightgreen;
-        padding: 10px;
-        margin-bottom: 20px;
+        padding: 0.6rem;
         text-align: center;
         background-color: rgb(37, 39, 41);
-        font-size: 20px;
+        font-size: 1.25rem;
+        display: flex;
+        flex-flow: row nowrap;
     }
     #actions-safe{
-        padding: 10px;
+        padding: 0.6rem;
+        margin: 0.6rem;
+        background-color: green;
+        border: solid lightgreen;
+        width: 100%;
+        border-radius: 1.25rem;
     }
     #actions-danger{
         border: solid red;
-        border-radius: 20px;
-        padding: 10px;
-        margin-bottom: 20px;
+        border-radius: 1.25rem;
+        margin: 0.6rem;
+        padding: 0.6rem;
+        margin-bottom: 1.25rem;
+        width: 100%;
         text-align: center;
+        background-color: green;
     }
     #actions-safe button{
-        border-radius: 120px;
         position: relative;
-        font-size: 20px;
-        border-radius: 315px 335px 155px 135px;
-        margin: 10px 10px 0px 2px;
+        font-size: 1.25rem;
+        border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
+        margin: 0.6rem 0.6rem 0rem 1.25rem;
         cursor: pointer;
         border-color: lightgreen;
         background-color: green;
         color: lightgreen;
     }
+    #actions-safe button:hover{
+        background-color: lightgreen;
+        border-color: green;
+        color: green;
+    }
     #actions-danger button{
-        border-radius: 120px;
         position: relative;
-        font-size: 20px;
-        border-radius: 315px 335px 155px 135px;
-        margin: 10px 10px 0px 2px;
+        font-size: 1.25rem;
+        border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
+        margin: 0.6rem 0.6rem 0rem 1.25rem;
         cursor: pointer;
         border-color: whitesmoke;
         background-color: red;
         color: whitesmoke;
     }
+    #actions-danger button:hover{
+        border-color: red;
+        background-color: whitesmoke;
+        color: red;
+    }
     .settings-box {
-        border: 2px solid lightgreen;
-        padding: 10px;
-        margin-bottom: 20px;
-        border-radius: 80px;
+        border: 0.25rem solid lightgreen;
+        padding: 0.6rem;
+        margin-bottom: 1.25rem;
+        border-radius: 5rem;
     }
     .settings-box h2{
         text-align: center;
     }
     .option-box {
-        margin-bottom: 10px;
+        margin-bottom: 0.6rem;
     }
     @media only screen and (max-width: 1280px){
         .labelInputArea label{
-            width: 170px;
+            width: 10.6rem;
             display: inline-block;
-            margin: 0px 0px 0px 15px;
+            margin: 0rem 0rem 0rem 0.93rem;
         }
         #settings-container{
-            font-size: 10px;
-            grid-template-columns: repeat(auto-fill, minmax(390px, 1fr));
+            font-size: 0.6rem;
+            grid-template-columns: repeat(auto-fill, minmax(24.3rem, 1fr));
         }
         #limit-settings input[type=number]{
             width: 20%;
@@ -512,6 +573,7 @@ const exportFlowers = (type) => {
     }
     input[type=number] {
         appearance: textfield;
+        box-shadow: inset 0rem 0rem 0.3rem 0.125rem black;
     }
 
 </style>

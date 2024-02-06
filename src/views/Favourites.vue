@@ -1,21 +1,17 @@
 <template>
-    <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="favourites.length" :currentPage="this.page" :totalPages="this.totalPages"
+    <div id="favourites">
+        <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="favourites.length" :currentPage="this.page" :totalPages="this.totalPages"
                                     @next-page="nextPage" @prev-page="prevPage" @update-page="updateFlowers">
-        <div class="grid" v-if="favourites && favourites.length">
-            <div v-for="flower in favourites" :key="flower.id">
-                <Flower :id="flower.id" :genome="flower.genome" :image="flower.image" :isLocal="true"/>
-            </div>
-        </div>
-        <div v-else>
-            <p class="nofavs">You don't Have Favourites.</p>
-        </div>
-    </PaginationOrInfiniteScroll>
+            <FlowersTable :Flowers="favourites" :isLocal="true" :noFlowerMessage="'You don\'t have favourites.'"/>
+        </PaginationOrInfiniteScroll>
+    </div>
 </template>
 
 <script>
 	import { defineComponent } from 'vue';
     import { mapActions } from 'pinia';
     import Flower from '../components/Flower.vue';
+    import FlowersTable from '../components/FlowersTable.vue';
     import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
 	import { useFlowersStore } from '../store';
 
@@ -23,6 +19,7 @@
         name:'Favourites',
         components:{
             Flower,
+            FlowersTable,
             PaginationOrInfiniteScroll
         },
         created(){
@@ -98,27 +95,8 @@
         },
     });
 </script>
-
 <style scoped>
-    .grid{
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-        grid-gap: 10px;
-        background-color: black;
-    }
-    @media only screen and (max-width: 1280px){
-        .grid{
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            grid-gap: 10px;
-            background-color: black;
-        }
-    }
-    .nofavs{
-        color: lightgreen;
-        font-size: large;
-        padding: 15px;
-        background-color: rgb(37, 39, 41);
-        margin: 0px;
+    #favourites{
+        background-color: rgb(37, 39, 41);;
     }
 </style>

@@ -2,14 +2,14 @@ import { db } from  '../store/db';
 
 self.onmessage = async (e) => {
     let type = e.data.type;
+    let batchSize = e.data.batchSize;
     let data = {
         Generation: [],
     };
-    let batchSize = 100;
     if(type == "favourites"){
         let totalCount = await db.favourites.count();
         let totalBatches = Math.ceil(totalCount / batchSize);
-        for(let batchIndex = 0; batchIndex < totalBatches; batchIndex++){
+        for(let batchIndex = 0; batchIndex < totalBatches; ++batchIndex){
             let ids = await db.favourites.offset(batchIndex * batchSize)
                                     .limit(batchSize).toArray();
             let flowers = await db.flowers.bulkGet(ids);
@@ -33,7 +33,7 @@ self.onmessage = async (e) => {
     }else if(type == "all"){
         let totalCount = await db.flowers.count();
         let totalBatches = Math.ceil(totalCount / batchSize);
-        for(let batchIndex = 0; batchIndex < totalBatches; batchIndex++){
+        for(let batchIndex = 0; batchIndex < totalBatches; ++batchIndex){
             let flowers = await db.flowers.offset(batchIndex * batchSize)
                                     .limit(batchSize).toArray();
             let progress = batchIndex * batchSize + 1;
