@@ -71,7 +71,7 @@
     + [x] add uploadFileModal
 * [x] make pagination component
 * [] replace px with rem.
-* [] fix native app not drawing the same flowers [not a bug - make new demo flowers]
+* [] The native app renders flowers with slight differences in appearance [review]
 * [] update fe-wasm - validation code, add exception handler?
 * [] update backend server with new version
 * [] update FlowerEvolver binaries to download

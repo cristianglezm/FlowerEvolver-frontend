@@ -182,22 +182,22 @@
 
 <style scoped>
     h1{
-        font-size: 120px;
-        padding: 0px 0px 0px 0px;
-        margin: 0px 0px 0px 0px;
+        font-size: 7.5rem;
+        padding: 0rem;
+        margin: 0rem;
         color: lightgreen;
     }
     @media only screen and (max-width: 1280px){
         h1{
-            font-size: 36px;
-            padding: 0px 0px 0px 0px;
-            margin: 0px 0px 0px 0px;
+            font-size: 2.25rem;
+            padding: 0rem;
+            margin: 0rem;
             color: lightgreen;
         }
     }
     #flowerGarden{
         position: absolute;
-        top: 10px;
+        top: 0.6rem;
         z-index: 0;
     }
     .Header{
@@ -205,8 +205,8 @@
         position: relative;
     }
     .tabs ul{
-        margin: 0px 0px 0px 0px;
-        padding: 0px 0px 0px 0px;
+        margin: 0rem;
+        padding: 0rem;
     }
     .tabs a:hover{
         background-color: rgb(37, 39, 41);
@@ -214,26 +214,26 @@
     .tabs a{
         text-decoration: none;
         float: left;
-        text-indent: 10px;
-        padding: 2px 10px 0px 0px;
-        margin: 10px 0px 0px 0px;
+        text-indent: 0.6rem;
+        padding: 0.125rem 0.6rem 0rem 0rem;
+        margin: 0.6rem 0rem 0rem 0rem;
         color: lightgreen;
-        border-radius: 12px 12px 0px 0px;
+        border-radius: 0.75rem 0.75rem 0rem 0rem;
     }
     .router-link-active{
         background-color: rgb(37, 39, 41);
     }
     .tabs{
         position: relative;
-        top: 55px;
+        top: 3.4rem;
         font-size: xx-large;
     }
     @media only screen and (max-width: 1280px){
         #appTitle{
-            padding: 0px 0px 10px 0px;
+            padding: 0rem 0rem 0.6rem 0rem;
         }
         .mobileMenu{
-            box-shadow: 5px 10px 1px 2px rgba(12, 13, 12, 0.5);
+            box-shadow: 0.31rem 0.6rem 0.06rem 0.125rem rgba(12, 13, 12, 0.5);
             width: 100%;
             height: 330%;
             background-color: rgb(0, 128, 0, 0.8);
@@ -245,16 +245,16 @@
         .tabs a{
             text-decoration: none;
             float: left;
-            text-indent: 10px;
-            padding: 2px 10px 0px 0px;
-            margin: 10px 0px 0px 0px;
+            text-indent: 0.6rem;
+            padding: 0.125rem 0.6rem 0rem 0rem;
+            margin: 0.6rem 0rem 0rem 0rem;
             color: lightgreen;
-            border-radius: 12px 12px 12px 12px;
+            border-radius: 0.75rem;
         }
         .tabs{
             display: flex;
             flex-flow: column wrap;
-            top: 20px;
+            top: 1.25rem;
             position: absolute;
             font-size: large;
             z-index: 1;
@@ -262,13 +262,13 @@
     }
     .actions{
         text-align: right;
-        padding-bottom: 9px;
+        padding-bottom: 0.56rem;
     }
     .actions button{
         position: relative;
-        font-size: 20px;
-        border-radius: 315px 335px 155px 135px;
-        margin: 10px 10px 0px 2px;
+        font-size: 1.25rem;
+        border-radius: 19.68rem 20.93rem 9.68rem 8.43rem;
+        margin: 0.6rem 0.6rem 0rem 0.125rem;
         cursor: pointer;
         border-color: lightgreen;
         background-color: green;
@@ -282,17 +282,17 @@
     @media only screen and (max-width: 1280px){
         .actions{
             text-align: right;
-            padding-bottom: 9px;
+            padding-bottom: 0.56rem;
             position: absolute;
             display: flex;
             flex-flow: column wrap;
             z-index: 1;
-            right: 120px;
+            right: 7.5rem;
         }
         .actions button{
-            font-size: 15px;
-            border-radius: 315px 335px 155px 135px;
-            margin: 10px 10px 0px 2px;
+            font-size: 0.93rem;
+            border-radius: 19.68rem 20.93rem 9.68rem 8.43rem;
+            margin: 0.6rem 0.6rem 0rem 0.125rem;
             cursor: pointer;
             border-color: lightgreen;
             background-color: green;
@@ -305,25 +305,25 @@
         }
     }
     .disabled{
-      opacity: 0.6;
+      opacity: 0.5;
       cursor: not-allowed !important;
     }
     #warning span{
         position: relative;
-        margin-right: 5px;
-        font-size: 28px;
+        margin-right: 0.31rem;
+        font-size: 1.75rem;
         font-weight: bold;
         cursor: pointer;
         float: right;
     }
     #warning{
-        font-size: 20px;
+        font-size: 1.25rem;
         color: lightgreen;
         position: absolute;
         z-index: 2;
         width: 100%;
         text-align: center;
-        border-radius: 4px;
+        border-radius: 0.25rem;
         border: solid;
         border-color: lightgreen;
         background-color: green;
