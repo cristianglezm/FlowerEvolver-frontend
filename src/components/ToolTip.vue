@@ -36,17 +36,17 @@ const toggleInfo = () => {
     .tipInfo{
         background-color: green;
         border: solid lightgreen;
-        border-radius: 20px;;
+        border-radius: 1.25rem;
         display: inline-grid;
         text-align: center;
     }
     .infoBox{
         background-color: green;
         border: solid lightgreen;
-        border-radius: 20px;
+        border-radius: 1.25rem;
         float:right;
         position: absolute;
-        padding:  10px;
+        padding:  0.6rem;
         overflow: auto;
         overflow-wrap: break-word;
         z-index: 1;

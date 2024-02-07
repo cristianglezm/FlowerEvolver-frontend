@@ -120,7 +120,20 @@
 </template>
 
 <script setup>
-/// @todo document
+/**
+ * Settings View
+ * View for managing application settings and performing various 
+ * actions such as exporting, importing, and deleting flowers.
+ *
+ * @component Settings
+ * @example
+ * // Component usage in another component or view.
+ * <template>
+ *    <Settings />
+ * </template>
+ * // then in script setup
+ *  import Settings from '@/views/Settings.vue';
+ **/
 import { reactive, inject, toRaw, onBeforeUnmount, onMounted } from 'vue';
 import ToolTip from '../components/ToolTip.vue';
 import { useFlowersStore, STORAGE_KEY } from '../store';
@@ -543,7 +556,7 @@ const exportFlowers = (type) => {
         border: 0.25rem solid lightgreen;
         padding: 0.6rem;
         margin-bottom: 1.25rem;
-        border-radius: 5rem;
+        border-radius: 2rem;
     }
     .settings-box h2{
         text-align: center;
@@ -558,17 +571,29 @@ const exportFlowers = (type) => {
             margin: 0rem 0rem 0rem 0.93rem;
         }
         #settings-container{
-            font-size: 0.6rem;
+            font-size: 0.9rem;
             grid-template-columns: repeat(auto-fill, minmax(24.3rem, 1fr));
         }
-        #limit-settings input[type=number]{
+        #actions-safe{
+            margin: 0.2rem;
+        }
+        #actions-safe button{
+            font-size: 0.9rem;
+        }
+        #actions-danger{
+            margin: 0.2rem;
+        }
+        #actions-danger button{
+            font-size: 0.9rem;
+        }
+        input[type=number]{
             width: 20%;
         }
-        #params-settings input[type=number]{
-            width: 20%;
-        }
-        #mutationRates-settings input[type=number]{
-            width: 20%;
+    }
+    @media screen and (max-width: 400px){
+        #settings-container{
+            font-size: 0.9rem;
+            grid-template-columns: repeat(auto-fill, minmax(20.3rem, 1fr));
         }
     }
     input[type=number] {

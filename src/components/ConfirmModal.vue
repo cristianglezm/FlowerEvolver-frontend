@@ -6,8 +6,10 @@
                 <span @click="closeModal()" class="close">&times;</span>
             </div>
             <p>{{ data.message }}</p>
-            <button @click="closeModal()">{{ data.btnNo}}</button>
-            <button @click="data.accept(data.dialog)">{{ data.btnYes }}</button>
+            <div>
+                <button @click="closeModal()">{{ data.btnNo}}</button>
+                <button @click="data.accept(data.dialog)">{{ data.btnYes }}</button>
+            </div>
         </div>
     </dialog>
 </template>
@@ -103,27 +105,47 @@ onBeforeUnmount(() => {
         border: solid;
         border-color: lightgreen;
         border-radius: 0.31rem;
-        box-shadow: 0rem 1rem 2rem 0rem rgba(0,0,0,0.3);
+        box-shadow: 0rem 2rem 4rem 0rem rgba(0,0,0,1);
         overflow: auto;
         overflow-wrap: break-word;
         z-index: 1;
         padding: 0.125rem;
+        width: 50%;
+        display: flex;
+        flex-flow: column nowrap;
     }
     .ConfirmModal-container p{
         overflow: auto;
         overflow-wrap: break-word;
+        font-size: 1.6rem;
     }
     .ConfirmModal-container button{
         background-color: green;
         color: lightgreen;
         border-color: lightgreen;
         position: relative;
-        left:35%;
+        left: 35%;
         margin-bottom: 0.6rem;
         cursor: pointer;
         margin-left: 0.31rem;
         font-size: 1.25rem;
         border-radius: 2.1rem;
+    }
+    @media only screen and (max-width: 1280px){
+        .ConfirmModal-container{
+            width: 90%;
+        }
+        .ConfirmModal-container button{
+            left: 20%;
+            transform: translate(20%);
+            font-size: 0.9rem;
+        }
+        .ConfirmModal-container p{
+            font-size: 0.9rem;
+        }
+        .inlined h2{
+            font-size: 1.2rem;
+        }
     }
     .ConfirmModal-container button:hover{
         border-color: green;
@@ -142,10 +164,6 @@ onBeforeUnmount(() => {
         color: black;
         text-decoration: none;
         cursor: pointer;
-    }
-    .ConfirmModal-container p{
-        font-size: 1.6rem;
-        overflow: auto;
     }
     ::backdrop{
         background-color: white;

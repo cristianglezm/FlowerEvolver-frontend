@@ -33,11 +33,13 @@
  * 
  * // Some other component opening the modal
  *  emitter.emit('showProgress', {
- *     title: 'Delete Action',
+ *     title: 'Action title',
  *     progress: 0,
  *     total: 100, // Set the total progress steps
  *     onLoad: () => {
- *         // Additional actions when modal is opened
+ *         // function to execute when opened
+ *         // process data, send data to web worker, etc
+ *         // emit updates for this progressModal
  *     },
  * });
  * 

@@ -210,7 +210,7 @@
 
 <style scoped>
     .FlowerImage{
-        width:100%;
+        width: 100%;
         height: auto;
     }
     .Flower{
@@ -221,15 +221,15 @@
     }
     .outButtons{
         background-color: green;
-        box-shadow: 5px 10px 1px 2px rgba(12, 13, 12, 0.5);
-        border: solid 1px black;
+        box-shadow: 0.31rem 0.6rem 0.06rem 0.125rem rgba(12, 13, 12, 0.5);
+        border: solid 0.06rem black;
     }
     .Selected{
         border-style: solid solid solid solid;
         border-color: red;
     }
     .Flower{
-        padding: 10px 10px 10px 10px;
+        padding: 0.6rem;
         background-color: rgb(37, 39, 41);
     }
     .drop-menu{
@@ -238,25 +238,25 @@
     }
     .buttons{
         position: absolute;
-        padding: 0px 21px 0px 0px;
+        padding: 0rem 1.31rem 0rem 0rem;
         float: right;
         background-color: green;
-        border-top: 2px lightgreen;
-        box-shadow: 2px 6px 16px 6px rgba(0,128,0,0.5);
+        border-top: 0.125rem lightgreen;
+        box-shadow: 0.125rem 0.375rem 1rem 0.375rem rgba(0,128,0,0.5);
         z-index: 1;
     }
     .buttons ul{
-        margin: 10px 20px 10px 19px;
+        margin: 0.6rem 1.25rem 0.6rem 1.18rem;
         text-align: left;
-        padding: 0;
-        padding-right: 4px;
+        padding: 0rem;
+        padding-right: 0.25rem;
         list-style: none;
     }
     .buttons li{
-        font-size: 20px;
-        border-radius: 4px;
+        font-size: 1.25rem;
+        border-radius: 0.25rem;
         position: relative;
-        margin: 10px 0px 0px 19px;
+        margin: 0.6rem 0rem 0rem 1.18rem;
         list-style: none;
         background-color: green;
         cursor: pointer;

@@ -105,12 +105,15 @@ self.onmessage = async (e) => {
     }
     let fr = new FileReaderSync();
     for(let i=0;i<files.length;++i){
+        if(files[i].type != 'application/json'){
+            continue;
+        }
         let json = {};
         {
             let text = await fr.readAsText(files[i]);
             json = JSON.parse(text);
         }
-        if(json.Flower){
+        if(json.hasOwnProperty('Flower')){
             self.postMessage({
                 type: "showProgress",
                 title: "Importing Flower file: " + files[i].name,
@@ -118,7 +121,7 @@ self.onmessage = async (e) => {
                 total: 1
             });
             await importFlower(self, params, json, toFavs);
-        }else if(json.Generation){
+        }else if(json.hasOwnProperty('Generation')){
             self.postMessage({
                 type: "showProgress",
                 title: "Importing Generation file: " + files[i].name,
@@ -126,7 +129,7 @@ self.onmessage = async (e) => {
                 total: json.Generation.length
             });
             await importGeneration(self, batchSize, params, json, toFavs);
-        }else if(json.Session.generations){
+        }else if(json.hasOwnProperty('Session')){
             let total = json.Session.generations.reduce((acc, gen) => acc + gen.length, 0);
             self.postMessage({
                 type: "showProgress",
