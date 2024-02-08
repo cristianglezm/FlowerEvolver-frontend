@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import Vue from '@vitejs/plugin-vue';
-//import wasm from "vite-plugin-wasm";
+import eslint from "vite-plugin-eslint";
 import path from 'path';
 
 export default defineConfig({

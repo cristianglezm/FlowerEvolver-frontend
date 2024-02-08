@@ -172,7 +172,7 @@
                 return this.$store.settings.pagination;
             },
             isMobile: function(){
-                return screen.width <= 1280;
+                return window.innerWidth <= 1280;
             },
         },
     });
@@ -195,7 +195,7 @@
     .gridFlowers{
         display: grid;
         grid-template-columns: auto auto;
-        grid-gap: 10px;
+        grid-gap: 0.6rem;
         justify-content: center;
     }
 </style>

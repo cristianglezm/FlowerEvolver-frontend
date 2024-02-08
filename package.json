@@ -1,6 +1,6 @@
 {
     "name": "flower-evolver",
-    "version": "1.3.0",
+    "version": "2.0.0",
     "private": true,
     "type": "module",
     "scripts": {
@@ -8,7 +8,7 @@
         "build": "vite build",
         "buildGHP": "vite build --base=/FlowerEvolver-frontend/",
         "dev": "vite",
-        "lint": "eslint --ext .js .vue --ignore-path .gitignore --fix src"
+        "lint": "eslint --ext .js,.vue --ignore-path .gitignore --fix-dry-run src"
     },
     "dependencies": {
         "@cristianglezm/flower-evolver-wasm": "^1.0.0",
@@ -16,6 +16,7 @@
         "dexie": "^3.2.4",
         "mitt": "^3.0.1",
         "pinia": "^2.1.6",
+        "vite-plugin-eslint": "^1.8.1",
         "vue": "^3.2.20",
         "vue-axios": "^3.5.2",
         "vue-router": "^4.0.11"
@@ -23,22 +24,8 @@
     "devDependencies": {
         "@vitejs/plugin-vue": "^4.3.4",
         "eslint": "^8.49.0",
-        "eslint-plugin-vue": "^9.17.0",
-        "vite": "^5.0.5"
-    },
-    "eslintConfig": {
-        "root": true,
-        "env": {
-            "node": true
-        },
-        "extends": [
-            "plugin:vue/essential",
-            "eslint:recommended"
-        ],
-        "parserOptions": {
-            "parser": "babel-eslint"
-        },
-        "rules": {}
+        "eslint-plugin-vue": "^9.21.1",
+        "vite": "^5.0.12"
     },
     "browserslist": [
         "> 1%",

@@ -10,7 +10,6 @@
 <script>
 	import { defineComponent } from 'vue';
     import { mapActions } from 'pinia';
-    import Flower from '../components/Flower.vue';
     import FlowersTable from '../components/FlowersTable.vue';
     import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
 	import { useFlowersStore } from '../store';
@@ -18,7 +17,6 @@
     export default defineComponent({
         name:'Favourites',
         components:{
-            Flower,
             FlowersTable,
             PaginationOrInfiniteScroll
         },
@@ -69,7 +67,7 @@
                 return this.$store.settings.pagination;
             },
             isMobile: function(){
-                return screen.width <= 1280;
+                return window.innerWidth <= 1280;
             },
             updateFlowers: function(){
                 this.loadFavourites();

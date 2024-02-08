@@ -5,7 +5,7 @@
             <a :href="this.base_url" style="text-decoration: none; position: relative; z-index: 1;"><h1>Flower Evolver</h1></a>
             <canvas id="flowerGarden" :width="flowerGardenRect.width" :height="flowerGardenRect.height"></canvas>
         </header>
-        <div v-if="isMobile()" style="margin: 10px 0px 0px 0px;">
+        <div v-if="isMobile()" style="margin: 0.6rem 0rem 0rem 0rem;">
             <img @click="showMenu=!showMenu" src="@/assets/x32/menu.png" alt="menuIcon" class="pointer"/>
             <div v-if="showMenu" class="mobileMenu">
                 <nav class="tabs" v-if="isPaginated()" @click="showMenu=!showMenu" alt="tabs">
@@ -25,12 +25,12 @@
                         <router-link to="/Settings"> Settings </router-link>
                 </nav>
                 <nav class="actions" alt="actions">
-                    <div v-if="this.isLocal || blocked" style="display: flex; flex-flow: column wrap;z-index: 1;left: 0px;position: absolute;">
+                    <div v-if="this.isLocal || blocked" style="display: flex; flex-flow: column wrap;z-index: 1;left: 0rem;position: absolute;">
                         <button @click="makeLocalFlower(); showMenu=!showMenu"> New Local Flower</button>
                         <button @click="localReproduce(); showMenu=!showMenu"> Local Reproduce Selected</button>
                         <button @click="showAncestors(); showMenu=!showMenu"> Show Local Selected Descendants</button>
                     </div>
-                    <div v-else style="display: flex; flex-flow: column wrap;z-index: 1;left: 0px;position: absolute;">
+                    <div v-else style="display: flex; flex-flow: column wrap;z-index: 1;left: 0rem;position: absolute;">
                         <button @click="block(makeRemoteFlower); showMenu=!showMenu"> New Remote Flower</button>
                         <button @click="block(remoteReproduce); showMenu=!showMenu"> Remote Reproduce Selected</button>
                         <button @click="block(showAncestors); showMenu=!showMenu"> Show Remote Selected Descendants</button>
@@ -174,7 +174,7 @@
                 return this.$store.settings.pagination;
             },
             isMobile: function(){
-                return screen.width <= 1280;
+                return window.innerWidth <= 1280;
             },
         },
     });
@@ -324,8 +324,7 @@
         width: 100%;
         text-align: center;
         border-radius: 0.25rem;
-        border: solid;
-        border-color: lightgreen;
+        border: solid lightgreen;
         background-color: green;
     }
 </style>

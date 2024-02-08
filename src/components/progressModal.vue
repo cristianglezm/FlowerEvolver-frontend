@@ -132,7 +132,7 @@ const closeModal = () => {
         box-shadow: 0rem 1rem 2rem 0rem rgba(0,0,0,0.3);
         overflow: auto;
         z-index: 1;
-        padding: 2px;
+        padding: 0.125rem;
         text-align: center;
     }
     #progress-bar{

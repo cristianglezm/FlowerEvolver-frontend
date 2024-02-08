@@ -101,7 +101,7 @@
                 return this.$store.settings.pagination;
             },
             isMobile: function(){
-                return screen.width <= 1280;
+                return window.innerWidth <= 1280;
             },
             addDemoFlowerToLocal: async function(flower){
                 try{
