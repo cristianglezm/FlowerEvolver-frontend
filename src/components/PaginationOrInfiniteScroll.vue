@@ -84,26 +84,26 @@ if(!props.pagination){
 <style scoped>
     .container{
         display: grid;
-        grid-template-columns: 70px auto 70px;
-        grid-gap: 10px;
+        grid-template-columns: 4.3rem auto 4.3rem;
+        grid-gap: 0.6rem;
     }
     @media only screen and (max-width: 1280px){
         .container{
             display: grid;
-            grid-template-columns: 20px auto 20px;
-            grid-gap: 10px;
+            grid-template-columns: 1.25rem auto 1.25rem;
+            grid-gap: 0.6rem;
         }
     }
     .arrow{
         background-color: rgb(37, 39, 41);
     }
     .arrow button{
-        font-size: 40px;
+        font-size: 2.5rem;
         color: green;
-        border-radius: 126px;
+        border-radius: 7.8rem;
         background-color: lightgreen;
         text-align: center;
-        padding: 5px 15px 5px 15px;
+        padding: 0.31rem 0.93rem 0.31rem 0.93rem;
         position: relative;
         top: 50%;
         left: 0.1em;
@@ -112,13 +112,13 @@ if(!props.pagination){
     .disabled button{
         cursor: not-allowed !important;
         opacity: 0.5;
-        margin-bottom: -200px;
+        margin-bottom: -12.5rem;
     }
 @media only screen and (max-width: 1280px){
     .arrow button{
-        font-size: 15px;
-        border-radius: 126px;
-        padding: 2px 12px 2px 12px;
+        font-size: 0.93rem;
+        border-radius: 7.8rem;
+        padding: 0.125rem 0.75rem 0.125rem 0.75rem;
         top: 50%;
         left: 0.1em;
     }

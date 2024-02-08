@@ -70,8 +70,9 @@
     + [x] add storage usage stats
     + [x] add uploadFileModal
 * [x] make pagination component
-* [] replace px with rem.
-* [] The native app renders flowers with slight differences in appearance [review]
+* [x] The native app renders flowers with slight differences in appearance
+    - runtime differences between wasm and native [gcc, clang]
+* [] fix eslint errors and warnings.
 * [] update fe-wasm - validation code, add exception handler?
 * [] update backend server with new version
 * [] update FlowerEvolver binaries to download

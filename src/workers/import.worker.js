@@ -113,7 +113,7 @@ self.onmessage = async (e) => {
             let text = await fr.readAsText(files[i]);
             json = JSON.parse(text);
         }
-        if(json.hasOwnProperty('Flower')){
+        if(Object.hasOwn(json, "Flower")){
             self.postMessage({
                 type: "showProgress",
                 title: "Importing Flower file: " + files[i].name,
@@ -121,7 +121,7 @@ self.onmessage = async (e) => {
                 total: 1
             });
             await importFlower(self, params, json, toFavs);
-        }else if(json.hasOwnProperty('Generation')){
+        }else if(Object.hasOwn(json, "Generation")){
             self.postMessage({
                 type: "showProgress",
                 title: "Importing Generation file: " + files[i].name,
@@ -129,7 +129,7 @@ self.onmessage = async (e) => {
                 total: json.Generation.length
             });
             await importGeneration(self, batchSize, params, json, toFavs);
-        }else if(json.hasOwnProperty('Session')){
+        }else if(Object.hasOwn(json, "Session")){
             let total = json.Session.generations.reduce((acc, gen) => acc + gen.length, 0);
             self.postMessage({
                 type: "showProgress",

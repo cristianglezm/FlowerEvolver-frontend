@@ -28,7 +28,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			mutationRates: { addNodeRate: 0.2, addConnRate: 0.3, removeConnRate: 0.2, perturbWeightsRate: 0.6, enableRate: 0.35, disableRate: 0.3, actTypeRate: 0.4 },
 			loadDemoFlowers: true,
 			pagination: false,
-			limit: 30
+			limit: 100
 		})),
 	}),
 	getters: {

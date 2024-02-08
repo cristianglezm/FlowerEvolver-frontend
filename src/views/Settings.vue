@@ -1,5 +1,5 @@
 <template>
-    <div style="background-color: rgb(37, 39, 41); padding: 10px;">
+    <div style="background-color: rgb(37, 39, 41); padding: 0.6rem;">
         <div id="settings-container">
             <progressModal :id="'progressBar'" :channel="emitter" :on="'showProgress'" :update="'updateProgress'" />
             <UploadFileModal :id="'importModal'" :channel="emitter" :on="'showImport'" />
