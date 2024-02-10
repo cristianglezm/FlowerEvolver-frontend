@@ -32,14 +32,14 @@ const props = defineProps({
 <style scoped>
     .grid{
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(14.3rem, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(15%, 1fr));
         grid-gap: 1rem;
         background-color: black;
     }
     @media only screen and (max-width: 1280px){
         .grid{
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(30%, 1fr));
             grid-gap: 1rem;
             background-color: black;
         }

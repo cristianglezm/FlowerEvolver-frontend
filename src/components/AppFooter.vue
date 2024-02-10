@@ -19,6 +19,7 @@ const data = {
         display: grid;
         grid-template-columns: auto auto;
         justify-items: stretch;
+        position: relative;
     }
     .Footer img{
         float: right;

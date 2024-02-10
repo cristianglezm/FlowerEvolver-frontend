@@ -1,8 +1,8 @@
 <template>
     <div class="Flower">
-        <div v-if="this.isLocal">
+        <div v-if="isLocal">
             <div class="outButtons" :class="{Selected: selected}">
-                <img class="pointer" @click="toggleFavourite(this.id)" :src="heartIconSrc" :key="id"/>
+                <img class="pointer" @click="toggleFavourite(id)" :src="heartIconSrc" :key="id"/>
                 <img class="drop-menu pointer" v-if="!clicked" @click="clicked = !clicked; " src="@/assets/x32/Arrow_down.png"/>
                 <img class="drop-menu pointer" v-if="clicked" @click="clicked = !clicked; " src="@/assets/x32/Arrow_up.png"/>
                 <div class="buttons" v-if="clicked">
@@ -46,8 +46,8 @@
 
 <script>
     import { mapActions } from 'pinia';
-	import { useFlowersStore } from '../store';
-	import { defineComponent } from 'vue';
+    import { useFlowersStore } from '../store';
+    import { defineComponent } from 'vue';
 	
     export default defineComponent({
         name:'Flower',
@@ -77,14 +77,14 @@
                 index: 0,
                 heartIconSrc: this.loadImage("heart_empty.png","x32"),
                 heartAnimation: [
-								this.loadImage("heart_empty.png","x32"),
-								this.loadImage("heart_filling0.png","x32"),
-								this.loadImage("heart_filling1.png","x32"),
-								this.loadImage("heart_filling2.png","x32"),
-								this.loadImage("heart_filling3.png","x32"),
-								this.loadImage("heart_filling4.png","x32"),
-								this.loadImage("heart_full.png","x32"),
-                            ],
+                                this.loadImage("heart_empty.png","x32"),
+                                this.loadImage("heart_filling0.png","x32"),
+                                this.loadImage("heart_filling1.png","x32"),
+                                this.loadImage("heart_filling2.png","x32"),
+                                this.loadImage("heart_filling3.png","x32"),
+                                this.loadImage("heart_filling4.png","x32"),
+                                this.loadImage("heart_full.png","x32"),
+                                ],
             }
         },
         methods:{

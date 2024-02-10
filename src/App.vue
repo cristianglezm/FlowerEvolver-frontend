@@ -1,31 +1,26 @@
 <template>
   <div id="app-container">
-    <Header :isLocal="isLocal()"/>
-    <router-view :key="$route.fullPath" class="view"></router-view>
-    <Footer />
+    <AppHeader :is-local="isLocal()" />
+    <router-view :key="routes.fullPath" class="view" />
+    <AppFooter />
   </div>
 </template>
 
-<script>
-import { defineComponent } from 'vue';
-import Header from './components/Header.vue';
-import Footer from './components/Footer.vue';
+<script setup>
 
-export default defineComponent({
-  name: 'App',
-  components: {
-    Header,
-    Footer,
-  },
-  methods:{
-    isLocal(){
-      return this.$route.path === '/Local' || 
-              this.$route.path === '/Favourites' || 
-              this.$route.params.isLocal === 'local' || 
-              this.$route.path === '/Settings';
-    }
-  },
-});
+import AppHeader from './components/AppHeader.vue';
+import AppFooter from './components/AppFooter.vue';
+import { useRoute } from 'vue-router';
+
+const routes = useRoute();
+
+const isLocal = () => {
+  return routes.path === '/Local' || 
+          routes.path === '/Favourites' || 
+          routes.params.isLocal === 'local' || 
+          routes.path === '/Settings';
+};
+
 </script>
 
 <style>
