@@ -38,6 +38,7 @@
     }
     #image{
         width: 100%;
+        position: relative;
     }
     .blocks a{
         border: outset lightgreen;

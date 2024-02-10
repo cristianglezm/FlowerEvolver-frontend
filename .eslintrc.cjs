@@ -16,5 +16,8 @@ module.exports = {
     "plugins": [
         "vue",
     ],
-    "rules": {}
+    "rules": {
+        'vue/singleline-html-element-content-newline': 'off',
+        'vue/max-attributes-per-line': 'off',
+    }
 }

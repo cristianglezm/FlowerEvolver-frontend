@@ -428,7 +428,7 @@ const exportFlowers = (type) => {
         background-color: rgb(37, 39, 41);
         font-size: 1.25rem;
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(26.8rem, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(25%, 1fr));
         grid-gap: 0.6rem;
         position: relative;
     }
@@ -572,7 +572,8 @@ const exportFlowers = (type) => {
         }
         #settings-container{
             font-size: 0.9rem;
-            grid-template-columns: repeat(auto-fill, minmax(24.3rem, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
+            width: 100%;
         }
         #actions-safe{
             margin: 0.2rem;
@@ -588,12 +589,6 @@ const exportFlowers = (type) => {
         }
         input[type=number]{
             width: 20%;
-        }
-    }
-    @media screen and (max-width: 400px){
-        #settings-container{
-            font-size: 0.9rem;
-            grid-template-columns: repeat(auto-fill, minmax(20.3rem, 1fr));
         }
     }
     input[type=number] {

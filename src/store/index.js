@@ -222,7 +222,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 				const response = await axios.get(API + 'flowers?limit=' + limit + '&offset=' + offset)
 				this.remoteFlowers = response.data.flowers;
 			}catch(e){
-				this.errors.push({message:e});
+				//this.errors.push({message:e});
 			}
 		},
 		async updateLocalFlowers({limit, offset}){
@@ -397,7 +397,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					this.localFlowers.unshift(f);
 				}else{
 					this.errors.push({message:"FlowerEvolver WASM module not loaded, try again"});
-					loadFE();
+					this.loadFE();
 				}
 			}catch(e){
 				this.errors.push({message: e});
@@ -424,7 +424,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					this.localFlowers.unshift(flower);
 				}else{
 					this.errors.push({message:"FlowerEvolver WASM module not loaded, try again"});
-					loadFE();
+					this.loadFE();
 				}
 			}catch(e){
 				this.errors.push({message: e});
@@ -494,7 +494,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 				}
 			}else{
 				this.errors.push({message: "WASM module not loaded, try again."});
-				loadFE();
+				this.loadFE();
 			}
 		},
 		async makeRemoteMutation(flower){
@@ -543,7 +543,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 				}
 			}else{
 				this.errors.push({message: "WASM module not loaded, try again."});
-				loadFE();
+				this.loadFE();
 			}
 		},
 	},

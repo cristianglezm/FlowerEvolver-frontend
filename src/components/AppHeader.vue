@@ -1,14 +1,14 @@
 <template>
     <div class="Header">
-        <div v-if="showWarning" role="warning" id="warning"><span @click="showWarning = false">X</span><p>Remote flowers are deleted daily at 00:00 UTC</p></div>
+        <div v-if="showWarning" id="warning" role="warning"><span @click="showWarning = false">X</span><p>Remote flowers are deleted daily at 00:00 UTC</p></div>
         <header id="appTitle">
-            <a :href="this.base_url" style="text-decoration: none; position: relative; z-index: 1;"><h1>Flower Evolver</h1></a>
+            <a :href="base_url" style="text-decoration: none; position: relative; z-index: 1;"><h1>Flower Evolver</h1></a>
             <canvas id="flowerGarden" :width="flowerGardenRect.width" :height="flowerGardenRect.height"></canvas>
         </header>
         <div v-if="isMobile()" style="margin: 0.6rem 0rem 0rem 0rem;">
             <img @click="showMenu=!showMenu" src="@/assets/x32/menu.png" alt="menuIcon" class="pointer"/>
             <div v-if="showMenu" class="mobileMenu">
-                <nav class="tabs" v-if="isPaginated()" @click="showMenu=!showMenu" alt="tabs">
+                <nav v-if="isPaginated()" class="tabs" @click="showMenu=!showMenu" alt="tabs">
                         <router-link to="/Local?page=0"> Local </router-link>
                         <router-link to="/LastAdded"> Last Added </router-link>
                         <router-link to="/Browse?page=0"> Browse </router-link>
@@ -16,7 +16,7 @@
                         <router-link to="/Downloads"> Downloads </router-link>
                         <router-link to="/Settings"> Settings </router-link>
                 </nav>
-                <nav class="tabs" v-else @click="showMenu=!showMenu" alt="tabs">
+                <nav v-else class="tabs" @click="showMenu=!showMenu" alt="tabs">
                         <router-link to="/Local"> Local </router-link>
                         <router-link to="/LastAdded"> Last Added </router-link>
                         <router-link to="/Browse"> Browse </router-link>
@@ -25,7 +25,7 @@
                         <router-link to="/Settings"> Settings </router-link>
                 </nav>
                 <nav class="actions" alt="actions">
-                    <div v-if="this.isLocal || blocked" style="display: flex; flex-flow: column wrap;z-index: 1;left: 0rem;position: absolute;">
+                    <div v-if="isLocal || blocked" style="display: flex; flex-flow: column wrap;z-index: 1;left: 0rem;position: absolute;">
                         <button @click="makeLocalFlower(); showMenu=!showMenu"> New Local Flower</button>
                         <button @click="localReproduce(); showMenu=!showMenu"> Local Reproduce Selected</button>
                         <button @click="showAncestors(); showMenu=!showMenu"> Show Local Selected Descendants</button>
@@ -38,8 +38,8 @@
                 </nav>
             </div>
         </div>
-        <div v-else>
-            <nav class="tabs" alt="tabs">
+        <div v-else :class="{ edgeOrChromeInlined: isEdgeOrChrome() }">
+            <nav :class="{ edgeOrChromeTabs: isEdgeOrChrome(), 'tabs': true }" alt="tabs">
                 <ul v-if="isPaginated()">
                     <router-link to="/Local?page=0"> Local </router-link>
                     <router-link to="/LastAdded"> Last Added </router-link>
@@ -87,7 +87,7 @@
 	import { defineComponent } from 'vue';
 
     export default defineComponent({
-        name:'Header',
+        name:'AppHeader',
         components:{
             ErrorModal,
             ConfirmModal
@@ -159,22 +159,26 @@
                 let ctx = flowerGarden.getContext("2d");
                 let radius = 8;
                 let x = i * (radius * 4);
-                let y = flowerGarden.height - (radius*3 + 2);
+                let y = flowerGarden.height - (radius * 3 + 2);
                 try{
                     let canvas = document.getElementById("canvas");
                     canvas.width = radius*2;
                     canvas.height = radius*3;
                     this.$store.fe.makeFlower(radius, 2, 6.0, 1.0);
+                    ctx.drawImage(canvas, x, y);
                 }catch(e){
                     this.$store.errors.push({message: e});
                 }
-                ctx.drawImage(canvas, x, y);
             },
             isPaginated: function(){
                 return this.$store.settings.pagination;
             },
             isMobile: function(){
                 return window.innerWidth <= 1280;
+            },
+            isEdgeOrChrome: function(){
+                return navigator.userAgent.indexOf("Edge") > -1 || 
+                        navigator.userAgent.indexOf("Chrome") > -1;
             },
         },
     });
@@ -227,6 +231,15 @@
         position: relative;
         top: 3.4rem;
         font-size: xx-large;
+    }
+    .edgeOrChromeInlined{
+        display: inline-flex;
+        flex-flow: row nowrap;
+        width: 100%;
+    }
+    .edgeOrChromeTabs{
+        width: 100%;
+        padding: 1.25rem 0rem 0rem 0rem;
     }
     @media only screen and (max-width: 1280px){
         #appTitle{

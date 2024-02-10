@@ -19,6 +19,7 @@
                 + [x] add route for settings component.
                 + [x] add pagination for tabs
                 + [] use worker for flower garden?
+                + [] split into two components [AppTitle, AppMenu]
         + views
             - [x] Ancestors
                 + [x] fix infinite scroll not working
