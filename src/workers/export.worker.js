@@ -6,6 +6,9 @@ self.onmessage = async (e) => {
     let data = {
         Generation: [],
     };
+    if(!db.isOpen()){
+        db.open();
+    }
     if(type == "favourites"){
         let totalCount = await db.favourites.count();
         let totalBatches = Math.ceil(totalCount / batchSize);
@@ -54,6 +57,6 @@ self.onmessage = async (e) => {
             filedata: data
         });
     }else{
-        console.error("invalid type: " + type + " - valid types: favourites or all");
+        throw Error("invalid type: " + type + " - valid types: favourites or all");
     }
 };

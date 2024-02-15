@@ -1,7 +1,7 @@
 <template>
     <div style="background-color: rgb(37, 39, 41); padding: 0.6rem;">
         <div id="settings-container">
-            <progressModal :id="'progressBar'" :channel="emitter" :on="'showProgress'" :update="'updateProgress'" />
+            <ProgressModal :id="'progressBar'" :channel="emitter" :on="'showProgress'" :update="'updateProgress'" />
             <UploadFileModal :id="'importModal'" :channel="emitter" :on="'showImport'" />
             <div id="settings-options" class="settings-box">
                 <h2>Options</h2>
@@ -137,7 +137,7 @@
 import { reactive, inject, toRaw, onBeforeUnmount, onMounted } from 'vue';
 import ToolTip from '../components/ToolTip.vue';
 import { useFlowersStore, STORAGE_KEY } from '../store';
-import progressModal from '../components/progressModal.vue';
+import ProgressModal from '../components/ProgressModal.vue';
 import UploadFileModal from '../components/UploadFileModal.vue';
 import redrawWorker from '../workers/redraw.worker?worker';
 import exportWorker from '../workers/export.worker?worker';
@@ -146,6 +146,11 @@ import importWorker from '../workers/import.worker?worker';
 const store = useFlowersStore();
 let emitter = inject('emitter');
 
+const data = reactive({
+    persisted: false,
+    spaceUsage: 0.0,
+    spaceQuota: 0.0
+});
 const params = reactive({
     radius: store.settings.params.radius,
     numLayers: store.settings.params.numLayers,
@@ -190,11 +195,6 @@ const calcSpace = async () => {
         data.spaceQuota = 0.0;
     }
 };
-const data = reactive({
-    persisted: false,
-    spaceUsage: 0.0,
-    spaceQuota: 0.0
-});
 onMounted(() => {
     isPersisted().then(p => data.persisted = p);
     calcSpace();
@@ -234,10 +234,11 @@ const deleteAllFlowers = () => {
         message: 'Are you sure you want to delete all flowers?',
         btnNo: 'no',
         btnYes: 'Delete all',
-        onConfirm: (dialog) => {
-            store.db.delete();
-            store.db.open();
+        onConfirm: async (dialog) => {
             dialog.close();
+            await store.db.delete();
+            store.db.open();
+            calcSpace();
         },
     });
 };
@@ -257,8 +258,9 @@ const deleteNonFavourites = () => {
             store.db.delete();
             store.db.open();
             store.db.flowers.bulkAdd(flowers);
-            store.db.favourites.bulkAdd(ids, ids);
             dialog.close();
+            await store.db.favourites.bulkAdd(ids, ids);
+            calcSpace();
         }
     });
 };
@@ -350,6 +352,8 @@ const importFiles = async (files, toFavs) => {
             emitter.emit('updateProgress', {
                 progress: e.data.progress,
             });
+        }else if(type === "done"){
+            calcSpace();
         }
     };
     workers.importWorker.onerror = (e) => {
