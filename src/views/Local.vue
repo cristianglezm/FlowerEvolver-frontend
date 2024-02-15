@@ -11,7 +11,7 @@
 
 <script setup>
 
-import { nextTick, onMounted, reactive, computed, toRaw, inject, watch } from 'vue';
+import { nextTick, onMounted, reactive, computed, inject, watch } from 'vue';
 import FlowersTable from '../components/FlowersTable.vue';
 import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
 import ProgressModal from '../components/ProgressModal.vue';
@@ -112,8 +112,7 @@ const loadDemoFlowersWorker = async () => {
     worker.postMessage({
         files: files,
         toFavs: false,
-        batchSize: store.settings.limit,
-        params: structuredClone(toRaw(store.settings.params))
+        batchSize: store.settings.limit
     });
 };
 const loadDemoFlowers = async () => {

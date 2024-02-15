@@ -236,6 +236,8 @@ const deleteAllFlowers = () => {
         btnYes: 'Delete all',
         onConfirm: async (dialog) => {
             dialog.close();
+            store.localSelected.flowers = [];
+            store.localSelected.index = 0;
             await store.db.delete();
             store.db.open();
             calcSpace();
@@ -255,6 +257,8 @@ const deleteNonFavourites = () => {
                 ids[id] = id;
                 flowers[id].id = id;
             }
+            store.localSelected.flowers = [];
+            store.localSelected.index = 0;
             store.db.delete();
             store.db.open();
             store.db.flowers.bulkAdd(flowers);
@@ -281,7 +285,7 @@ const redrawLocalFlowers = async () => {
 const showRedrawFlowers = () => {
     emitter.emit('showYesNo', {
         title: 'Redraw local flowers',
-        message: 'Are you sure you want to redraw local flowers?',
+        message: 'Are you sure you want to redraw local flowers? (this won\'t override their parameters but you will need to import them to restore to originals)',
         btnNo: 'no',
         btnYes: 'redraw local flowers',
         onConfirm: (dialog) => {
@@ -362,8 +366,7 @@ const importFiles = async (files, toFavs) => {
     workers.importWorker.postMessage({
         files: files,
         toFavs: toFavs,
-        batchSize: store.settings.limit,
-        params: structuredClone(toRaw(params))
+        batchSize: store.settings.limit
     });
 };
 const showImport = (toFavs) => {

@@ -1,3 +1,28 @@
+/**
+ * @brief export flowers for native app.
+ * @param {String} type - all, favourites
+ * @param {Number} batchSize how many flowers before adding to the database.
+ * @param
+ * @example
+ * // start worker
+ *   workers.exportWorker.postMessage({
+ *       type: type,
+ *       batchSize: store.settings.limit
+ *   });
+ * // worker will send
+ * // update
+ *   self.postMessage({
+ *       ready: false,
+ *       type: "favourites",
+ *       progress: progress
+ *   });
+ * // when done
+ *       self.postMessage({
+ *           ready: true,
+ *           type: "favourites",
+ *           filedata: data // data is a json to export.
+ *       });
+ */
 import { db } from  '../store/db';
 
 self.onmessage = async (e) => {

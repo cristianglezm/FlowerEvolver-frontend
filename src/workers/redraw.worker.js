@@ -1,3 +1,18 @@
+/**
+ * @brief redraw flowers with current parameters.
+ * @param {Number} batchSize how many flowers before adding to the database.
+ * @param {Object} params{ radius: Number, numLayers: Number, P: Number, bias: Number}
+ * @example
+ * // start worker
+ *   workers.redrawWorker.postMessage({
+ *       batchSize: store.settings.limit,
+ *       params: structuredClone(toRaw(params))
+ *  });
+ * // updates
+ *   self.postMessage({
+ *       progress: progress
+ *   });
+ */
 import { db } from  '../store/db';
 import fe from '@cristianglezm/flower-evolver-wasm';
 
