@@ -68,19 +68,6 @@ export const useFlowersStore = defineStore('FlowersStore', {
 		async loadFE(){
 			this.fe = await fe();
 		},
-		async convertImageArrayBufferToDataURL(data){
-			const ctx = this.canvas.getContext("2d", { willReadFrequently: true });
-			let img = new Image();
-			let canvas = this.canvas;
-			img.onload = function(){
-				canvas.width = this.width;
-				canvas.height = this.height;
-				ctx.drawImage(this, 0, 0);
-			};
-			img.src = window.URL.createObjectURL(new Blob([data]));
-			await img.decode();
-			return this.canvas.toDataURL();
-		},
 		increaseOffset(offset){
 			return offset + this.settings.limit;
 		},
@@ -149,26 +136,38 @@ export const useFlowersStore = defineStore('FlowersStore', {
 		},
 		async addRemoteFlowerToLocal(flower){
 			try{
-				let genome = await fetch(URL + flower.genome)
-					.then(response => {
-						return response.text();
-					});
-				let response = await fetch(URL + flower.image);
-				if(!response.ok){
-					this.errors.push({message: 'Failed to load image: ${response.status} ${response.statusText}'});
-				}
-				let arrBuff = await response.arrayBuffer();
-				this.convertImageArrayBufferToDataURL(arrBuff)
-				.then((dataURL) => {
-					this.db.flowers.add({
-						genome: genome,
-						image: dataURL
-					}).then(id => {
-						this.db.flowers.get(id).then((f) => {
+				fetch(URL + flower.genome)
+				.then(response => {
+					return response.text();
+				})
+				.then(genome => {
+					if(this.fe){
+						if(!this.db.isOpen()){
+							this.db.open();
+						}
+						this.canvas.width = this.settings.params.radius * 2;
+						this.canvas.height = this.settings.params.radius * 3;
+						try{
+							this.fe.drawFlower(genome, this.settings.params.radius, this.settings.params.numLayers, 
+												this.settings.params.P, this.settings.params.bias);
+						}catch(e){
+							this.errors.push({message: e});
+							return;
+						}
+						let f = {
+							genome: genome,
+							image: this.getDataURL()
+						};
+						this.db.flowers.add(f)
+						.then((id) => {
+							f.id = id;
 							this.localFlowers.unshift(f);
-						});
-					}).catch(e => this.errors.push({message: e}));
-				}).catch(e => this.errors.push({message: e}));
+						}).catch(e => this.errors.push({message: e}));
+					}else{
+						this.errors.push({message: "wasm module for flowers is not loaded.(try again)"});
+						this.loadFE();
+					}
+				});
 			}catch(e){
 				this.errors.push({message: e});
 			}

@@ -2,7 +2,7 @@
     <div class="Flower">
         <div v-if="isLocal">
             <div class="outButtons" :class="{Selected: selected}">
-                <img class="pointer" @click="toggleFavourite(id)" :src="heartIconSrc" :key="id"/>
+                <img class="pointer" @click="toggleFavourite(id)" alt="favourite button" :src="heartIconSrc" :key="id"/>
                 <img class="drop-menu pointer" v-if="!clicked" @click="clicked = !clicked; " src="@/assets/x32/Arrow_down.png"/>
                 <img class="drop-menu pointer" v-if="clicked" @click="clicked = !clicked; " src="@/assets/x32/Arrow_up.png"/>
                 <div class="buttons" v-if="clicked">
@@ -18,12 +18,12 @@
                     </ul>
                 </div>
             </div>
-            <img :id="'FlImage' + id" :src="getImage()" :alt="id" class="FlowerImage"/>
+            <img :id="'FlImage' + id"  loading="lazy" :src="getImage()" :alt="'flower ' + id" class="FlowerImage"/>
             <p><strong>{{ id }}</strong></p>
         </div>
         <div v-else>
             <div class="outButtons" :class="{Selected: selected}">
-                <img class="pointer disabled"  :src="heartIconSrc" :key="id"/>
+                <img class="pointer disabled" alt="disabled favourite button" :src="heartIconSrc" :key="id"/>
                 <img class="drop-menu pointer" v-if="!clicked" @click="clicked = !clicked; " src="@/assets/x32/Arrow_down.png"/>
                 <img class="drop-menu pointer" v-if="clicked" @click="clicked = !clicked; " src="@/assets/x32/Arrow_up.png"/>
                 <div class="buttons" v-if="clicked">
@@ -38,7 +38,7 @@
                     </ul>
                 </div>
             </div>
-            <img :id="'FlImage' + id" :src="getImage()" :alt="id" class="FlowerImage"/>
+            <img :id="'FlImage' + id"  loading="lazy" :src="getImage()" :alt="'flower ' + id" class="FlowerImage"/>
             <p><strong>{{ id }}</strong></p>
         </div>
     </div>

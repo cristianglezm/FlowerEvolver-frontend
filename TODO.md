@@ -7,14 +7,14 @@
         + components
             - Flower
                 + [x] add button to convert remote flowers into locals
-                    - [] use fe.drawFlower?
+                    - [x] refactor to use fe.drawFlower
                 + [x] add button to delete local flowers.
                     - [x] add ConfirmModal
                     - [x] fix mutations delete error
                 + [] fix error favourite icon not correctly loading in mutations and ancestors.
                 + [x] add button to redraw flower (make a new flower with params)
                 + [] add button to share flowers with backend - [not sure]
-            - Header
+            - AppHeader
                 + [x] add settings component tab
                 + [x] add route for settings component.
                 + [x] add pagination for tabs
@@ -29,7 +29,7 @@
                 + [x] add pagination mode
             - [x] Local
                 + [x] load demo flowers
-                    - [] refactor load with import worker
+                    - [x] refactor load with import worker
                     - [] remove old demo flowers and add a generation.json to load and sent to importWorker.
                 + [x] add pagination mode
                 + [x] fix infinite scroll not working

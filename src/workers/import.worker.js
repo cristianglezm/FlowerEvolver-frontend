@@ -1,12 +1,14 @@
 import { db } from  '../store/db';
 import fe from '@cristianglezm/flower-evolver-wasm';
 
+let FE;
+
 const addFlowers = async (flowers, toFavs) => {
     if(toFavs){
         let ids = await db.flowers.bulkAdd(flowers, { allKeys: true});
         db.favourites.bulkAdd(ids, ids);
     }else{
-        db.flowers.bulkAdd(flowers);
+        await db.flowers.bulkAdd(flowers);
     }
 };
 const importFlower = async (self, params, json, toFavs) => {
@@ -55,6 +57,7 @@ const importGeneration = async (self, batchSize, params, json, toFavs) => {
         });
         ++progress;
     }
+    // add flowers outside of batch
     if(flowers.length > 0){
         await addFlowers(flowers, toFavs);
     }
@@ -86,11 +89,11 @@ const importSession = async (self, batchSize, params, json, toFavs) => {
             ++progress;
         }
     }
+    // add flowers outside of batch
     if(flowers.length > 0){
         await addFlowers(flowers, toFavs);
     }
 };
-let FE;
 
 self.onmessage = async (e) => {
     self.canvas = new OffscreenCanvas(128, 192);
@@ -100,6 +103,9 @@ self.onmessage = async (e) => {
     let toFavs = e.data.toFavs;
     self.canvas.width = params.radius * 2;
     self.canvas.height = params.radius * 3;
+    if(!db.isOpen()){
+        db.open();
+    }
     if(!FE){
         FE = await fe();
     }
@@ -137,7 +143,10 @@ self.onmessage = async (e) => {
                 progress: 0,
                 total: total
             });
-            importSession(self, batchSize, params, json, toFavs);
+            await importSession(self, batchSize, params, json, toFavs);
         }
     }
+    self.postMessage({
+        type: "done",
+    });
 };

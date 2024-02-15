@@ -16,10 +16,10 @@
 
 <script setup>
 /**
- * progressModal Component
+ * ProgressModal Component
  * Vue component for progress bar.
  * 
- * @component progressModal
+ * @component ProgressModal
  * @prop {String} id - The unique identifier for the modal dialog.
  * @prop {Object} channel - The communication channel to listen for events.
  * @prop {String} on - The event to listen for on the channel (for opening the modal).
@@ -28,7 +28,7 @@
  * @example
  * // Component usage in another component, view, etc.
  * <template>
- *    <progressModal :channel="emitter" :id="'progressBar'" :on="'showProgress'" :update="'updateProgress'" />
+ *    <ProgressModal :channel="emitter" :id="'progressBar'" :on="'showProgress'" :update="'updateProgress'" />
  * </template>
  * 
  * // Some other component opening the modal

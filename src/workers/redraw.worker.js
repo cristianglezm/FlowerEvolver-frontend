@@ -11,6 +11,9 @@ self.onmessage = async (e) => {
     self.canvas = new OffscreenCanvas(128, 192);
     let params = e.data.params;
     let batchSize = e.data.batchSize;
+    if(!db.isOpen()){
+        db.open();
+    }
     if(!FE){
         FE = await fe();
     }
