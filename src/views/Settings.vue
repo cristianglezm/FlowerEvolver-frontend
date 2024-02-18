@@ -107,6 +107,7 @@
                 <button @click="showRedrawFlowers()"> redraw local Flowers </button>
                 <button @click="showExport('favourites')"> Export favourite flowers </button>
                 <button @click="showExport('all')"> Export local Flowers </button>
+                <button @click="showExport('garden')"> Export garden Flowers </button>
                 <button @click="showImport(false)"> Import Flowers </button>
                 <button @click="showImport(true)"> Import Flowers to favourites </button>
             </div>
@@ -136,7 +137,7 @@
  **/
 import { reactive, inject, toRaw, onBeforeUnmount, onMounted } from 'vue';
 import ToolTip from '../components/ToolTip.vue';
-import { useFlowersStore, STORAGE_KEY } from '../store';
+import { useFlowersStore, STORAGE_KEY, STORAGE_KEY_GARDEN } from '../store';
 import ProgressModal from '../components/ProgressModal.vue';
 import UploadFileModal from '../components/UploadFileModal.vue';
 import redrawWorker from '../workers/redraw.worker?worker';
@@ -321,7 +322,7 @@ const showExport = (type) => {
                 dialog.close();
             }
         });
-    }else{
+    }else if(type == "all"){
         emitter.emit('showYesNo', {
             title: 'Export all flowers',
             message: 'Are you sure you want to export all local flowers?',
@@ -338,6 +339,17 @@ const showExport = (type) => {
                         store.errors.push({message: "You have no flowers to export"});
                     }
                 });
+                dialog.close();
+            }
+        });
+    }else if(type == "garden"){
+        emitter.emit('showYesNo', {
+            title: 'Export all garden flowers',
+            message: 'Are you sure you want to export all garden flowers?',
+            btnNo: 'no',
+            btnYes: 'Export all local flowers',
+            onConfirm: (dialog) => {
+                exportFlowers(type);
                 dialog.close();
             }
         });
@@ -389,6 +401,13 @@ const showProgressBar = (title, total, fn) => {
     });
 };
 const exportFlowers = (type) => {
+    if(type == "garden"){
+        const a = document.createElement("a");
+        a.href = 'data:text/json;charset=utf-8,' + sessionStorage.getItem(STORAGE_KEY_GARDEN);
+        a.download = "gardenFlowers.json";
+        a.click();
+        return;
+    }
     workers.exportWorker.onmessage = (e) => {
         let type = e.data.type;
         let ready = e.data.ready;

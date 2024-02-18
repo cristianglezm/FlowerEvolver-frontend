@@ -18,7 +18,7 @@
                 + [x] add settings component tab
                 + [x] add route for settings component.
                 + [x] add pagination for tabs
-                + [] use worker for flower garden?
+                + [x] use worker for flower garden?
                 + [x] split into two components [AppTitle, AppMenu]
         + views
             - [x] Ancestors
