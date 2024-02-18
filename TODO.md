@@ -30,7 +30,7 @@
             - [x] Local
                 + [x] load demo flowers
                     - [x] refactor load with import worker
-                    - [] remove old demo flowers and add a generation.json to load and sent to importWorker.
+                    - [x] remove old demo flowers and add a generation.json to load and sent to importWorker.
                 + [x] add pagination mode
                 + [x] fix infinite scroll not working
             - [x] Favourites
