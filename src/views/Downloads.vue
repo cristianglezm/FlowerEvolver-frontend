@@ -10,7 +10,7 @@
                 <a :href="data.base_url + 'FlowerEvolver-x64-linux.tar'">download x64</a>
             </div>
         </div>
-        <img id="image" :src="data.base_url + 'FlowerEvolverNative.png'"/>
+        <img id="image" loading="lazy" :src="data.base_url + 'FlowerEvolverNative.png'"/>
     </div>
 </template>
 

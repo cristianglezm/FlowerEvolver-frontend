@@ -1,6 +1,7 @@
 <template>
   <div id="app-container">
-    <AppHeader :is-local="isLocal()" />
+    <AppTitle />
+    <AppMenu :is-local="isLocal()" />
     <router-view :key="routes.fullPath" class="view" />
     <AppFooter />
   </div>
@@ -8,7 +9,8 @@
 
 <script setup>
 
-import AppHeader from './components/AppHeader.vue';
+import AppTitle from './components/AppTitle.vue';
+import AppMenu from './components/AppMenu.vue';
 import AppFooter from './components/AppFooter.vue';
 import { useRoute } from 'vue-router';
 
