@@ -5,6 +5,7 @@ import axios from 'axios';
 export const API = import.meta.env.VITE_APP_API_URL;
 export const URL = import.meta.env.VITE_APP_DOWNLOAD_URL;
 export const STORAGE_KEY = 'FlowerEvolverSettings';
+export const STORAGE_KEY_GARDEN = "FlowerEvolverGarden";
 
 import fe from '@cristianglezm/flower-evolver-wasm';
 

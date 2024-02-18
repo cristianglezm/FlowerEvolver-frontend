@@ -3,6 +3,7 @@
         <div v-if="data.showWarning" id="warning" role="warning">
             <span @click="data.showWarning = false">X</span>
             <p>Remote flowers are deleted daily at 00:00 UTC</p>
+            <p>The website only uses essential cookies to store flowers and preferences.</p>
         </div>
         <header id="appTitle">
             <a :href="data.base_url" style="text-decoration: none; position: relative; z-index: 1;"><h1>Flower Evolver</h1></a>
@@ -12,10 +13,13 @@
 </template>
 
 <script setup>
-/// @todo use garden.worker.js? impl
-import { onMounted, reactive } from 'vue';
-import { useFlowersStore } from '../store';
 
+import { onMounted, reactive } from 'vue';
+import { STORAGE_KEY_GARDEN, useFlowersStore } from '../store';
+import gardenWorker from '../workers/garden.worker?worker';
+
+const gardenRadius = 8;
+let worker = gardenWorker();
 let store = useFlowersStore();
 const data = reactive({
     showWarning: true,
@@ -23,35 +27,38 @@ const data = reactive({
     flowerGardenRect: {width:200, height:200},
 });
 
+worker.onmessage = (e) =>{
+    let position = {
+        x: Math.floor(e.data.id * (gardenRadius * 4)),
+        y: data.flowerGardenRect.height - (gardenRadius * 3 + 4)
+    };
+    let ready = e.data.ready;
+    if(ready){
+        // this will be used in settings to export the garden.
+        sessionStorage.setItem(STORAGE_KEY_GARDEN, e.data.garden);
+        worker.terminate();
+    }else{
+        let flowerGarden = document.getElementById("flowerGarden");
+        let ctx = flowerGarden.getContext("2d");
+        ctx.drawImage(e.data.image, position.x, position.y);
+    }
+};
+worker.onerror = (e) => {
+    store.errors.push({message: e});
+};
+
 onMounted(() => {
     data.flowerGardenRect = getRect();
-    setTimeout(() => {
-        let numFlowers = data.flowerGardenRect.width / 32;
-        for(let i=0;i<numFlowers;++i){
-            addFlowerToGarden(i);
-        }
-    }, 200);
+    let numFlowers = data.flowerGardenRect.width / (gardenRadius * 4);
+    worker.postMessage({
+        numFlowers: numFlowers,
+        radius: gardenRadius
+    });
 });
 
 const getRect = () => {
     const element = document.getElementById('appTitle');
     return element.getBoundingClientRect();
-};
-const addFlowerToGarden = (i) => {
-    let flowerGarden = document.getElementById("flowerGarden");
-    let ctx = flowerGarden.getContext("2d");
-    const radius = 8;
-    let x = i * (radius * 4);
-    let y = flowerGarden.height - (radius * 3 + 2);
-    try{
-        let canvas = document.getElementById("canvas");
-        canvas.width = radius*2;
-        canvas.height = radius*3;
-        store.fe.makeFlower(radius, 2, 6.0, 1.0);
-        ctx.drawImage(canvas, x, y);
-    }catch(e){
-        store.errors.push({message: e});
-    }
 };
 
 </script>
