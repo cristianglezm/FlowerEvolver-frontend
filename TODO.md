@@ -73,6 +73,12 @@
 * [x] make pagination component
 * [x] The native app renders flowers with slight differences in appearance
     - runtime differences between wasm and native [gcc, clang]
+* [] refactorize OptionsAPI to CompositionAPI
+    - [x] Flower
+    - [] Ancestors
+    - [] Browse
+    - [] Favourites
+    - [] Mutations
 * [] fix eslint errors and warnings.
 * [] update fe-wasm - validation code, add exception handler?
 * [] update backend server with new version
