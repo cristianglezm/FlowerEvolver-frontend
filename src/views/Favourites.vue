@@ -1,97 +1,80 @@
 <template>
     <div id="favourites">
-        <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="favourites.length" :currentPage="this.page" :totalPages="this.totalPages"
+        <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="favourites.length" :currentPage="data.page" :totalPages="data.totalPages"
                                     @next-page="nextPage" @prev-page="prevPage" @update-page="updateFlowers">
             <FlowersTable :Flowers="favourites" :isLocal="true" :noFlowerMessage="'You don\'t have favourites.'"/>
         </PaginationOrInfiniteScroll>
     </div>
 </template>
 
-<script>
-	import { defineComponent } from 'vue';
-    import { mapActions } from 'pinia';
+<script setup>
+
+    import { onMounted, reactive, computed, nextTick } from 'vue';
     import FlowersTable from '../components/FlowersTable.vue';
     import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
-	import { useFlowersStore } from '../store';
+    import { useFlowersStore } from '../store';
+    import { useRoute, useRouter } from 'vue-router';
 
-    export default defineComponent({
-        name:'Favourites',
-        components:{
-            FlowersTable,
-            PaginationOrInfiniteScroll
-        },
-        created(){
-            this.offset = 0;
-            this.page = parseInt(this.$route.query.page, 10) || 0;
-        },
-        mounted(){
-            this.$store.favourites = [];
-            if(this.isPaginated()){
-                this.getFlowersFrom(this.page);
-                this.getFavouritesCount().then(c => this.totalPages = Math.round(c / this.$store.settings.limit));
-            }else{
-                this.updateFlowers();
-            }
-        },
-        data(){
-            return{
-                offset: 0,
-                page: 0,
-                totalPages: 0,
-            }
-        },
-        computed:{
-            favourites(){
-                return this.$store.favourites;
-            },
-        },
-        methods: {
-            ...mapActions(useFlowersStore, [
-                'increaseOffset',
-                'calcOffset',
-                'getFavouritesCount'
-            ]),
-            prevPage: function(){
-                if(this.page >= 1){
-                    this.page -= 1;
-                    this.$router.push({path:"Favourites", query:{page:this.page}});
-                }
-            },
-            nextPage: function(){
-                if(this.page < this.totalPages){
-                    this.page += 1;
-                    this.$router.push({path:"Favourites", query:{page:this.page}});
-                }
-            },
-            isPaginated: function(){
-                return this.$store.settings.pagination;
-            },
-            isMobile: function(){
-                return window.innerWidth <= 1280;
-            },
-            updateFlowers: function(){
-                this.loadFavourites();
-                this.offset = this.increaseOffset(this.offset);
-            },
-            getFlowersFrom: function(page){
-                this.$store.favourites = [];
-                this.$nextTick(() => {
-                    this.offset = this.calcOffset(page);
-                    this.loadFavourites();
-                });
-            },
-            loadFavourites: async function(){
-                await this.$store.db.favourites.reverse().offset(this.offset)
-                .limit(this.$store.settings.limit).toArray()
-                .then(ids => {
-                    for(const id of ids){
-                        this.$store.db.flowers.get(id)
-                        .then(f => this.favourites.push(f));
-                    }
-                });
-            },
-        },
+    const store = useFlowersStore();
+    const routes = useRoute();
+    const router = useRouter();
+    const data = reactive({
+        offset: 0,
+        page: parseInt(routes.query.page, 10) || 0,
+        totalPages: 0
     });
+    let favourites = computed(() => {
+        return store.favourites;
+    });
+    onMounted(() => {
+        store.favourites = [];
+        if(isPaginated()){
+            getFlowersFrom(data.page);
+            store.getFavouritesCount().then(c => data.totalPages = Math.round(c / store.settings.limit));
+        }else{
+            updateFlowers();
+        }
+    });
+
+    const prevPage = () => {
+        if(data.page >= 1){
+            data.page -= 1;
+            router.push({path:"Favourites", query:{page: data.page}});
+        }
+    };
+    const nextPage = () => {
+        if(data.page < data.totalPages){
+            data.page += 1;
+            router.push({path:"Favourites", query:{page: data.page}});
+        }
+    };
+    const isPaginated = () => {
+        return store.settings.pagination;
+    };
+    const updateFlowers = () => {
+        nextTick(() => {
+            loadFavourites();
+            data.offset = store.increaseOffset(data.offset);
+        });
+    };
+    const getFlowersFrom = (page) => {
+        store.favourites = [];
+        nextTick(() => {
+            data.offset = store.calcOffset(page);
+            loadFavourites();
+        });
+    };
+    const loadFavourites = async () => {
+        await store.db.favourites.reverse().offset(data.offset)
+        .limit(store.settings.limit).toArray()
+        .then(ids => {
+            for(const id of ids){
+                store.db.flowers.get(id)
+                .then(f => store.favourites.push(f));
+            }
+        });
+    };
+    
 </script>
 <style scoped>
     #favourites{
