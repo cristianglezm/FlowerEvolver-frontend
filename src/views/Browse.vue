@@ -1,90 +1,71 @@
 <template>
     <div class="Browse">
-        <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="flowers.length" :currentPage="this.page" :totalPages="this.totalPages"
+        <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="flowers.length" :currentPage="data.page" :totalPages="data.totalPages"
                                     @next-page="nextPage" @prev-page="prevPage" @update-page="nextBatch">
                 <FlowersTable :Flowers="flowers" :isLocal="false" :noFlowerMessage="'There are no Flowers'"/>
         </PaginationOrInfiniteScroll>
     </div>
 </template>
 
-<script>
-	import { defineComponent } from 'vue';
+<script setup>
+
+    import { reactive, computed, nextTick, onMounted } from 'vue';
     import FlowersTable from '../components/FlowersTable.vue';
     import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
-    import { mapActions, mapState } from 'pinia';
-	import { useFlowersStore } from '../store';
-	
-    export default defineComponent({
-        name:'Browse',
-        components:{
-            FlowersTable,
-            PaginationOrInfiniteScroll
-        },
-        created(){
-            this.offset = 0;
-            this.page = parseInt(this.$route.query.page, 10) || 0;
-        },
-        mounted(){
-            if(this.isPaginated()){
-                this.getFlowersFrom(this.page);
-                this.getRemoteFlowersCount().then(c => this.totalPages = Math.round(c / this.$store.settings.limit));
-            }else{
-                this.updateRemoteFlowers({limit:this.$store.settings.limit, offset:this.offset});
-                this.offset = this.increaseOffset(this.offset);
-            }
-        },
-        data(){
-            return {
-                page: 0,
-                totalPages: 0
-            }
-        },
-        computed:{
-            ...mapState(useFlowersStore, {
-                flowers: store => store.getRemoteFlowers()
-            })
-        },
-        methods:{
-            ...mapActions(useFlowersStore, [
-                'updateRemoteFlowers',
-                'updateAndConcatRemoteFlowers',
-                'increaseOffset',
-                'calcOffset',
-                'getRemoteFlowersCount'
-            ]),
-            nextBatch: function(){
-                this.updateFlowers(this.$store.settings.limit, this.offset);
-            },
-            updateFlowers: function(limit, offset){
-                this.updateAndConcatRemoteFlowers({limit:limit, offset:offset});
-                this.offset = this.increaseOffset(offset);
-            },
-            getFlowersFrom: function(page){
-                this.$nextTick(() => {
-                    this.offset = this.calcOffset(page);
-                    this.updateRemoteFlowers({limit:this.$store.settings.limit, offset:this.offset});
-                });
-            },
-            prevPage: function(){
-                if(this.page >= 1){
-                    this.page -= 1;
-                    this.$router.push({path:"Browse", query:{page:this.page}});
-                }
-            },
-            nextPage: function(){
-                if(this.page < this.totalPages){
-                    this.page += 1;
-                    this.$router.push({path:"Browse", query:{page:this.page}});
-                }
-            },
-            isPaginated: function(){
-                return this.$store.settings.pagination;
-            },
-            isMobile: function(){
-                return window.innerWidth <= 1280;
-            },
-        },
+    import { useRoute, useRouter } from 'vue-router';
+    import { useFlowersStore } from '../store';
+
+    const store = useFlowersStore();
+    const routes = useRoute();
+    const router = useRouter();
+    const data = reactive({
+        offset: 0,
+        page: parseInt(routes.query.page, 10) || 0,
+        totalPages: 0
     });
+    onMounted(() => {
+        data.offset = 0;
+        if(isPaginated()){
+            getFlowersFrom(data.page);
+            store.getRemoteFlowersCount().then(c => data.totalPages = Math.round(c / store.settings.limit));
+        }else{
+            store.updateRemoteFlowers({limit: store.settings.limit, offset: data.offset});
+            data.offset = store.increaseOffset(data.offset);
+        }
+    });
+    let flowers = computed(() => {
+        return store.getRemoteFlowers();
+    });
+    const nextBatch = () => {
+        updateFlowers(store.settings.limit, data.offset);
+    };
+    const updateFlowers = (limit, offset) => {
+        nextTick(() => {
+            store.updateAndConcatRemoteFlowers({limit: limit, offset: offset});
+            data.offset = store.increaseOffset(offset);
+        });
+    };
+    const getFlowersFrom = (page) => {
+        nextTick(() => {
+            data.offset = store.calcOffset(page);
+            store.updateRemoteFlowers({limit: store.settings.limit, offset: data.offset});
+        });
+    };
+    const prevPage = () => {
+        if(data.page >= 1){
+            data.page -= 1;
+            router.push({path:"Browse", query:{page: data.page}});
+        }
+    };
+    const nextPage = () => {
+        if(data.page < data.totalPages){
+            data.page += 1;
+            router.push({path:"Browse", query:{page: data.page}});
+        }
+    };
+    const isPaginated = () => {
+        return store.settings.pagination;
+    };
 </script>
 
 <style scoped>
