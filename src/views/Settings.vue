@@ -24,7 +24,7 @@
                     <div id="limit-settings" class="option-box labelInputArea">
                         <ToolTip :info="'limit for how many flowers it will load at a time.'" />
                         <label for="setLimit">Limit per Page: </label>
-                        <input type="number" id="setLimit" min="1" v-model.number="store.settings.limit" @change="saveSettings()"/>
+                        <input type="number" id="setLimit" min="1" v-model.number="store.settings.limit" @change="validateLimit()"/>
                     </div>
                     <div style="color: lightgreen; text-align: center;"> 
                         <ToolTip :info="'Space used by the flowers (usage / quota) if persistent storage is enabled it will use a bit more space.'" />
@@ -212,11 +212,29 @@ const clamp = (val, min, max) => {
 const saveSettings = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(store.settings));
 };
+const validateLimit = () => {
+    store.settings.limit = validateInteger(store.settings.limit, 100);
+    saveSettings();
+};
 const validateParams = () => {
     params.radius = clamp(params.radius, 4, 256);
     params.numLayers = Math.max(1, params.numLayers);
+    params.P = validateFloat(params.P, 6.0);
+    params.bias = validateFloat(params.bias, 1.0);
     store.settings.params = params;
     saveSettings();
+};
+const validateInteger = (number, Default) => {
+    if(Number.isNaN(parseInt(number))){
+        return Default;
+    }
+    return number;
+};
+const validateFloat= (number, Default) => {
+    if(Number.isNaN(parseFloat(number))){
+        return Default;
+    }
+    return number;
 };
 const validateMutationRates = () => {
     mutationRates.actTypeRate = clamp(mutationRates.actTypeRate, 0.0, 1.0);
