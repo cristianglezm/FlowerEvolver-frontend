@@ -1,14 +1,16 @@
 <template>
-    <div class="Mutations">
-        <div class="mutFlower">
-            <Flower :id="data.original.id" :genome="data.original.genome" :image="data.original.image" :isLocal="data.isLocal"/>
-        </div>
-        <div class="header"><p><strong>Mutations of {{data.original.id}}</strong></p></div>
-        <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="mutations.length" :currentPage="data.page" :totalPages="data.totalPages"
-                                    @next-page="nextPage" @prev-page="prevPage" @update-page="updateMutations">
-            <FlowersTable :Flowers="mutations" :isLocal="data.isLocal" :noFlowerMessage="'This Flower Has no Mutations.'"/>
-        </PaginationOrInfiniteScroll>
+  <div class="Mutations">
+    <div class="mutFlower">
+      <Flower :id="data.original.id" :genome="data.original.genome" :image="data.original.image" :isLocal="data.isLocal" />
     </div>
+    <div class="header"><p><strong>Mutations of {{ data.original.id }}</strong></p></div>
+    <PaginationOrInfiniteScroll
+      :pagination="isPaginated()" :itemsLength="mutations.length" :currentPage="data.page" :totalPages="data.totalPages"
+      @next-page="nextPage" @prev-page="prevPage" @update-page="updateMutations"
+    >
+      <FlowersTable :Flowers="mutations" :isLocal="data.isLocal" :noFlowerMessage="'This Flower Has no Mutations.'" />
+    </PaginationOrInfiniteScroll>
+  </div>
 </template>
 
 <script setup>
@@ -40,15 +42,15 @@
     const Init = async () => {
         let originalID = parseInt(routes.params.id);
         if(data.isLocal){
-            data.original = await store.db.flowers.get(originalID); //.then(f => data.original = f);
+            data.original = await store.db.flowers.get(originalID);
         }else{
             data.original = { id: originalID, genome: originalID + '.json', image: originalID + '.png'};
         }
         if(isPaginated()){
             if(data.isLocal){
-                store.getLocalMutationsCount(data.original.id).then(c => data.totalPages = Math.round(c / store.settings.limit));;
+                store.getLocalMutationsCount(data.original.id).then(c => data.totalPages = Math.round(c / store.settings.limit));
             }else{
-                store.getRemoteMutationsCount(data.original.id).then(c => data.totalPages = Math.round(c / store.settings.limit));;
+                store.getRemoteMutationsCount(data.original.id).then(c => data.totalPages = Math.round(c / store.settings.limit));
             }
             getMutationsFrom(data.page);
         }else{

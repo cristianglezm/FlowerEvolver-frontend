@@ -1,10 +1,12 @@
 <template>
-    <div class="Browse">
-        <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="flowers.length" :currentPage="data.page" :totalPages="data.totalPages"
-                                    @next-page="nextPage" @prev-page="prevPage" @update-page="nextBatch">
-                <FlowersTable :Flowers="flowers" :isLocal="false" :noFlowerMessage="'There are no Flowers'"/>
-        </PaginationOrInfiniteScroll>
-    </div>
+  <div class="Browse">
+    <PaginationOrInfiniteScroll
+      :pagination="isPaginated()" :itemsLength="flowers.length" :currentPage="data.page" :totalPages="data.totalPages"
+      @next-page="nextPage" @prev-page="prevPage" @update-page="nextBatch"
+    >
+      <FlowersTable :Flowers="flowers" :isLocal="false" :noFlowerMessage="'There are no Flowers'" />
+    </PaginationOrInfiniteScroll>
+  </div>
 </template>
 
 <script setup>

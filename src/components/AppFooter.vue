@@ -1,12 +1,12 @@
 <template>
-    <footer class="Footer">
-        <p>
-            <strong>Copyright&COPY; 2020-{{ data.currentYear }} FlowerEvolver</strong>
-        </p>
-        <a href="https://github.com/cristianglezm/FlowerEvolver-frontend">
-            <img alt="find-on-github" :src="data.base_url + 'find-on-github.png'">
-        </a>
-    </footer>
+  <footer class="Footer">
+    <p>
+      <strong>Copyright&COPY; 2020-{{ data.currentYear }} FlowerEvolver</strong>
+    </p>
+    <a href="https://github.com/cristianglezm/FlowerEvolver-frontend">
+      <img alt="find-on-github" :src="data.base_url + 'find-on-github.png'">
+    </a>
+  </footer>
 </template>
 
 <script setup>

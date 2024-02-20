@@ -1,78 +1,78 @@
 <template>
-    <div class="appMenu">
-        <div v-if="isMobile()" style="margin: 0.6rem 0rem 0rem 0rem;">
-            <img @click="data.showMenu = !data.showMenu" src="@/assets/x32/menu.png" alt="menuIcon" class="pointer"/>
-            <div v-if="data.showMenu" class="mobileMenu">
-                <nav v-if="isPaginated()" class="tabs" @click="data.showMenu = !data.showMenu" alt="tabs">
-                        <router-link to="/Local?page=0"> Local </router-link>
-                        <router-link to="/LastAdded"> Last Added </router-link>
-                        <router-link to="/Browse?page=0"> Browse </router-link>
-                        <router-link to="/Favourites?page=0"> Favourites </router-link>
-                        <router-link to="/Downloads"> Downloads </router-link>
-                        <router-link to="/Settings"> Settings </router-link>
-                </nav>
-                <nav v-else class="tabs" @click="data.showMenu = !data.showMenu" alt="tabs">
-                        <router-link to="/Local"> Local </router-link>
-                        <router-link to="/LastAdded"> Last Added </router-link>
-                        <router-link to="/Browse"> Browse </router-link>
-                        <router-link to="/Favourites"> Favourites </router-link>
-                        <router-link to="/Downloads"> Downloads </router-link>
-                        <router-link to="/Settings"> Settings </router-link>
-                </nav>
-                <nav class="actions" alt="actions">
-                    <div v-if="props.isLocal || data.blocked" style="display: flex; flex-flow: column wrap;z-index: 1;left: 0rem;position: absolute;">
-                        <button @click="store.makeLocalFlower(); data.showMenu = !data.showMenu"> New Local Flower</button>
-                        <button @click="store.localReproduce(); data.showMenu = !data.showMenu"> Local Reproduce Selected</button>
-                        <button @click="showAncestors(); data.showMenu = !data.showMenu"> Show Local Selected Descendants</button>
-                    </div>
-                    <div v-else style="display: flex; flex-flow: column wrap;z-index: 1;left: 0rem;position: absolute;">
-                        <button @click="block(store.makeRemoteFlower); data.showMenu = !data.showMenu"> New Remote Flower</button>
-                        <button @click="block(store.remoteReproduce); data.showMenu = !data.showMenu"> Remote Reproduce Selected</button>
-                        <button @click="block(showAncestors); data.showMenu = !data.showMenu"> Show Remote Selected Descendants</button>
-                    </div>
-                </nav>
-            </div>
-        </div>
-        <div v-else :class="{ edgeOrChromeInlined: isEdgeOrChrome() }">
-            <nav :class="{ edgeOrChromeTabs: isEdgeOrChrome(), 'tabs': true }" alt="tabs">
-                <ul v-if="isPaginated()">
-                    <router-link to="/Local?page=0"> Local </router-link>
-                    <router-link to="/LastAdded"> Last Added </router-link>
-                    <router-link to="/Browse?page=0"> Browse </router-link>
-                    <router-link to="/Favourites?page=0"> Favourites </router-link>
-                    <router-link to="/Downloads"> Downloads </router-link>
-                    <router-link to="/Settings"> Settings </router-link>
-                </ul>
-                <ul v-else>
-                    <router-link to="/Local"> Local </router-link>
-                    <router-link to="/LastAdded"> Last Added </router-link>
-                    <router-link to="/Browse"> Browse </router-link>
-                    <router-link to="/Favourites"> Favourites </router-link>
-                    <router-link to="/Downloads"> Downloads </router-link>
-                    <router-link to="/Settings"> Settings </router-link>
-                </ul>
-            </nav>
-            <div class="actions" alt="actions">
-                <ul v-if="props.isLocal">
-                    <button @click="store.makeLocalFlower()"> New Local Flower</button>
-                    <button @click="store.localReproduce()"> Local Reproduce Selected</button>
-                    <button @click="showAncestors()"> Show Local Selected Descendants</button>
-                </ul>
-                <ul v-else-if="data.blocked">
-                    <button class="disabled"> New Remote Flower</button>
-                    <button class="disabled"> Remote Reproduce Selected</button>
-                    <button class="disabled"> Show Remote Selected Descendants</button>                
-                </ul>
-                <ul v-else>
-                    <button @click="block(store.makeRemoteFlower)"> New Remote Flower</button>
-                    <button @click="block(store.remoteReproduce)"> Remote Reproduce Selected</button>
-                    <button @click="block(showAncestors)"> Show Remote Selected Descendants</button>
-                </ul>
-            </div>
-        </div>
-        <ErrorModal :errors="store.errors" />
-        <ConfirmModal :channel="emitter" :id="'globalConfirm'" :on="'showYesNo'" />
+  <div class="appMenu">
+    <div v-if="isMobile()" style="margin: 0.6rem 0rem 0rem 0rem;">
+      <img class="pointer" alt="menuIcon" src="@/assets/x32/menu.png" @click="data.showMenu = !data.showMenu">
+      <div v-if="data.showMenu" class="mobileMenu">
+        <nav v-if="isPaginated()" class="tabs" alt="tabs" @click="data.showMenu = !data.showMenu">
+          <router-link to="/Local?page=0"> Local </router-link>
+          <router-link to="/LastAdded"> Last Added </router-link>
+          <router-link to="/Browse?page=0"> Browse </router-link>
+          <router-link to="/Favourites?page=0"> Favourites </router-link>
+          <router-link to="/Downloads"> Downloads </router-link>
+          <router-link to="/Settings"> Settings </router-link>
+        </nav>
+        <nav v-else class="tabs" alt="tabs" @click="data.showMenu = !data.showMenu">
+          <router-link to="/Local"> Local </router-link>
+          <router-link to="/LastAdded"> Last Added </router-link>
+          <router-link to="/Browse"> Browse </router-link>
+          <router-link to="/Favourites"> Favourites </router-link>
+          <router-link to="/Downloads"> Downloads </router-link>
+          <router-link to="/Settings"> Settings </router-link>
+        </nav>
+        <nav class="actions" alt="actions">
+          <div v-if="props.isLocal || data.blocked" style="display: flex; flex-flow: column wrap;z-index: 1;left: 0rem;position: absolute;">
+            <button @click="store.makeLocalFlower(); data.showMenu = !data.showMenu"> New Local Flower</button>
+            <button @click="store.localReproduce(); data.showMenu = !data.showMenu"> Local Reproduce Selected</button>
+            <button @click="showAncestors(); data.showMenu = !data.showMenu"> Show Local Selected Descendants</button>
+          </div>
+          <div v-else style="display: flex; flex-flow: column wrap;z-index: 1;left: 0rem;position: absolute;">
+            <button @click="block(store.makeRemoteFlower); data.showMenu = !data.showMenu"> New Remote Flower</button>
+            <button @click="block(store.remoteReproduce); data.showMenu = !data.showMenu"> Remote Reproduce Selected</button>
+            <button @click="block(showAncestors); data.showMenu = !data.showMenu"> Show Remote Selected Descendants</button>
+          </div>
+        </nav>
+      </div>
     </div>
+    <div v-else :class="{ edgeOrChromeInlined: isEdgeOrChrome() }">
+      <nav :class="{ edgeOrChromeTabs: isEdgeOrChrome(), 'tabs': true }" alt="tabs">
+        <ul v-if="isPaginated()">
+          <router-link to="/Local?page=0"> Local </router-link>
+          <router-link to="/LastAdded"> Last Added </router-link>
+          <router-link to="/Browse?page=0"> Browse </router-link>
+          <router-link to="/Favourites?page=0"> Favourites </router-link>
+          <router-link to="/Downloads"> Downloads </router-link>
+          <router-link to="/Settings"> Settings </router-link>
+        </ul>
+        <ul v-else>
+          <router-link to="/Local"> Local </router-link>
+          <router-link to="/LastAdded"> Last Added </router-link>
+          <router-link to="/Browse"> Browse </router-link>
+          <router-link to="/Favourites"> Favourites </router-link>
+          <router-link to="/Downloads"> Downloads </router-link>
+          <router-link to="/Settings"> Settings </router-link>
+        </ul>
+      </nav>
+      <div class="actions" alt="actions">
+        <ul v-if="props.isLocal">
+          <button @click="store.makeLocalFlower()"> New Local Flower</button>
+          <button @click="store.localReproduce()"> Local Reproduce Selected</button>
+          <button @click="showAncestors()"> Show Local Selected Descendants</button>
+        </ul>
+        <ul v-else-if="data.blocked">
+          <button class="disabled"> New Remote Flower</button>
+          <button class="disabled"> Remote Reproduce Selected</button>
+          <button class="disabled"> Show Remote Selected Descendants</button>                
+        </ul>
+        <ul v-else>
+          <button @click="block(store.makeRemoteFlower)"> New Remote Flower</button>
+          <button @click="block(store.remoteReproduce)"> Remote Reproduce Selected</button>
+          <button @click="block(showAncestors)"> Show Remote Selected Descendants</button>
+        </ul>
+      </div>
+    </div>
+    <ErrorModal :errors="store.errors" />
+    <ConfirmModal :id="'globalConfirm'" :channel="emitter" :on="'showYesNo'" />
+  </div>
 </template>
 
 <script setup>

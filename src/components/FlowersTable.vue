@@ -1,12 +1,12 @@
 <template>
-    <div class="grid" v-if="props.Flowers && props.Flowers.length">
-        <div v-for="flower in props.Flowers"  :key="flower.id">
-            <Flower :id="flower.id" :genome="flower.genome" :image="flower.image" :isLocal="props.isLocal"/>
-        </div>
+  <div v-if="props.Flowers && props.Flowers.length" class="grid">
+    <div v-for="flower in props.Flowers" :key="flower.id">
+      <Flower :id="flower.id" :genome="flower.genome" :image="flower.image" :isLocal="props.isLocal" />
     </div>
-    <div class="error" v-else>
-        <p>{{ props.noFlowerMessage }}</p>
-    </div>
+  </div>
+  <div v-else class="error">
+    <p>{{ props.noFlowerMessage }}</p>
+  </div>
 </template>
 
 <script setup>

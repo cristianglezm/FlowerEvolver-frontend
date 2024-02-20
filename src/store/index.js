@@ -213,7 +213,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			.then(response => {
 				this.remoteFlowers.unshift(response.data);
 				this.lastAdded.unshift(response.data);
-			}).catch(e => {
+			}).catch(_e => {
 				this.errors.push({message: "cannot make a remote flower, server offline."});
 			});
 		},
@@ -222,7 +222,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 				const response = await axios.get(API + 'flowers?limit=' + limit + '&offset=' + offset)
 				this.remoteFlowers = response.data.flowers;
 			}catch(e){
-				//this.errors.push({message:e});
+				//this.errors.push({message: e});
 			}
 		},
 		async updateLocalFlowers({limit, offset}){
@@ -456,7 +456,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					this.lastAdded.unshift(response.data);
 					this.ancestors.unshift(response.data);
 				})
-				.catch(e => {
+				.catch(_e => {
 					this.errors.push({message:"cannot reproduce remote flowers, server offline."});
 				});
 			}else{
@@ -506,7 +506,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 				this.lastAdded.unshift(response.data);
 				this.mutations.unshift(response.data);
 			})
-			.catch(e => {
+			.catch(_e => {
 				this.errors.push({message:"cannot mutate a remote flower, server offline."});
 			});
 		},

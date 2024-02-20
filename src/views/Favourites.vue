@@ -1,10 +1,12 @@
 <template>
-    <div id="favourites">
-        <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="favourites.length" :currentPage="data.page" :totalPages="data.totalPages"
-                                    @next-page="nextPage" @prev-page="prevPage" @update-page="updateFlowers">
-            <FlowersTable :Flowers="favourites" :isLocal="true" :noFlowerMessage="'You don\'t have favourites.'"/>
-        </PaginationOrInfiniteScroll>
-    </div>
+  <div id="favourites">
+    <PaginationOrInfiniteScroll
+      :pagination="isPaginated()" :itemsLength="favourites.length" :currentPage="data.page" :totalPages="data.totalPages"
+      @next-page="nextPage" @prev-page="prevPage" @update-page="updateFlowers"
+    >
+      <FlowersTable :Flowers="favourites" :isLocal="true" :noFlowerMessage="'You don\'t have favourites.'" />
+    </PaginationOrInfiniteScroll>
+  </div>
 </template>
 
 <script setup>

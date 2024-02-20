@@ -1,12 +1,12 @@
 <template>
-    <div v-if="props.pagination" :class="{container: props.itemsLength}">
-        <div class="arrow" :class="{disabled: atStart()}" v-if="props.itemsLength"><button @click="prevPage()" :disabled="atStart()">&lt;</button></div>
-        <slot></slot>
-        <div class="arrow" :class="{disabled: atEnd()}" v-if="props.itemsLength"><button @click="nextPage()" :disabled="atEnd()">&gt;</button></div>
-    </div>
-    <div v-else>
-        <slot></slot>
-    </div>
+  <div v-if="props.pagination" :class="{container: props.itemsLength}">
+    <div v-if="props.itemsLength" class="arrow" :class="{disabled: atStart()}"><button :disabled="atStart()" @click="prevPage()">&lt;</button></div>
+    <slot />
+    <div v-if="props.itemsLength" class="arrow" :class="{disabled: atEnd()}"><button :disabled="atEnd()" @click="nextPage()">&gt;</button></div>
+  </div>
+  <div v-else>
+    <slot />
+  </div>
 </template>
 
 <script setup>

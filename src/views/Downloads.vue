@@ -1,17 +1,17 @@
 <template>
-    <div class="Downloads">
-        <div class="blocks">
-            <div id="windows">
-                Windows
-                <a :href="data.base_url + 'FlowerEvolver_win64.zip'">download x64</a>
-            </div>
-            <div id="linux">
-                Linux
-                <a :href="data.base_url + 'FlowerEvolver-x64-linux.tar'">download x64</a>
-            </div>
-        </div>
-        <img id="image" loading="lazy" :src="data.base_url + 'FlowerEvolverNative.png'"/>
+  <div class="Downloads">
+    <div class="blocks">
+      <div id="windows">
+        Windows
+        <a :href="data.base_url + 'FlowerEvolver_win64.zip'">download x64</a>
+      </div>
+      <div id="linux">
+        Linux
+        <a :href="data.base_url + 'FlowerEvolver-x64-linux.tar'">download x64</a>
+      </div>
     </div>
+    <img id="image" loading="lazy" :src="data.base_url + 'FlowerEvolverNative.png'">
+  </div>
 </template>
 
 <script setup>

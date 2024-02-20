@@ -1,18 +1,18 @@
 <template>
-    <div v-if="props.errors.length" class="ErrorModal center">
-        <span @click="clearErrors()" class="close">&times;</span>
-        <div v-for="(error, id) in props.errors" :key="id">
-            <div class="ErrorModal-content" v-if="id === (props.errors.length - 1)">
-                <p>
-                    {{error.message}}
-                    <span style="border-radius: 128px; background-color: red; padding: 2px;">
-                        {{ props.errors.length }}
-                    </span>
-                </p>
-                <button @click="popError()">Ok.</button>
-            </div>
-        </div>
+  <div v-if="props.errors.length" class="ErrorModal center">
+    <span class="close" @click="clearErrors()">&times;</span>
+    <div v-for="(error, id) in props.errors" :key="id">
+      <div v-if="id === (props.errors.length - 1)" class="ErrorModal-content">
+        <p>
+          {{ error.message }}
+          <span style="border-radius: 128px; background-color: red; padding: 2px;">
+            {{ props.errors.length }}
+          </span>
+        </p>
+        <button @click="popError()">Ok.</button>
+      </div>
     </div>
+  </div>
 </template>
 
 <script setup>

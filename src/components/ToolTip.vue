@@ -1,10 +1,10 @@
 <template>
-    <div class="tipInfo" @mouseenter="toggleInfo()" @mouseleave="toggleInfo()" @click="toggleInfo()">
-        i
-    </div>
-    <div v-if="showing" class="infoBox" @mouseenter="toggleInfo()" @mouseleave="toggleInfo()">
-        <p>{{ props.info }}</p>
-    </div>
+  <div class="tipInfo" @mouseenter="toggleInfo()" @mouseleave="toggleInfo()" @click="toggleInfo()">
+    i
+  </div>
+  <div v-if="showing" class="infoBox" @mouseenter="toggleInfo()" @mouseleave="toggleInfo()">
+    <p>{{ props.info }}</p>
+  </div>
 </template>
 
 <script setup>

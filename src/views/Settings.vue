@@ -1,123 +1,137 @@
 <template>
-    <div style="background-color: rgb(37, 39, 41); padding: 0.6rem;">
-        <div id="settings-container">
-            <ProgressModal :id="'progressBar'" :channel="emitter" :on="'showProgress'" :update="'updateProgress'" />
-            <UploadFileModal :id="'importModal'" :channel="emitter" :on="'showImport'" />
-            <div id="settings-options" class="settings-box">
-                <h2>Options</h2>
-                <div id="pagination-option" class="option-box labelInputArea">
-                    <ToolTip :info="'if checked pagination will be used, infinite Scroll otherwise.'" />
-                    <label for="pagination">Pagination: </label>
-                    <input type="checkbox" id="pagination" v-model="store.settings.pagination" @change="saveSettings()"/>
-                </div>
-                <div id="loadDemoFlowers-option" class="option-box labelInputArea">
-                    <ToolTip :info="'if checked the demo flowers will load in Local.'" />
-                    <label for="loadDemoFlowers">Load Demo Flowers: </label>
-                    <input type="checkbox" id="loadDemoFlowers" v-model="store.settings.loadDemoFlowers" @change="saveSettings()"/>
-                </div>
-                <div id="persists-option" class="option-box labelInputArea">
-                    <ToolTip :info="'it will keep data even when low on space'" />
-                    <label for="persist">Persistent storage: </label>
-                    <input type="checkbox" id="persist" v-model="data.persisted" @change="persist()"/>
-                </div>
-                <div>
-                    <div id="limit-settings" class="option-box labelInputArea">
-                        <ToolTip :info="'limit for how many flowers it will load at a time.'" />
-                        <label for="setLimit">Limit per Page: </label>
-                        <input type="number" id="setLimit" min="1" v-model.number="store.settings.limit" @change="validateLimit()"/>
-                    </div>
-                    <div style="color: lightgreen; text-align: center;"> 
-                        <ToolTip :info="'Space used by the flowers (usage / quota) if persistent storage is enabled it will use a bit more space.'" />
-                        {{ data.spaceUsage.toFixed(2) }} / {{ data.spaceQuota.toFixed(2) }} MB
-                    </div>
-                </div>
-            </div>
-            <div id="params-settings" class="settings-box">
-                <h2>Creation parameters</h2>
-                <div class="labelInputArea">
-                    <ToolTip :info="'radius of the flower, min: 4 and max: 256, for bigger radius use the native app.'" />
-                    <label for="params-radius">Radius: </label>
-                    <input type="number" id="params-radius" min="4" max="256" v-model.number="params.radius" @change="validateParams()"/>
-                </div>
-                <div class="labelInputArea">
-                    <ToolTip :info="'A layer is defined by radius / 2.0, the drawing algorithm will do another pass at half radius for each layer.'" />
-                    <label for="params-num-layers">Number of Layers: </label>
-                    <input type="number" id="params-num-layers" min="1" v-model.number="params.numLayers" @change="validateParams()"/>
-                </div>
-                <div class="labelInputArea">
-                    <ToolTip :info="'It controls how many petals the flower will have.'" />
-                    <label for="params-p">P: </label>
-                    <input type="number" id="params-p" v-model.number="params.P" @change="validateParams()"/>
-                </div>
-                <div class="labelInputArea">
-                    <ToolTip :info="'bias for the flower'" />
-                    <label for="params-bias">Bias: </label>
-                    <input type="number" id="params-bias" v-model.number="params.bias" @change="validateParams()"/>
-                </div>
-            </div>
-            <div id="mutationRates-settings" class="settings-box">
-                <h2>Mutation Rates</h2>
-                <div class="labelInputArea">
-                    <ToolTip :info="'the rate for adding nodes into the Genome of the Flower.'" />
-                    <label for="mutation-addNodeRate">Add Node Rate: </label>
-                    <input type="number" id="mutation-addNodeRate" min="0.0" max="1.0" 
-                        v-model.number="mutationRates.addNodeRate" @change="validateMutationRates()" />
-                </div>
-                <div class="labelInputArea">
-                    <ToolTip :info="'The rate for adding connections into the Genome of the flower.'" />
-                    <label for="mutation-addConnRate">Add Connection Rate: </label>
-                    <input type="number" id="mutation-addConnRate" min="0.0" max="1.0" 
-                        v-model.number="mutationRates.addConnRate" @change="validateMutationRates()" />
-                </div>
-                <div class="labelInputArea">
-                    <ToolTip :info="'The rate for removing connections from the Genome of the flower.'" />
-                    <label for="mutation-removeConnRate">Remove Connection Rate: </label>
-                    <input type="number" id="mutation-removeConnRate" min="0.0" max="1.0" 
-                        v-model.number="mutationRates.removeConnRate" @change="validateMutationRates()" />
-                </div>
-                <div class="labelInputArea">
-                    <ToolTip :info="'The rate to perturb the weights of connections'" />
-                    <label for="mutation-perturbWeightsRate">Perturb Weights Rate: </label>
-                    <input type="number" id="mutation-perturbWeightsRate" min="0.0" max="1.0" 
-                        v-model.number="mutationRates.perturbWeightsRate" @change="validateMutationRates()" />
-                </div>
-                <div class="labelInputArea">
-                    <ToolTip :info="'The rate to enable connections'" />
-                    <label for="mutation-enableRate">Enable Rate: </label>
-                    <input type="number" id="mutation-enableRate" min="0.0" max="1.0" 
-                        v-model.number="mutationRates.enableRate" @change="validateMutationRates()" />
-                </div>
-                <div class="labelInputArea">
-                    <ToolTip :info="'The rate to disable connections'" />
-                    <label for="mutation-disableRate">Disable Rate: </label>
-                    <input type="number" id="mutation-disableRate" min="0.0" max="1.0" 
-                        v-model.number="mutationRates.disableRate" @change="validateMutationRates()" />
-                </div>
-                <div class="labelInputArea">
-                    <ToolTip :info="'The rate to change the activation type in a random node'" />
-                    <label for="mutation-actTypeRate">Activation Type Rate: </label>
-                    <input type="number" id="mutation-actTypeRate" min="0.0" max="1.0" 
-                        v-model.number="mutationRates.actTypeRate" @change="validateMutationRates()" />
-                </div>
-            </div>
+  <div style="background-color: rgb(37, 39, 41); padding: 0.6rem;">
+    <div id="settings-container">
+      <ProgressModal :id="'progressBar'" :channel="emitter" :on="'showProgress'" :update="'updateProgress'" />
+      <UploadFileModal :id="'importModal'" :channel="emitter" :on="'showImport'" />
+      <div id="settings-options" class="settings-box">
+        <h2>Options</h2>
+        <div id="pagination-option" class="option-box labelInputArea">
+          <ToolTip :info="'if checked pagination will be used, infinite Scroll otherwise.'" />
+          <label for="pagination">Pagination: </label>
+          <input id="pagination" v-model="store.settings.pagination" type="checkbox" @change="saveSettings()">
         </div>
-        <div id="actions-settings">
-            <div id="actions-safe">
-                <h2 style="color:lightgreen;">Actions</h2>
-                <button @click="showRedrawFlowers()"> redraw local Flowers </button>
-                <button @click="showExport('favourites')"> Export favourite flowers </button>
-                <button @click="showExport('all')"> Export local Flowers </button>
-                <button @click="showExport('garden')"> Export garden Flowers </button>
-                <button @click="showImport(false)"> Import Flowers </button>
-                <button @click="showImport(true)"> Import Flowers to favourites </button>
-            </div>
-            <div id="actions-danger">
-                <h2 style="color:red;">Danger Zone</h2>
-                <button @click="deleteAllFlowers()"> Delete All Flowers </button>
-                <button @click="deleteNonFavourites()"> Delete non Favourites </button>
-            </div>
+        <div id="loadDemoFlowers-option" class="option-box labelInputArea">
+          <ToolTip :info="'if checked the demo flowers will load in Local.'" />
+          <label for="loadDemoFlowers">Load Demo Flowers: </label>
+          <input id="loadDemoFlowers" v-model="store.settings.loadDemoFlowers" type="checkbox" @change="saveSettings()">
         </div>
+        <div id="persists-option" class="option-box labelInputArea">
+          <ToolTip :info="'it will keep data even when low on space'" />
+          <label for="persist">Persistent storage: </label>
+          <input id="persist" v-model="data.persisted" type="checkbox" @change="persist()">
+        </div>
+        <div>
+          <div id="limit-settings" class="option-box labelInputArea">
+            <ToolTip :info="'limit for how many flowers it will load at a time.'" />
+            <label for="setLimit">Limit per Page: </label>
+            <input id="setLimit" v-model.number="store.settings.limit" type="number" min="1" @change="validateLimit()">
+          </div>
+          <div style="color: lightgreen; text-align: center;"> 
+            <ToolTip :info="'Space used by the flowers (usage / quota) if persistent storage is enabled it will use a bit more space.'" />
+            {{ data.spaceUsage.toFixed(2) }} / {{ data.spaceQuota.toFixed(2) }} MB
+          </div>
+        </div>
+      </div>
+      <div id="params-settings" class="settings-box">
+        <h2>Creation parameters</h2>
+        <div class="labelInputArea">
+          <ToolTip :info="'radius of the flower, min: 4 and max: 256, for bigger radius use the native app.'" />
+          <label for="params-radius">Radius: </label>
+          <input id="params-radius" v-model.number="params.radius" type="number" min="4" max="256" @change="validateParams()">
+        </div>
+        <div class="labelInputArea">
+          <ToolTip :info="'A layer is defined by radius / 2.0, the drawing algorithm will do another pass at half radius for each layer.'" />
+          <label for="params-num-layers">Number of Layers: </label>
+          <input id="params-num-layers" v-model.number="params.numLayers" type="number" min="1" @change="validateParams()">
+        </div>
+        <div class="labelInputArea">
+          <ToolTip :info="'It controls how many petals the flower will have.'" />
+          <label for="params-p">P: </label>
+          <input id="params-p" v-model.number="params.P" type="number" @change="validateParams()">
+        </div>
+        <div class="labelInputArea">
+          <ToolTip :info="'bias for the flower'" />
+          <label for="params-bias">Bias: </label>
+          <input id="params-bias" v-model.number="params.bias" type="number" @change="validateParams()">
+        </div>
+      </div>
+      <div id="mutationRates-settings" class="settings-box">
+        <h2>Mutation Rates</h2>
+        <div class="labelInputArea">
+          <ToolTip :info="'the rate for adding nodes into the Genome of the Flower.'" />
+          <label for="mutation-addNodeRate">Add Node Rate: </label>
+          <input
+            id="mutation-addNodeRate" v-model.number="mutationRates.addNodeRate" type="number" min="0.0" 
+            max="1.0" @change="validateMutationRates()"
+          >
+        </div>
+        <div class="labelInputArea">
+          <ToolTip :info="'The rate for adding connections into the Genome of the flower.'" />
+          <label for="mutation-addConnRate">Add Connection Rate: </label>
+          <input
+            id="mutation-addConnRate" v-model.number="mutationRates.addConnRate" type="number" min="0.0" 
+            max="1.0" @change="validateMutationRates()"
+          >
+        </div>
+        <div class="labelInputArea">
+          <ToolTip :info="'The rate for removing connections from the Genome of the flower.'" />
+          <label for="mutation-removeConnRate">Remove Connection Rate: </label>
+          <input
+            id="mutation-removeConnRate" v-model.number="mutationRates.removeConnRate" type="number" min="0.0" 
+            max="1.0" @change="validateMutationRates()"
+          >
+        </div>
+        <div class="labelInputArea">
+          <ToolTip :info="'The rate to perturb the weights of connections'" />
+          <label for="mutation-perturbWeightsRate">Perturb Weights Rate: </label>
+          <input
+            id="mutation-perturbWeightsRate" v-model.number="mutationRates.perturbWeightsRate" type="number" min="0.0" 
+            max="1.0" @change="validateMutationRates()"
+          >
+        </div>
+        <div class="labelInputArea">
+          <ToolTip :info="'The rate to enable connections'" />
+          <label for="mutation-enableRate">Enable Rate: </label>
+          <input
+            id="mutation-enableRate" v-model.number="mutationRates.enableRate" type="number" min="0.0" 
+            max="1.0" @change="validateMutationRates()"
+          >
+        </div>
+        <div class="labelInputArea">
+          <ToolTip :info="'The rate to disable connections'" />
+          <label for="mutation-disableRate">Disable Rate: </label>
+          <input
+            id="mutation-disableRate" v-model.number="mutationRates.disableRate" type="number" min="0.0" 
+            max="1.0" @change="validateMutationRates()"
+          >
+        </div>
+        <div class="labelInputArea">
+          <ToolTip :info="'The rate to change the activation type in a random node'" />
+          <label for="mutation-actTypeRate">Activation Type Rate: </label>
+          <input
+            id="mutation-actTypeRate" v-model.number="mutationRates.actTypeRate" type="number" min="0.0" 
+            max="1.0" @change="validateMutationRates()"
+          >
+        </div>
+      </div>
     </div>
+    <div id="actions-settings">
+      <div id="actions-safe">
+        <h2 style="color:lightgreen;">Actions</h2>
+        <button @click="showRedrawFlowers()"> redraw local Flowers </button>
+        <button @click="showExport('favourites')"> Export favourite flowers </button>
+        <button @click="showExport('all')"> Export local Flowers </button>
+        <button @click="showExport('garden')"> Export garden Flowers </button>
+        <button @click="showImport(false)"> Import Flowers </button>
+        <button @click="showImport(true)"> Import Flowers to favourites </button>
+      </div>
+      <div id="actions-danger">
+        <h2 style="color:red;">Danger Zone</h2>
+        <button @click="deleteAllFlowers()"> Delete All Flowers </button>
+        <button @click="deleteNonFavourites()"> Delete non Favourites </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -293,7 +307,7 @@ const redrawLocalFlowers = async () => {
             progress: e.data.progress,
         });
     };
-    workers.redrawWorker.onerror = (e) => {
+    workers.redrawWorker.onerror = (_e) => {
         store.errors.push({message: "redraw Web Worker had an error."});
     };
     workers.redrawWorker.postMessage({
@@ -455,7 +469,7 @@ const exportFlowers = (type) => {
             }
         }
     };
-    workers.exportWorker.onerror = (e) => {
+    workers.exportWorker.onerror = (_e) => {
         store.errors.push({message: "export Web Worker had an error."});
     };
     workers.exportWorker.postMessage({

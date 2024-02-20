@@ -1,12 +1,14 @@
 <template>
-    <div class="Local">
-        <PaginationOrInfiniteScroll :pagination="isPaginated()" :items-length="flowers.length" 
-                                    :current-page="data.page" :total-pages="data.totalPages"
-                                    @next-page="nextPage" @prev-page="prevPage" @update-page="nextBatch">
-            <FlowersTable :Flowers="flowers" :is-local="true" :no-flower-message="'There are no Flowers'" />
-        </PaginationOrInfiniteScroll>
-        <ProgressModal :id="'demoProgressBar'" :channel="emitter" :on="'showDemoProgress'" :update="'updateDemoProgress'" />
-    </div>
+  <div class="Local">
+    <PaginationOrInfiniteScroll
+      :pagination="isPaginated()" :items-length="flowers.length" 
+      :current-page="data.page" :total-pages="data.totalPages"
+      @next-page="nextPage" @prev-page="prevPage" @update-page="nextBatch"
+    >
+      <FlowersTable :Flowers="flowers" :is-local="true" :no-flower-message="'There are no Flowers'" />
+    </PaginationOrInfiniteScroll>
+    <ProgressModal :id="'demoProgressBar'" :channel="emitter" :on="'showDemoProgress'" :update="'updateDemoProgress'" />
+  </div>
 </template>
 
 <script setup>

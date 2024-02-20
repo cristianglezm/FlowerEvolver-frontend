@@ -1,17 +1,17 @@
 <template>
-    <dialog :id="props.id">
-        <div class="ConfirmModal-container center">
-            <div class="inlined">
-                <h2>{{ data.title }}</h2>
-                <span @click="closeModal()" class="close">&times;</span>
-            </div>
-            <p>{{ data.message }}</p>
-            <div>
-                <button @click="closeModal()">{{ data.btnNo}}</button>
-                <button @click="data.accept(data.dialog)">{{ data.btnYes }}</button>
-            </div>
-        </div>
-    </dialog>
+  <dialog :id="props.id">
+    <div class="ConfirmModal-container center">
+      <div class="inlined">
+        <h2>{{ data.title }}</h2>
+        <span class="close" @click="closeModal()">&times;</span>
+      </div>
+      <p>{{ data.message }}</p>
+      <div>
+        <button @click="closeModal()">{{ data.btnNo }}</button>
+        <button @click="data.accept(data.dialog)">{{ data.btnYes }}</button>
+      </div>
+    </div>
+  </dialog>
 </template>
 
 <script setup>
