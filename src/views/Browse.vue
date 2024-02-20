@@ -18,7 +18,7 @@
     const store = useFlowersStore();
     const routes = useRoute();
     const router = useRouter();
-    const data = reactive({
+    let data = reactive({
         offset: 0,
         page: parseInt(routes.query.page, 10) || 0,
         totalPages: 0
