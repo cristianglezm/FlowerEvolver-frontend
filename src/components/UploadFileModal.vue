@@ -1,20 +1,20 @@
 <template>
-    <dialog :id="props.id">
-        <div class="uploadFile-container center">
-            <div class="inlined">
-                <h2>{{ data.title }} </h2>
-                <span @click="closeModal()" class="close">&times;</span>
-            </div>
-            <label for="uploadFiles" class="FileInput">
-                <input id="uploadFiles" type="file" multiple accept="application/json, .json" @change="updateMessage()"/>
-                <p>{{ data.message }}</p>
-            </label>
-            <div>
-                <button @click="closeModal()">{{ data.btnCancel}}</button>
-                <button @click="validateFileType()">{{ data.btnUpload }}</button>
-            </div>
-        </div>
-    </dialog>
+  <dialog :id="props.id">
+    <div class="uploadFile-container center">
+      <div class="inlined">
+        <h2>{{ data.title }} </h2>
+        <span class="close" @click="closeModal()">&times;</span>
+      </div>
+      <label for="uploadFiles" class="FileInput">
+        <input id="uploadFiles" type="file" multiple accept="application/json, .json" @change="updateMessage()">
+        <p>{{ data.message }}</p>
+      </label>
+      <div>
+        <button @click="closeModal()">{{ data.btnCancel }}</button>
+        <button @click="validateFileType()">{{ data.btnUpload }}</button>
+      </div>
+    </div>
+  </dialog>
 </template>
 
 <script setup>

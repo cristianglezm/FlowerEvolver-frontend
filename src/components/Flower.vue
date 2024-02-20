@@ -1,47 +1,47 @@
 <template>
-    <div class="Flower">
-        <div v-if="props.isLocal">
-            <div class="outButtons" :class="{Selected: data.selected}">
-                <img class="pointer" @click="toggleFavourite(props.id)" alt="favourite button" :src="data.heartIconSrc" :key="props.id"/>
-                <img v-if="!data.clicked" class="drop-menu pointer" @click="data.clicked = !data.clicked; " src="@/assets/x32/Arrow_down.png"/>
-                <img v-if="data.clicked" class="drop-menu pointer" @click="data.clicked = !data.clicked; " src="@/assets/x32/Arrow_up.png"/>
-                <div v-if="data.clicked" class="flower-buttons">
-                    <ul>
-                        <li><a @click="mutate(); data.clicked = !data.clicked;">Mutate</a></li>
-                        <li><a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a></li>
-                        <li><a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a></li>
-                        <li><a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a></li>
-                        <li><a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a></li>
-                        <li><a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a></li>
-                        <li><a @click="deleteThisFlower(); data.clicked = !data.clicked;">Delete Flower</a></li>
-                        <li><a @click="store.redrawFlower({genome: props.genome}); data.clicked = !data.clicked;">Redraw Flower</a></li>
-                    </ul>
-                </div>
-            </div>
-            <img :id="'FlImage' + props.id" loading="lazy" :src="getImage()" :alt="'flower ' + props.id" class="FlowerImage">
-            <p><strong>{{ props.id }}</strong></p>
+  <div class="Flower">
+    <div v-if="props.isLocal">
+      <div class="outButtons" :class="{Selected: data.selected}">
+        <img :key="props.id" class="pointer" alt="favourite button" :src="data.heartIconSrc" @click="toggleFavourite(props.id)">
+        <img v-if="!data.clicked" class="drop-menu pointer" src="@/assets/x32/Arrow_down.png" @click="data.clicked = !data.clicked; ">
+        <img v-if="data.clicked" class="drop-menu pointer" src="@/assets/x32/Arrow_up.png" @click="data.clicked = !data.clicked; ">
+        <div v-if="data.clicked" class="flower-buttons">
+          <ul>
+            <li><a @click="mutate(); data.clicked = !data.clicked;">Mutate</a></li>
+            <li><a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a></li>
+            <li><a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a></li>
+            <li><a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a></li>
+            <li><a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a></li>
+            <li><a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a></li>
+            <li><a @click="deleteThisFlower(); data.clicked = !data.clicked;">Delete Flower</a></li>
+            <li><a @click="store.redrawFlower({genome: props.genome}); data.clicked = !data.clicked;">Redraw Flower</a></li>
+          </ul>
         </div>
-        <div v-else>
-            <div class="outButtons" :class="{Selected: data.selected}">
-                <img class="pointer disabled" alt="disabled favourite button" :src="data.heartIconSrc" :key="id"/>
-                <img v-if="!data.clicked" class="drop-menu pointer" @click="data.clicked = !data.clicked; " src="@/assets/x32/Arrow_down.png"/>
-                <img v-if="data.clicked" class="drop-menu pointer" @click="data.clicked = !data.clicked; " src="@/assets/x32/Arrow_up.png"/>
-                <div v-if="data.clicked" class="flower-buttons">
-                    <ul>
-                        <li><a @click="mutate(); data.clicked = !data.clicked;">Mutate</a></li>
-                        <li><a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a></li>
-                        <li><a @click="addToLocal(); data.clicked = !data.clicked;">Add to local</a></li>
-                        <li><a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a></li>
-                        <li><a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a></li>
-                        <li><a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a></li>
-                        <li><a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a></li>
-                    </ul>
-                </div>
-            </div>
-            <img :id="'FlImage' + props.id" loading="lazy" :src="getImage()" :alt="'flower ' + props.id" class="FlowerImage">
-            <p><strong>{{ props.id }}</strong></p>
-        </div>
+      </div>
+      <img :id="'FlImage' + props.id" loading="lazy" :src="getImage()" :alt="'flower ' + props.id" class="FlowerImage">
+      <p><strong>{{ props.id }}</strong></p>
     </div>
+    <div v-else>
+      <div class="outButtons" :class="{Selected: data.selected}">
+        <img :key="props.id" class="pointer disabled" alt="disabled favourite button" :src="data.heartIconSrc">
+        <img v-if="!data.clicked" class="drop-menu pointer" src="@/assets/x32/Arrow_down.png" @click="data.clicked = !data.clicked; ">
+        <img v-if="data.clicked" class="drop-menu pointer" src="@/assets/x32/Arrow_up.png" @click="data.clicked = !data.clicked; ">
+        <div v-if="data.clicked" class="flower-buttons">
+          <ul>
+            <li><a @click="mutate(); data.clicked = !data.clicked;">Mutate</a></li>
+            <li><a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a></li>
+            <li><a @click="addToLocal(); data.clicked = !data.clicked;">Add to local</a></li>
+            <li><a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a></li>
+            <li><a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a></li>
+            <li><a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a></li>
+            <li><a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a></li>
+          </ul>
+        </div>
+      </div>
+      <img :id="'FlImage' + props.id" loading="lazy" :src="getImage()" :alt="'flower ' + props.id" class="FlowerImage">
+      <p><strong>{{ props.id }}</strong></p>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -97,7 +97,7 @@
     const emitter = inject('emitter');
     onMounted(() => {
         data.selected = isSelected();
-        emitter.on('checkSelected', (e) => {
+        emitter.on('checkSelected', () => {
             data.selected = isSelected();
         });
         store.isFavourited(props.id)

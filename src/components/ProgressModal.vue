@@ -1,17 +1,17 @@
 <template>
-    <dialog :id="props.id">
-        <div id="progress-container" class="center">
-            <div>
-                <h1> {{ data.title }}</h1>
-            </div>
-            <div id="progress-bar">
-                <div id="Bar"></div>
-            </div>
-            <div>
-                <h1> {{ getProgress }} / {{ data.total }}</h1>
-            </div>
-        </div>
-    </dialog>
+  <dialog :id="props.id">
+    <div id="progress-container" class="center">
+      <div>
+        <h1> {{ data.title }}</h1>
+      </div>
+      <div id="progress-bar">
+        <div id="Bar" />
+      </div>
+      <div>
+        <h1> {{ getProgress }} / {{ data.total }}</h1>
+      </div>
+    </div>
+  </dialog>
 </template>
 
 <script setup>

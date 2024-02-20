@@ -20,5 +20,6 @@ module.exports = {
         'vue/singleline-html-element-content-newline': 'off',
         'vue/max-attributes-per-line': 'off',
         'vue/multi-word-component-names': 'off',
+        'vue/attribute-hyphenation': 'off',
     }
 }

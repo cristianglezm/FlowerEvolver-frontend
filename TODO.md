@@ -79,7 +79,7 @@
     - [x] Browse
     - [x] Favourites
     - [x] Mutations
-* [] fix eslint errors and warnings.
+* [x] fix eslint errors and warnings.
 * [] update fe-wasm - validation code, add exception handler?
 * [] update backend server with new version
 * [] update FlowerEvolver binaries to download

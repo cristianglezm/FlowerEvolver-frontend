@@ -1,15 +1,15 @@
 <template>
-    <div class="TitleHeader">
-        <div v-if="data.showWarning" id="warning" role="warning">
-            <span @click="data.showWarning = false">X</span>
-            <p>Remote flowers are deleted daily at 00:00 UTC</p>
-            <p>The website only uses essential cookies to store flowers and preferences.</p>
-        </div>
-        <header id="appTitle">
-            <a :href="data.base_url" style="text-decoration: none; position: relative; z-index: 1;"><h1>Flower Evolver</h1></a>
-            <canvas id="flowerGarden" :width="data.flowerGardenRect.width" :height="data.flowerGardenRect.height"></canvas>
-        </header>
+  <div class="TitleHeader">
+    <div v-if="data.showWarning" id="warning" role="warning">
+      <span @click="data.showWarning = false">X</span>
+      <p>Remote flowers are deleted daily at 00:00 UTC</p>
+      <p>The website only uses essential cookies to store flowers and preferences.</p>
     </div>
+    <header id="appTitle">
+      <a :href="data.base_url" style="text-decoration: none; position: relative; z-index: 1;"><h1>Flower Evolver</h1></a>
+      <canvas id="flowerGarden" :width="data.flowerGardenRect.width" :height="data.flowerGardenRect.height" />
+    </header>
+  </div>
 </template>
 
 <script setup>

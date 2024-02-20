@@ -1,27 +1,31 @@
 <template>
-    <div class="Ancestors">
-        <div v-if="!hasFatherOnly()">
-            <div class="gridFlowers">
-                <div><Flower :id="data.flower1.id" :genome="data.flower1.genome" :image="data.flower1.image" :isLocal="data.isLocal"/></div>
-                <div><Flower :id="data.flower2.id" :genome="data.flower2.genome" :image="data.flower2.image" :isLocal="data.isLocal"/></div>
-            </div>
-            <div class="header"><p><strong>Descendants of {{ data.flower1.id }} and {{ data.flower2.id }}</strong></p></div>
-            <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="ancestors.length" :currentPage="data.page" :totalPages="data.totalPages"
-                                    @next-page="nextPage" @prev-page="prevPage" @update-page="updateAncestors">
-                <FlowersTable :Flowers="ancestors" :isLocal="data.isLocal" :noFlowerMessage="'These Flowers have no descendants.'"/>
-            </PaginationOrInfiniteScroll>
-        </div>
-        <div v-else>
-            <div class="fatherFlower">
-                <Flower :id="data.flower1.id" :genome="data.flower1.genome" :image="data.flower1.image" :isLocal="data.isLocal"/>
-            </div>
-            <div class="header"><p><strong>Descendants of {{ data.flower1.id }}</strong></p></div>
-            <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="ancestors.length" :currentPage="data.page" :totalPages="data.totalPages"
-                                    @next-page="nextPage" @prev-page="prevPage" @update-page="updateAncestors">
-                <FlowersTable :Flowers="ancestors" :isLocal="data.isLocal" :noFlowerMessage="'This Flower has no descendants.'"/>
-            </PaginationOrInfiniteScroll>
-        </div>
+  <div class="Ancestors">
+    <div v-if="!hasFatherOnly()">
+      <div class="gridFlowers">
+        <div><Flower :id="data.flower1.id" :genome="data.flower1.genome" :image="data.flower1.image" :isLocal="data.isLocal" /></div>
+        <div><Flower :id="data.flower2.id" :genome="data.flower2.genome" :image="data.flower2.image" :isLocal="data.isLocal" /></div>
+      </div>
+      <div class="header"><p><strong>Descendants of {{ data.flower1.id }} and {{ data.flower2.id }}</strong></p></div>
+      <PaginationOrInfiniteScroll
+        :pagination="isPaginated()" :itemsLength="ancestors.length" :currentPage="data.page" :totalPages="data.totalPages"
+        @next-page="nextPage" @prev-page="prevPage" @update-page="updateAncestors"
+      >
+        <FlowersTable :Flowers="ancestors" :isLocal="data.isLocal" :noFlowerMessage="'These Flowers have no descendants.'" />
+      </PaginationOrInfiniteScroll>
     </div>
+    <div v-else>
+      <div class="fatherFlower">
+        <Flower :id="data.flower1.id" :genome="data.flower1.genome" :image="data.flower1.image" :isLocal="data.isLocal" />
+      </div>
+      <div class="header"><p><strong>Descendants of {{ data.flower1.id }}</strong></p></div>
+      <PaginationOrInfiniteScroll
+        :pagination="isPaginated()" :itemsLength="ancestors.length" :currentPage="data.page" :totalPages="data.totalPages"
+        @next-page="nextPage" @prev-page="prevPage" @update-page="updateAncestors"
+      >
+        <FlowersTable :Flowers="ancestors" :isLocal="data.isLocal" :noFlowerMessage="'This Flower has no descendants.'" />
+      </PaginationOrInfiniteScroll>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -73,18 +77,18 @@
             if(data.isLocal){
                 if(hasFatherOnly()){
                     store.getLocalAncestorsCount(data.flower1.id)
-                        .then(c => data.totalPages = Math.round(c / store.settings.limit));;
+                        .then(c => data.totalPages = Math.round(c / store.settings.limit));
                 }else{
                     store.getLocalAncestorsCount(data.flower1.id, data.flower2.id)
-                        .then(c => data.totalPages = Math.round(c / store.settings.limit));;
+                        .then(c => data.totalPages = Math.round(c / store.settings.limit));
                 }
             }else{
                 if(hasFatherOnly()){
                     store.getRemoteAncestorsCount(data.flower1.id)
-                        .then(c => data.totalPages = Math.round(c /  store.settings.limit));;
+                        .then(c => data.totalPages = Math.round(c /  store.settings.limit));
                 }else{
                     store.getRemoteAncestorsCount(data.flower1.id, data.flower2.id)
-                        .then(c => data.totalPages = Math.round(c / store.settings.limit));;
+                        .then(c => data.totalPages = Math.round(c / store.settings.limit));
                 }
             }
             getAncestorsFrom(data.page);
