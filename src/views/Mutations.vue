@@ -1,123 +1,101 @@
 <template>
     <div class="Mutations">
         <div class="mutFlower">
-            <Flower :id="original.id" :genome="original.genome" :image="original.image" :isLocal="isLocal"/>
+            <Flower :id="data.original.id" :genome="data.original.genome" :image="data.original.image" :isLocal="data.isLocal"/>
         </div>
-        <div class="header"><p><strong>Mutations of {{original.id}}</strong></p></div>
-        <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="mutations.length" :currentPage="this.page" :totalPages="this.totalPages"
+        <div class="header"><p><strong>Mutations of {{data.original.id}}</strong></p></div>
+        <PaginationOrInfiniteScroll :pagination="isPaginated()" :itemsLength="mutations.length" :currentPage="data.page" :totalPages="data.totalPages"
                                     @next-page="nextPage" @prev-page="prevPage" @update-page="updateMutations">
-            <FlowersTable :Flowers="mutations" :isLocal="this.isLocal" :noFlowerMessage="'This Flower Has no Mutations.'"/>
+            <FlowersTable :Flowers="mutations" :isLocal="data.isLocal" :noFlowerMessage="'This Flower Has no Mutations.'"/>
         </PaginationOrInfiniteScroll>
     </div>
 </template>
 
-<script>
-	import { defineComponent } from 'vue';
+<script setup>
+
+    import { reactive, computed, nextTick, onMounted } from 'vue';
     import Flower from '../components/Flower.vue';
     import FlowersTable from '../components/FlowersTable.vue';
     import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
-    import { mapActions, mapState } from 'pinia';
-	import { useFlowersStore } from '../store';
+    import { useRoute, useRouter } from 'vue-router';
+    import { useFlowersStore } from '../store';
 	
-    export default defineComponent({
-        name:'Mutations',
-        components:{
-            Flower,
-            FlowersTable,
-            PaginationOrInfiniteScroll
-        },
-        created(){
-            this.offset = 0;
-            this.$store.mutations = [];
-        },
-        mounted: function(){
-            this.Init();
-        },
-        data(){
-            return {
-                original: {id:0, genome:"", image:""},
-                offset: 0,
-                page: parseInt(this.$route.query.page, 10) || 0,
-                totalPages: 0,
-                isLocal: this.$route.params.isLocal === "local",
-            };
-        },
-        computed:{
-            ...mapState(useFlowersStore, {
-                mutations: store => store.getMutations()
-            })
-        },
-        methods:{
-            ...mapActions(useFlowersStore, [
-                'updateRemoteMutations',
-                'updateLocalMutations',
-                'updateAndConcatRemoteMutations',
-                'updateAndConcatLocalMutations',
-                'getRemoteMutationsCount',
-                'getLocalMutationsCount',
-                'increaseOffset',
-                'calcOffset'
-            ]),
-            Init: async function(){
-                let originalID = parseInt(this.$route.params.id);
-                if(this.isLocal){
-                    await this.$store.db.flowers.get(originalID).then(f => this.original = f);
-                }else{
-                    this.original = { id: originalID, genome: originalID + '.json', image: originalID + '.png'};
-                }
-                if(this.isPaginated()){
-                    if(this.isLocal){
-                        this.getLocalMutationsCount(this.original.id).then(c => this.totalPages = Math.round(c / this.$store.settings.limit));;
-                    }else{
-                        this.getRemoteMutationsCount(this.original.id).then(c => this.totalPages = Math.round(c / this.$store.settings.limit));;
-                    }
-                    this.getMutationsFrom(this.page);
-                }else{
-                    this.updateMutations();
-                }
-            },
-            getMutationsFrom: function(page){
-                this.$nextTick(() => {
-                    this.offset = this.calcOffset(page);
-                    if(this.isLocal){
-                        this.updateLocalMutations({flower: this.original, limit:this.$store.settings.limit, offset:this.offset});
-                    }else{
-                        this.updateRemoteMutations({flower: this.original, limit:this.$store.settings.limit, offset:this.offset});
-                    }
-                });
-            },
-            updateMutations: function(){
-                if(this.isLocal){
-                    this.updateAndConcatLocalMutations({flower: this.original, limit:this.$store.settings.limit, offset:this.offset});
-                }else{
-                    this.updateAndConcatRemoteMutations({flower: this.original, limit:this.$store.settings.limit, offset:this.offset});
-                }
-                this.offset = this.increaseOffset(this.offset);
-            },
-            prevPage: function(){
-                if(this.page >= 1){
-                    this.page -= 1;
-                    this.pushRoute();
-                }
-            },
-            nextPage: function(){
-                if(this.page < this.totalPages){
-                    this.page += 1;
-                    this.pushRoute();
-                }
-            },
-            pushRoute: function(){
-                let localOr = this.isLocal ? "local":"remote";
-                this.$router.push({name:"Mutations", params: {id: this.original.id, isLocal: localOr}, query:{page:this.page}});
-            },
-            isPaginated: function(){
-                return this.$store.settings.pagination;
-            },
-            isMobile: function(){
-                return window.innerWidth <= 1280;
-            },
-        },
+    const store = useFlowersStore();
+    const routes = useRoute();
+    const router = useRouter();
+    const data = reactive({
+        offset: 0,
+        original: { id: 0, genome: "", image: ""},
+        page: parseInt(routes.query.page, 10) || 0,
+        totalPages: 0,
+        isLocal: routes.params.isLocal === "local"
     });
+    onMounted(() => {
+        Init();
+    });
+    let mutations = computed(() => {
+        return store.getMutations();
+    });
+
+    const Init = async () => {
+        let originalID = parseInt(routes.params.id);
+        if(data.isLocal){
+            data.original = await store.db.flowers.get(originalID); //.then(f => data.original = f);
+        }else{
+            data.original = { id: originalID, genome: originalID + '.json', image: originalID + '.png'};
+        }
+        if(isPaginated()){
+            if(data.isLocal){
+                store.getLocalMutationsCount(data.original.id).then(c => data.totalPages = Math.round(c / store.settings.limit));;
+            }else{
+                store.getRemoteMutationsCount(data.original.id).then(c => data.totalPages = Math.round(c / store.settings.limit));;
+            }
+            getMutationsFrom(data.page);
+        }else{
+            store.mutations = [];
+            updateMutations();
+        }
+    };
+    const getMutationsFrom = (page) => {
+        nextTick(() => {
+            data.offset = store.calcOffset(page);
+            if(data.isLocal){
+                store.updateLocalMutations({flower: data.original, limit: store.settings.limit, offset: data.offset});
+            }else{
+                store.updateRemoteMutations({flower: data.original, limit: store.settings.limit, offset: data.offset});
+            }
+        });
+    };
+    const updateMutations = () => {
+        nextTick(() => {
+            if(data.isLocal){
+                store.updateAndConcatLocalMutations({flower: data.original, limit: store.settings.limit, offset: data.offset});
+            }else{
+                store.updateAndConcatRemoteMutations({flower: data.original, limit: store.settings.limit, offset: data.offset});
+            }
+            data.offset = store.increaseOffset(data.offset);
+        });
+    };
+    const prevPage = () => {
+        if(data.page >= 1){
+            data.page -= 1;
+            pushRoute();
+        }
+    };
+    const nextPage = () => {
+        if(data.page < data.totalPages){
+            data.page += 1;
+            pushRoute();
+        }
+    };
+    const pushRoute = () => {
+        let localOr = data.isLocal ? "local":"remote";
+        router.push({name:"Mutations", params: {id: data.original.id, isLocal: localOr}, query:{page: data.page}});
+    };
+    const isPaginated = () => {
+        return store.settings.pagination;
+    };
+
 </script>
 
 <style scoped>
