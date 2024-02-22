@@ -1,7 +1,5 @@
 ## TODO
 
-* [] update fe-wasm
-    + validation code, add exception handler
 * [] update backend server with new version
 * [] update FlowerEvolver binaries to download
 * [] merge branch.
