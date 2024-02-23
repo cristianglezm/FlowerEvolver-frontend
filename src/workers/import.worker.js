@@ -54,7 +54,12 @@ const importFlower = async (self, json, toFavs) => {
     try{
         FE.drawFlower(flower.genome, params.radius, params.numLayers, params.P, params.bias);
     }catch(e){
-        console.error(e);
+        //console.error(FE.getExceptionMessage(e));
+        console.error("importer could not import flower");
+        self.postMessage({
+            type: "updateProgress",
+            progress: 1,
+        });
         return;
     }
     let blob = await self.canvas.convertToBlob();
@@ -82,6 +87,13 @@ const importGeneration = async (self, batchSize, json, toFavs) => {
         try{
             FE.drawFlower(flower.genome, params.radius, params.numLayers, params.P, params.bias);
         }catch(e){
+            //console.error(FE.getExceptionMessage(e));
+            console.error("importer could not import flower " + (progress - 1));
+            self.postMessage({
+                type: "updateProgress",
+                progress: progress,
+            });
+            ++progress;
             continue;
         }
         let blob = await self.canvas.convertToBlob();
@@ -117,6 +129,13 @@ const importSession = async (self, batchSize, json, toFavs) => {
             try{
                 FE.drawFlower(flower.genome, params.radius, params.numLayers, params.P, params.bias);
             }catch(e){
+                //console.error(FE.getExceptionMessage(e));
+                console.error("importer could not import flower " + (progress - 1));
+                self.postMessage({
+                    type: "updateProgress",
+                    progress: progress,
+                });
+                ++progress;
                 continue;
             }
             let blob = await self.canvas.convertToBlob();

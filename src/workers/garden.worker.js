@@ -43,7 +43,14 @@ self.onmessage = async (e) => {
     }
     for(let i=0;i<numFlowers;++i){
         try{
-            let genome = FE.makeFlower(params.radius, params.numLayers, params.P, params.bias);
+            let genome;
+            try{
+                genome = FE.makeFlower(params.radius, params.numLayers, params.P, params.bias);
+            }catch(e){
+                //console.error(FE.getExceptionMessage(e));
+                console.error("garden could not draw a flower");
+                continue;
+            }
             garden.Generation.push(JSON.parse(genome).Flower);
             let image = await createImageBitmap(self.canvas);
             self.postMessage({
@@ -53,7 +60,7 @@ self.onmessage = async (e) => {
             });
         }catch(e){
             console.error(e);
-            return;
+            continue;
         }
     }
     self.postMessage({
