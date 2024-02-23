@@ -208,15 +208,6 @@ export const useFlowersStore = defineStore('FlowersStore', {
 				this.localSelected.index = 0;
 			}
 		},
-		async makeRemoteFlower(){
-			await axios.post(API + 'flowers',{})
-			.then(response => {
-				this.remoteFlowers.unshift(response.data);
-				this.lastAdded.unshift(response.data);
-			}).catch(_e => {
-				this.errors.push({message: "cannot make a remote flower, server offline."});
-			});
-		},
 		async updateRemoteFlowers({limit, offset}){
 			try{
 				const response = await axios.get(API + 'flowers?limit=' + limit + '&offset=' + offset)
@@ -379,6 +370,15 @@ export const useFlowersStore = defineStore('FlowersStore', {
 				this.errors.push({message:e});
 			}
 		},
+		async makeRemoteFlower(){
+			await axios.post(API + 'flowers',{})
+			.then(response => {
+				this.remoteFlowers.unshift(response.data);
+				this.lastAdded.unshift(response.data);
+			}).catch(_e => {
+				this.errors.push({message: "cannot make a remote flower, server offline."});
+			});
+		},
 		async makeLocalFlower(){
 			try{
 				if(this.fe){
@@ -387,8 +387,15 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					}
 					this.canvas.width = this.settings.params.radius * 2;
 					this.canvas.height = this.settings.params.radius * 3;
-					let genome = this.fe.makeFlower(this.settings.params.radius, this.settings.params.numLayers, 
-													this.settings.params.P, this.settings.params.bias);
+					let genome;
+					try{
+						genome = this.fe.makeFlower(this.settings.params.radius, this.settings.params.numLayers, 
+                                                        this.settings.params.P, this.settings.params.bias);
+					}catch(e){
+						//this.errors.push({message: this.fe.getExceptionMessage(e)});
+						this.errors.push({message: "couldn't make a local flower."});
+						return;
+					}
 					let id = await this.db.flowers.add({
 						genome: genome, 
 						image: this.getDataURL()
@@ -413,9 +420,10 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					this.canvas.height = this.settings.params.radius * 3;
 					try{
 						this.fe.drawFlower(flower.genome, this.settings.params.radius, this.settings.params.numLayers, 
-											this.settings.params.P, this.settings.params.bias);
+                                                this.settings.params.P, this.settings.params.bias);
 					}catch(e){
-						this.errors.push({message: e});
+						//this.errors.push({message: this.fe.getExceptionMessage(e)});
+						this.errors.push({message: "couldn't redraw a local flower."});
 						return;
 					}
 					flower.image = this.getDataURL();
@@ -456,7 +464,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					this.lastAdded.unshift(response.data);
 					this.ancestors.unshift(response.data);
 				})
-				.catch(_e => {
+				.catch(_ => {
 					this.errors.push({message:"cannot reproduce remote flowers, server offline."});
 				});
 			}else{
@@ -473,10 +481,16 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					let f2 = await this.db.flowers.get(this.localSelected.flowers[1]);
 					this.canvas.width = this.settings.params.radius * 2;
 					this.canvas.height = this.settings.params.radius * 3;
-					let genome = this.fe.reproduce(f1.genome, 
-													f2.genome,
-													this.settings.params.radius, this.settings.params.numLayers, 
-													this.settings.params.P, this.settings.params.bias);
+					let genome;
+					try{
+						genome = this.fe.reproduce(f1.genome, f2.genome,
+                                                        this.settings.params.radius, this.settings.params.numLayers, 
+                                                        this.settings.params.P, this.settings.params.bias);
+					}catch(e){
+						//this.errors.push({message: this.fe.getExceptionMessage(e)});
+						this.errors.push({message: "couldn't reproduce some local flowers."});
+						return;
+					}
 					let id = await this.db.flowers.add({
 						genome: genome,
 						image: this.getDataURL()
@@ -506,7 +520,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 				this.lastAdded.unshift(response.data);
 				this.mutations.unshift(response.data);
 			})
-			.catch(_e => {
+			.catch(_ => {
 				this.errors.push({message:"cannot mutate a remote flower, server offline."});
 			});
 		},
@@ -518,17 +532,24 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					}
 					this.canvas.width = this.settings.params.radius * 2;
 					this.canvas.height = this.settings.params.radius * 3;
-					let genome = this.fe.mutate(flower.genome, 
-													this.settings.params.radius, this.settings.params.numLayers, 
-													this.settings.params.P, this.settings.params.bias,
-													this.settings.mutationRates.addNodeRate, 
-													this.settings.mutationRates.addConnRate, 
-													this.settings.mutationRates.removeConnRate, 
-													this.settings.mutationRates.perturbWeightsRate, 
-													this.settings.mutationRates.enableRate, 
-													this.settings.mutationRates.disableRate, 
-													this.settings.mutationRates.actTypeRate
-												);
+					let genome;
+					try{
+						genome = this.fe.mutate(flower.genome, 
+                                                    this.settings.params.radius, this.settings.params.numLayers, 
+                                                    this.settings.params.P, this.settings.params.bias,
+                                                    this.settings.mutationRates.addNodeRate, 
+                                                    this.settings.mutationRates.addConnRate, 
+                                                    this.settings.mutationRates.removeConnRate, 
+                                                    this.settings.mutationRates.perturbWeightsRate, 
+                                                    this.settings.mutationRates.enableRate, 
+                                                    this.settings.mutationRates.disableRate, 
+                                                    this.settings.mutationRates.actTypeRate
+                                                );
+					}catch(e){
+						//this.errors.push({message: this.fe.getExceptionMessage(e)});
+						this.errors.push({message: "couldn't mutate a local flower."});
+						return;
+					}
 					let id = await this.db.flowers.add({
 						genome: genome, 
 						image: this.getDataURL()

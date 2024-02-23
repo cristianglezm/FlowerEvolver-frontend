@@ -48,6 +48,8 @@ self.onmessage = async (e) => {
             try{
                 FE.drawFlower(f.genome, params.radius, params.numLayers, params.P, params.bias);
             }catch(e){
+                //console.error(FE.getExceptionMessage(e));
+                console.error("redraw could not draw flower with id " + f.id);
                 continue;
             }
             let blob = await self.canvas.convertToBlob();
