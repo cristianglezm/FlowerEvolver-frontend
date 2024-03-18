@@ -2,15 +2,15 @@
   <div class="Downloads">
     <div class="blocks">
       <div id="windows">
-        Windows
+        Windows 11
         <a :href="data.base_url + 'FlowerEvolver_win64.zip'">download x64</a>
       </div>
       <div id="linux">
-        Linux
-        <a :href="data.base_url + 'FlowerEvolver-x64-linux.tar'">download x64</a>
+        Ubuntu 20.04
+        <a :href="data.base_url + 'FlowerEvolver_x64_ubuntu_20.04.tgz'">download x64</a>
       </div>
     </div>
-    <img id="image" loading="lazy" :src="data.base_url + 'FlowerEvolverNative.png'">
+    <video id="fe-video" loading="lazy" controls="true" :src="data.base_url + 'FlowerEvolver-v1.mp4'"></video>
   </div>
 </template>
 
@@ -32,11 +32,11 @@
         display: grid;
         grid-template-columns: auto auto;
         grid-gap: 0.6rem;
-        font-size: 3.6rem;
+        font-size: 2.6rem;
         padding: 0.6rem;
         border-radius: 0.75rem;
     }
-    #image{
+    #fe-video{
         width: 100%;
         position: relative;
     }
@@ -45,7 +45,7 @@
         text-align: center;
         text-decoration: none;
         text-indent: 0.6rem;
-        font-size: 3.6rem;
+        font-size: 2.6rem;
         padding: 0.1rem 0.6rem 0rem 0rem;
         margin: 0.6rem 0rem 0rem 0.3rem;
         color: lightgreen;
