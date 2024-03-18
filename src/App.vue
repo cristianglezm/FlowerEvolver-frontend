@@ -27,6 +27,11 @@ const isLocal = () => {
 
 <style>
 @font-face {
+  /* 
+            SIL Open Font License 1.1 - Copyright (c) 2023, GitHub
+            https://github.com/githubnext/monaspace
+            with Reserved Font Name "Monaspace", including subfamilies: "Argon", "Neon", "Xenon", "Radon", and "Krypton"
+  */
   font-family: 'MonaspaceRadon-Regular';
   src: url('/MonaspaceRadon-Regular.otf') format('opentype');
   font-weight: normal;
