@@ -379,7 +379,7 @@ const showExport = (type) => {
             title: 'Export all garden flowers',
             message: 'Are you sure you want to export all garden flowers?',
             btnNo: 'no',
-            btnYes: 'Export all local flowers',
+            btnYes: 'Export all garden flowers',
             onConfirm: (dialog) => {
                 exportFlowers(type);
                 dialog.close();
