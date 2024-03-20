@@ -29,7 +29,7 @@ const data = reactive({
     offset: 0,
     page: 0,
     totalPages: 0,
-    demoFlowersFile: "/demoFlowers.json",
+    demoFlowersFile: import.meta.env.BASE_URL + "demoFlowers.json",
     killWorker: false
 });
 let worker = importWorker();
