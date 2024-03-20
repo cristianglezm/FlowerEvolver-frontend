@@ -54,6 +54,7 @@
           <label for="params-bias">Bias: </label>
           <input id="params-bias" v-model.number="params.bias" type="number" @change="validateParams()">
         </div>
+        <button class="safe-button" @click="restoreDefaults()">restore defaults</button>
       </div>
       <div id="mutationRates-settings" class="settings-box">
         <h2>Mutation Rates</h2>
@@ -118,17 +119,17 @@
     <div id="actions-settings">
       <div id="actions-safe">
         <h2 style="color:lightgreen;">Actions</h2>
-        <button @click="showRedrawFlowers()"> redraw local Flowers </button>
-        <button @click="showExport('favourites')"> Export favourite flowers </button>
-        <button @click="showExport('all')"> Export local Flowers </button>
-        <button @click="showExport('garden')"> Export garden Flowers </button>
-        <button @click="showImport(false)"> Import Flowers </button>
-        <button @click="showImport(true)"> Import Flowers to favourites </button>
+        <button class="safe-button" @click="showRedrawFlowers()"> redraw local Flowers </button>
+        <button class="safe-button" @click="showExport('favourites')"> Export favourite flowers </button>
+        <button class="safe-button" @click="showExport('all')"> Export local Flowers </button>
+        <button class="safe-button" @click="showExport('garden')"> Export garden Flowers </button>
+        <button class="safe-button" @click="showImport(false)"> Import Flowers </button>
+        <button class="safe-button" @click="showImport(true)"> Import Flowers to favourites </button>
       </div>
       <div id="actions-danger">
         <h2 style="color:red;">Danger Zone</h2>
-        <button @click="deleteAllFlowers()"> Delete All Flowers </button>
-        <button @click="deleteNonFavourites()"> Delete non Favourites </button>
+        <button class="unsafe-button" @click="deleteAllFlowers()"> Delete All Flowers </button>
+        <button class="unsafe-button" @click="deleteNonFavourites()"> Delete non Favourites </button>
       </div>
     </div>
   </div>
@@ -188,6 +189,13 @@ const workers = {
     importWorker: importWorker()
 };
 
+const restoreDefaults = () => {
+    params.radius = 64;
+    params.numLayers = 3;
+    params.P = 6.0;
+    params.bias = 1.0;
+    validateParams();
+};
 const persist = async () => {
     if(!navigator.storage && !navigator.storage.persist){
         return;
@@ -570,6 +578,21 @@ const exportFlowers = (type) => {
         width: 100%;
         border-radius: 1.25rem;
     }
+    .safe-button{
+        position: relative;
+        font-size: 1.25rem;
+        border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
+        margin: 0.6rem 0.6rem 0rem 1.25rem;
+        cursor: pointer;
+        border-color: lightgreen;
+        background-color: green;
+        color: lightgreen;
+    }
+    .safe-button:hover{
+        background-color: lightgreen;
+        border-color: green;
+        color: green;
+    }
     #actions-danger{
         border: solid red;
         border-radius: 1.25rem;
@@ -580,22 +603,7 @@ const exportFlowers = (type) => {
         text-align: center;
         background-color: green;
     }
-    #actions-safe button{
-        position: relative;
-        font-size: 1.25rem;
-        border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
-        margin: 0.6rem 0.6rem 0rem 1.25rem;
-        cursor: pointer;
-        border-color: lightgreen;
-        background-color: green;
-        color: lightgreen;
-    }
-    #actions-safe button:hover{
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
-    #actions-danger button{
+    .unsafe-button{
         position: relative;
         font-size: 1.25rem;
         border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
@@ -605,7 +613,7 @@ const exportFlowers = (type) => {
         background-color: red;
         color: whitesmoke;
     }
-    #actions-danger button:hover{
+    .unsafe-button:hover{
         border-color: red;
         background-color: whitesmoke;
         color: red;
@@ -623,6 +631,12 @@ const exportFlowers = (type) => {
         margin-bottom: 0.6rem;
     }
     @media only screen and (max-width: 1280px){
+        .safe-button{
+            font-size: 0.9rem;
+        }
+        .unsafe-button{
+            font-size: 0.9rem;
+        }
         .labelInputArea label{
             width: 10.6rem;
             display: inline-block;
@@ -636,14 +650,8 @@ const exportFlowers = (type) => {
         #actions-safe{
             margin: 0.2rem;
         }
-        #actions-safe button{
-            font-size: 0.9rem;
-        }
         #actions-danger{
             margin: 0.2rem;
-        }
-        #actions-danger button{
-            font-size: 0.9rem;
         }
         input[type=number]{
             width: 20%;
