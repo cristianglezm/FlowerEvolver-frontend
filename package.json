@@ -13,7 +13,7 @@
     "dependencies": {
         "@cristianglezm/flower-evolver-wasm": "^1.0.5",
         "axios": "^1.5.0",
-        "dexie": "^3.2.5",
+        "dexie": "^3.2.7",
         "mitt": "^3.0.1",
         "pinia": "^2.1.6",
         "vite-plugin-eslint": "^1.8.1",
@@ -25,7 +25,7 @@
         "@vitejs/plugin-vue": "^4.3.4",
         "eslint": "^8.49.0",
         "eslint-plugin-vue": "^9.21.1",
-        "vite": "^5.1.1"
+        "vite": "^5.2.3"
     },
     "browserslist": [
         "> 1%",
