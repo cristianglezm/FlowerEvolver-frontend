@@ -39,6 +39,8 @@ const toggleInfo = () => {
         border-radius: 1.25rem;
         display: inline-grid;
         text-align: center;
+        padding-left: 0.3rem;
+        padding-right: 0.3rem;
     }
     .infoBox{
         background-color: green;
