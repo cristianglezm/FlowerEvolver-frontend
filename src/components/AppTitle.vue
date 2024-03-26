@@ -19,9 +19,11 @@ import { STORAGE_KEY_GARDEN, useFlowersStore } from '../store';
 import gardenWorker from '../workers/garden.worker?worker';
 
 const gardenRadius = 8;
+const STORAGE_KEY_WARNING = "FlowerEvolverShowWarning";
+
 let worker = gardenWorker();
 let store = useFlowersStore();
-const STORAGE_KEY_WARNING = "FlowerEvolverShowWarning";
+
 const data = reactive({
     showWarning: JSON.parse(localStorage.getItem(STORAGE_KEY_WARNING) || "true"),
     base_url: import.meta.env.BASE_URL,
