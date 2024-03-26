@@ -1,7 +1,7 @@
 <template>
   <div class="TitleHeader">
     <div v-if="data.showWarning" id="warning" role="warning">
-      <span @click="data.showWarning = false">X</span>
+      <span @click="closeWarning()">X</span>
       <p>Remote flowers are deleted daily at 00:00 UTC</p>
       <p>The website only uses essential cookies to store flowers and preferences.</p>
     </div>
@@ -21,8 +21,9 @@ import gardenWorker from '../workers/garden.worker?worker';
 const gardenRadius = 8;
 let worker = gardenWorker();
 let store = useFlowersStore();
+const STORAGE_KEY_WARNING = "FlowerEvolverShowWarning";
 const data = reactive({
-    showWarning: true,
+    showWarning: JSON.parse(localStorage.getItem(STORAGE_KEY_WARNING) || "true"),
     base_url: import.meta.env.BASE_URL,
     flowerGardenRect: {width:200, height:200},
 });
@@ -55,6 +56,11 @@ onMounted(() => {
         radius: gardenRadius
     });
 });
+
+const closeWarning = () => {
+    data.showWarning = false;
+    localStorage.setItem(STORAGE_KEY_WARNING, data.showWarning)
+};
 
 const getRect = () => {
     const element = document.getElementById('appTitle');
