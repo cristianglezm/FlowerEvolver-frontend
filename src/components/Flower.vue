@@ -1,10 +1,13 @@
 <template>
   <div class="Flower">
     <div v-if="props.isLocal">
-      <div class="outButtons" :class="{Selected: data.selected}">
-        <img :key="props.id" class="pointer" alt="favourite button" :src="data.heartIconSrc" @click="toggleFavourite(props.id)">
+      <div class="flowerMenu" :class="{Selected: data.selected}">
         <img v-if="!data.clicked" class="drop-menu pointer" src="@/assets/x32/Arrow_down.png" @click="data.clicked = !data.clicked; ">
         <img v-if="data.clicked" class="drop-menu pointer" src="@/assets/x32/Arrow_up.png" @click="data.clicked = !data.clicked; ">
+        <div style="width: 100%;height: 100%;display: flex;justify-content: end;">
+          <img :key="props.id" class="pointer" alt="favourite button" :src="data.heartIconSrc" @click="toggleFavourite(props.id)">
+          <ParamsInfo :params="data.params" />
+        </div>
         <div v-if="data.clicked" class="flower-buttons">
           <ul>
             <li><a @click="mutate(); data.clicked = !data.clicked;">Mutate</a></li>
@@ -22,10 +25,13 @@
       <p><strong>{{ props.id }}</strong></p>
     </div>
     <div v-else>
-      <div class="outButtons" :class="{Selected: data.selected}">
-        <img :key="props.id" class="pointer disabled" alt="disabled favourite button" :src="data.heartIconSrc">
+      <div class="flowerMenu" :class="{Selected: data.selected}">
         <img v-if="!data.clicked" class="drop-menu pointer" src="@/assets/x32/Arrow_down.png" @click="data.clicked = !data.clicked; ">
         <img v-if="data.clicked" class="drop-menu pointer" src="@/assets/x32/Arrow_up.png" @click="data.clicked = !data.clicked; ">
+        <div style="width: 100%;height: 100%;display: flex;justify-content: end;">
+          <img :key="props.id" class="pointer disabled" alt="disabled favourite button" :src="data.heartIconSrc">
+          <ParamsInfo :params="data.params" />
+        </div>
         <div v-if="data.clicked" class="flower-buttons">
           <ul>
             <li><a @click="mutate(); data.clicked = !data.clicked;">Mutate</a></li>
@@ -49,6 +55,7 @@
     import { useFlowersStore } from '../store';
     import { onMounted, reactive, inject, onUnmounted } from 'vue';
     import { useRouter } from 'vue-router';
+    import ParamsInfo from './ParamsInfo.vue';
 	
     const props = defineProps({
         id: {
@@ -75,6 +82,26 @@
     const loadImage = (url, res) => {
         return new URL(`/src/assets/${res}/${url}`, import.meta.url);
     };
+    const clamp = (val, min, max) => {
+        return Math.min(max, Math.max(val, min));
+    }
+    const validateFloat = (number, Default) => {
+        if(Number.isNaN(parseFloat(number))){
+            return Default;
+        }
+        return number;
+    };
+    const parseParams = () => {
+        if(props.genome === ""){
+            return;
+        }
+        let json = JSON.parse(props.genome);
+        data.params = json.Flower.petals;
+        data.params.radius = clamp(data.params.radius, 4, 256);
+        data.params.numLayers = Math.max(1, data.params.numLayers);
+        data.params.P = validateFloat(data.params.P, 6.0);
+        data.params.bias = validateFloat(data.params.bias, 1.0);
+    };
     const data = reactive({
         IMAGES_URL: import.meta.env.VITE_APP_IMAGES_URL,
         DOWNLOAD_URL: import.meta.env.VITE_APP_DOWNLOAD_URL,
@@ -91,11 +118,20 @@
                         loadImage("heart_filling4.png","x32"),
                         loadImage("heart_full.png","x32"),
                         ],
+        params: {
+                radius: 64,
+                numLayers: 3,
+                P: 6.0,
+                bias: 1.0
+                },
     });
     const router = useRouter();
     const store = useFlowersStore();
     const emitter = inject('emitter');
     onMounted(() => {
+        if(props.isLocal){
+            parseParams();
+        }
         data.selected = isSelected();
         emitter.on('checkSelected', () => {
             data.selected = isSelected();
@@ -226,10 +262,15 @@
     .Flower p{
         text-align: center;
     }
-    .outButtons{
+    .flowerMenu{
         background-color: green;
         box-shadow: 0.31rem 0.6rem 0.06rem 0.125rem rgba(12, 13, 12, 0.5);
         border: solid 0.06rem black;
+        display: inline-flex;
+        flex-flow: row nowrap;
+        width: 100%;
+        height: auto;
+        justify-content: space-between;
     }
     .Selected{
         border-style: solid solid solid solid;
@@ -245,12 +286,13 @@
     }
     .flower-buttons{
         position: absolute;
-        padding: 0rem 1.31rem 0rem 0rem;
         float: right;
+        z-index: 1;
+        translate: 0 14%;
+        padding: 0rem 1.31rem 0rem 0rem;
         background-color: green;
         border-top: 0.125rem lightgreen;
         box-shadow: 0.125rem 0.375rem 1rem 0.375rem rgba(0,128,0,0.5);
-        z-index: 1;
     }
     .flower-buttons ul{
         margin: 0.6rem 1.25rem 0.6rem 1.18rem;
