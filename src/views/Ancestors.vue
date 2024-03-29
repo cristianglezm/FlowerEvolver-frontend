@@ -169,13 +169,15 @@
         background-color: green;
     }
     .fatherFlower{
-        display: grid;
-        justify-items: center;
         position: relative;
+        display: flex;
+        justify-content: center;
+        margin: 0 auto;
+        width: 15%;
     }
     .gridFlowers{
         display: grid;
-        grid-template-columns: auto auto;
+        grid-template-columns: 15% 15%;
         grid-gap: 0.6rem;
         justify-content: center;
     }

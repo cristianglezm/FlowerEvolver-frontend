@@ -111,7 +111,9 @@
     }
     .mutFlower{
         position: relative;
-        display: grid;
-        justify-items: center;
+        display: flex;
+        justify-content: center;
+        margin: 0 auto;
+        width: 15%;
     }
 </style>
