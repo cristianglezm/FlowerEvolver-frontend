@@ -1,6 +1,6 @@
 <template>
   <div class="Mutations">
-    <div class="mutFlower">
+    <div v-if="data.original.genome != ''" class="mutFlower">
       <Flower :id="data.original.id" :genome="data.original.genome" :image="data.original.image" :isLocal="data.isLocal" />
     </div>
     <div class="header"><p><strong>Mutations of {{ data.original.id }}</strong></p></div>
@@ -15,7 +15,7 @@
 
 <script setup>
 
-    import { reactive, computed, nextTick, onMounted } from 'vue';
+    import { reactive, computed, nextTick, onBeforeMount } from 'vue';
     import Flower from '../components/Flower.vue';
     import FlowersTable from '../components/FlowersTable.vue';
     import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
@@ -32,7 +32,7 @@
         totalPages: 0,
         isLocal: routes.params.isLocal === "local"
     });
-    onMounted(() => {
+    onBeforeMount(() => {
         Init();
     });
     let mutations = computed(() => {

@@ -1,7 +1,7 @@
 <template>
   <div class="Ancestors">
     <div v-if="!hasFatherOnly()">
-      <div class="gridFlowers">
+      <div v-if="data.flower1.genome != '' && data.flower2.genome != ''" class="gridFlowers">
         <div><Flower :id="data.flower1.id" :genome="data.flower1.genome" :image="data.flower1.image" :isLocal="data.isLocal" /></div>
         <div><Flower :id="data.flower2.id" :genome="data.flower2.genome" :image="data.flower2.image" :isLocal="data.isLocal" /></div>
       </div>
@@ -14,7 +14,7 @@
       </PaginationOrInfiniteScroll>
     </div>
     <div v-else>
-      <div class="fatherFlower">
+      <div v-if="data.flower1.genome != ''" class="fatherFlower">
         <Flower :id="data.flower1.id" :genome="data.flower1.genome" :image="data.flower1.image" :isLocal="data.isLocal" />
       </div>
       <div class="header"><p><strong>Descendants of {{ data.flower1.id }}</strong></p></div>
@@ -30,7 +30,7 @@
 
 <script setup>
 
-    import { onMounted, reactive, computed, nextTick } from 'vue';
+    import { reactive, computed, nextTick, onBeforeMount } from 'vue';
     import Flower from '../components/Flower.vue';
     import FlowersTable from '../components/FlowersTable.vue';
     import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
@@ -48,7 +48,7 @@
         flower1: { id: 0, genome: "", image: ""},
         flower2: { id: 0, genome: "", image: ""}
     });
-    onMounted(() => {
+    onBeforeMount(() => {
         Init();
     });
     const ancestors = computed(() => {
