@@ -171,9 +171,11 @@
         display: inline-flex;
         flex-flow: row nowrap;
         width: 100%;
+        height: 10%;
     }
     .edgeOrChromeTabs{
         width: 100%;
+        height: 10%;
         padding: 1.25rem 0rem 0rem 0rem;
     }
     @media only screen and (max-width: 1280px){
