@@ -8,7 +8,7 @@
         "build": "vite build",
         "buildGHP": "vite build --base=/FlowerEvolver-frontend/",
         "dev": "vite",
-        "lint": "eslint --ext .js,.vue --ignore-path .gitignore --fix-dry-run src"
+        "lint": "eslint --ext .js,.vue --ignore-path .gitignore --fix src"
     },
     "dependencies": {
         "@cristianglezm/flower-evolver-wasm": "^1.0.5",

@@ -252,7 +252,7 @@ const validateInteger = (number, Default) => {
     }
     return number;
 };
-const validateFloat= (number, Default) => {
+const validateFloat = (number, Default) => {
     if(Number.isNaN(parseFloat(number))){
         return Default;
     }
