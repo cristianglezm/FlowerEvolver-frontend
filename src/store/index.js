@@ -1,13 +1,12 @@
 import { defineStore } from 'pinia';
 import { db as ddb } from './db';
 import axios from 'axios';
+import fe from '@cristianglezm/flower-evolver-wasm';
 
 export const API = import.meta.env.VITE_APP_API_URL;
 export const URL = import.meta.env.VITE_APP_DOWNLOAD_URL;
 export const STORAGE_KEY = 'FlowerEvolverSettings';
 export const STORAGE_KEY_GARDEN = "FlowerEvolverGarden";
-
-import fe from '@cristianglezm/flower-evolver-wasm';
 
 export const useFlowersStore = defineStore('FlowersStore', {
 	state: () => ({
@@ -212,8 +211,8 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			try{
 				const response = await axios.get(API + 'flowers?limit=' + limit + '&offset=' + offset)
 				this.remoteFlowers = response.data.flowers;
-			}catch(e){
-				//this.errors.push({message: e});
+			}catch(_){
+				//this.errors.push({message: _});
 			}
 		},
 		async updateLocalFlowers({limit, offset}){
@@ -228,8 +227,8 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			try{
 				const response = await axios.get(API + 'flowers?limit=' + limit + '&offset=' + offset)
 				this.remoteFlowers = this.remoteFlowers.concat(response.data.flowers);
-			}catch(e){
-				//this.errors.push({message:e});
+			}catch(_){
+				//this.errors.push({message:_});
 			}
 		},
 		async updateAndConcatLocalFlowers({limit, offset}){
@@ -244,16 +243,16 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			try{
 				const response = await axios.get(API + 'flowers?limit=' + limit + '&offset=' + offset)
 				this.lastAdded = response.data.flowers;
-			}catch(e){
-				//this.errors.push({message:e});
+			}catch(_){
+				//this.errors.push({message:_});
 			}
 		},
 		async updateRemoteMutations({flower, limit, offset}){
 			try{
 				const response = await axios.get(API + 'mutations/' + flower.id + '?limit=' + limit + '&offset=' + offset)
 				this.mutations = response.data;
-			}catch(e){
-				//this.errors.push({message:e});
+			}catch(_){
+				//this.errors.push({message:_});
 			}
 		},
 		async updateLocalMutations({flower, limit, offset}){
@@ -274,8 +273,8 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			try{
 				const response = await axios.get(API + 'mutations/' + flower.id +'?limit=' + limit + '&offset=' + offset)
 				this.mutations = this.mutations.concat(response.data);
-			}catch(e){
-				//this.errors.push({message:e});
+			}catch(_){
+				//this.errors.push({message:_});
 			}
 		},
 		async updateAndConcatLocalMutations({flower, limit, offset}){
@@ -301,8 +300,8 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					const response = await axios.get(API + 'ancestors/' + flower1.id + '/' + flower2.id + '?limit=' + limit + '&offset=' + offset)
 					this.ancestors = response.data;
 				}
-			}catch(e){
-				//this.errors.push({message:e});
+			}catch(_){
+				//this.errors.push({message:_});
 			}
 		},
 		async updateLocalAncestors({flower1, flower2, limit, offset}){
@@ -341,8 +340,8 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					const response = await axios.get(API + 'ancestors/' + flower1.id + '/' + flower2.id + '?limit=' + limit + '&offset=' + offset)
 					this.ancestors = this.ancestors.concat(response.data);
 				}
-			}catch(e){
-				//this.errors.push({message:e});
+			}catch(_){
+				//this.errors.push({message:_});
 			}
 		},
 		async updateAndConcatLocalAncestors({flower1, flower2, limit, offset}){
@@ -375,7 +374,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			.then(response => {
 				this.remoteFlowers.unshift(response.data);
 				this.lastAdded.unshift(response.data);
-			}).catch(_e => {
+			}).catch(_ => {
 				this.errors.push({message: "cannot make a remote flower, server offline."});
 			});
 		},
@@ -391,8 +390,8 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					try{
 						genome = this.fe.makeFlower(this.settings.params.radius, this.settings.params.numLayers, 
                                                         this.settings.params.P, this.settings.params.bias);
-					}catch(e){
-						//this.errors.push({message: this.fe.getExceptionMessage(e)});
+					}catch(_){
+						//this.errors.push({message: this.fe.getExceptionMessage(_)});
 						this.errors.push({message: "couldn't make a local flower."});
 						return;
 					}
@@ -421,8 +420,8 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					try{
 						this.fe.drawFlower(flower.genome, this.settings.params.radius, this.settings.params.numLayers, 
                                                 this.settings.params.P, this.settings.params.bias);
-					}catch(e){
-						//this.errors.push({message: this.fe.getExceptionMessage(e)});
+					}catch(_){
+						//this.errors.push({message: this.fe.getExceptionMessage(_)});
 						this.errors.push({message: "couldn't redraw a local flower."});
 						return;
 					}
@@ -486,8 +485,8 @@ export const useFlowersStore = defineStore('FlowersStore', {
 						genome = this.fe.reproduce(f1.genome, f2.genome,
                                                         this.settings.params.radius, this.settings.params.numLayers, 
                                                         this.settings.params.P, this.settings.params.bias);
-					}catch(e){
-						//this.errors.push({message: this.fe.getExceptionMessage(e)});
+					}catch(_){
+						//this.errors.push({message: this.fe.getExceptionMessage(_)});
 						this.errors.push({message: "couldn't reproduce some local flowers."});
 						return;
 					}
@@ -545,8 +544,8 @@ export const useFlowersStore = defineStore('FlowersStore', {
                                                     this.settings.mutationRates.disableRate, 
                                                     this.settings.mutationRates.actTypeRate
                                                 );
-					}catch(e){
-						//this.errors.push({message: this.fe.getExceptionMessage(e)});
+					}catch(_){
+						//this.errors.push({message: this.fe.getExceptionMessage(_)});
 						this.errors.push({message: "couldn't mutate a local flower."});
 						return;
 					}

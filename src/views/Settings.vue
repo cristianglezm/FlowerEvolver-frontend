@@ -315,7 +315,7 @@ const redrawLocalFlowers = async () => {
             progress: e.data.progress,
         });
     };
-    workers.redrawWorker.onerror = (_e) => {
+    workers.redrawWorker.onerror = (_) => {
         store.errors.push({message: "redraw Web Worker had an error."});
     };
     workers.redrawWorker.postMessage({
@@ -477,7 +477,7 @@ const exportFlowers = (type) => {
             }
         }
     };
-    workers.exportWorker.onerror = (_e) => {
+    workers.exportWorker.onerror = (_) => {
         store.errors.push({message: "export Web Worker had an error."});
     };
     workers.exportWorker.postMessage({

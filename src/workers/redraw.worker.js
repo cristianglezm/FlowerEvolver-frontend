@@ -47,8 +47,8 @@ self.onmessage = async (e) => {
             ++progress;
             try{
                 FE.drawFlower(f.genome, params.radius, params.numLayers, params.P, params.bias);
-            }catch(e){
-                //console.error(FE.getExceptionMessage(e));
+            }catch(_){
+                //console.error(FE.getExceptionMessage(_));
                 console.error("redraw could not draw flower with id " + f.id);
                 continue;
             }

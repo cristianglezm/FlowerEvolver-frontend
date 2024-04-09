@@ -46,8 +46,8 @@ self.onmessage = async (e) => {
             let genome;
             try{
                 genome = FE.makeFlower(params.radius, params.numLayers, params.P, params.bias);
-            }catch(e){
-                //console.error(FE.getExceptionMessage(e));
+            }catch(_){
+                //console.error(FE.getExceptionMessage(_));
                 console.error("garden could not draw a flower");
                 continue;
             }

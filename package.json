@@ -8,7 +8,7 @@
         "build": "vite build",
         "buildGHP": "vite build --base=/FlowerEvolver-frontend/",
         "dev": "vite",
-        "lint": "eslint --ext .js,.vue --ignore-path .gitignore --fix src"
+        "lint": "eslint --fix src"
     },
     "dependencies": {
         "@cristianglezm/flower-evolver-wasm": "^1.0.5",
@@ -22,9 +22,11 @@
         "vue-router": "^4.0.11"
     },
     "devDependencies": {
+        "@eslint/js": "^9.0.0",
         "@vitejs/plugin-vue": "^4.3.4",
-        "eslint": "^8.49.0",
-        "eslint-plugin-vue": "^9.24.0",
+        "eslint": "^9.0.0",
+        "eslint-plugin-vue": "^9.24.1",
+        "globals": "^15.0.0",
         "vite": "^5.2.7"
     },
     "browserslist": [

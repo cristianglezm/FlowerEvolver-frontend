@@ -53,8 +53,8 @@ const importFlower = async (self, json, toFavs) => {
     flower.genome = JSON.stringify(json);
     try{
         FE.drawFlower(flower.genome, params.radius, params.numLayers, params.P, params.bias);
-    }catch(e){
-        //console.error(FE.getExceptionMessage(e));
+    }catch(_){
+        //console.error(FE.getExceptionMessage(_));
         console.error("importer could not import flower");
         self.postMessage({
             type: "updateProgress",
@@ -86,8 +86,8 @@ const importGeneration = async (self, batchSize, json, toFavs) => {
         flower.genome = JSON.stringify({ Flower: f});
         try{
             FE.drawFlower(flower.genome, params.radius, params.numLayers, params.P, params.bias);
-        }catch(e){
-            //console.error(FE.getExceptionMessage(e));
+        }catch(_){
+            //console.error(FE.getExceptionMessage(_));
             console.error("importer could not import flower " + (progress - 1));
             self.postMessage({
                 type: "updateProgress",
@@ -128,8 +128,8 @@ const importSession = async (self, batchSize, json, toFavs) => {
             flower.genome = JSON.stringify({ Flower: f});
             try{
                 FE.drawFlower(flower.genome, params.radius, params.numLayers, params.P, params.bias);
-            }catch(e){
-                //console.error(FE.getExceptionMessage(e));
+            }catch(_){
+                //console.error(FE.getExceptionMessage(_));
                 console.error("importer could not import flower " + (progress - 1));
                 self.postMessage({
                     type: "updateProgress",
