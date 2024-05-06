@@ -131,17 +131,17 @@
     onMounted(() => {
         if(props.isLocal){
             parseParams();
+            store.isFavourited(props.id)
+                .then((isFav) => {
+                    if(isFav){
+                        data.heartIconSrc = loadImage("heart_full.png","x32");
+                    }
+                });
         }
         data.selected = isSelected();
         emitter.on('checkSelected', () => {
             data.selected = isSelected();
         });
-        store.isFavourited(props.id)
-            .then((isFav) => {
-                if(isFav){
-                    data.heartIconSrc = loadImage("heart_full.png","x32");
-                }
-            });
     });
     onUnmounted(() => {
         emitter.off('checkSelected');
