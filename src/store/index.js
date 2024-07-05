@@ -369,11 +369,24 @@ export const useFlowersStore = defineStore('FlowersStore', {
 				this.errors.push({message:e});
 			}
 		},
+		async shareFlower(genome){
+		    await axios.post(API + 'flowers', genome, {
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			}).catch(_ => {
+		        this.errors.push({message: "something went wrong while trying to share the flower"});
+		    });
+		},
 		async makeRemoteFlower(){
-			await axios.post(API + 'flowers',{})
-			.then(response => {
-				this.remoteFlowers.unshift(response.data);
-				this.lastAdded.unshift(response.data);
+			await axios.post(API + 'flowers', {}, {
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			}).then(async response => {
+				let flower = response.data;
+				this.remoteFlowers.unshift(flower);
+				this.lastAdded.unshift(flower);
 			}).catch(_ => {
 				this.errors.push({message: "cannot make a remote flower, server offline."});
 			});

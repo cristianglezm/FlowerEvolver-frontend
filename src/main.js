@@ -20,4 +20,3 @@ app.config.globalProperties.$emitter = emitter;
 app.provide('appStore', store);
 app.provide('emitter', emitter);
 app.mount('#app');
-
