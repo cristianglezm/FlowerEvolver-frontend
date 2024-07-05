@@ -12,6 +12,7 @@
           <ul>
             <li><a @click="mutate(); data.clicked = !data.clicked;">Mutate</a></li>
             <li><a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a></li>
+            <li><a @click="shareFlower(); data.clicked = !data.clicked;">Share</a></li>
             <li><a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a></li>
             <li><a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a></li>
             <li><a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a></li>
@@ -173,6 +174,9 @@
             store.selectRemoteFlower({id: props.id, genome: props.genome,image: props.image});
         }
         emitter.emit('checkSelected');
+    };
+    const shareFlower = () => {
+        store.shareFlower(props.genome);
     };
     const showMutations = () => {
         let localOr = props.isLocal ? "local":"remote";
