@@ -375,7 +375,11 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					'Content-Type': 'application/json'
 				}
 			}).catch(_ => {
-		        this.errors.push({message: "something went wrong while trying to share the flower"});
+				if(_.response === undefined){
+					this.errors.push({message: "cannot share flower, server offline"});
+				}else{
+					this.errors.push({message: _.response.data});
+				}
 		    });
 		},
 		async makeRemoteFlower(){
@@ -388,7 +392,11 @@ export const useFlowersStore = defineStore('FlowersStore', {
 				this.remoteFlowers.unshift(flower);
 				this.lastAdded.unshift(flower);
 			}).catch(_ => {
-				this.errors.push({message: "cannot make a remote flower, server offline."});
+				if(_.response === undefined){
+					this.errors.push({message: "cannot make a remote flower, server offline."});
+				}else{
+					this.errors.push({message: _.response.data});
+				}
 			});
 		},
 		async makeLocalFlower(){
@@ -477,7 +485,11 @@ export const useFlowersStore = defineStore('FlowersStore', {
 					this.ancestors.unshift(response.data);
 				})
 				.catch(_ => {
-					this.errors.push({message:"cannot reproduce remote flowers, server offline."});
+					if(_.response === undefined){
+						this.errors.push({message:"cannot reproduce remote flowers, server offline."});
+					}else{
+						this.errors.push({message: _.response.data});
+					}
 				});
 			}else{
 				this.errors.push({message:"There are no Flowers Selected"});
@@ -533,7 +545,11 @@ export const useFlowersStore = defineStore('FlowersStore', {
 				this.mutations.unshift(response.data);
 			})
 			.catch(_ => {
-				this.errors.push({message:"cannot mutate a remote flower, server offline."});
+				if(_.response === undefined){
+					this.errors.push({message:"cannot mutate a remote flower, server offline."});
+				}else{
+					this.errors.push({message: _.response.data});
+				}
 			});
 		},
 		async makeLocalMutation(flower){

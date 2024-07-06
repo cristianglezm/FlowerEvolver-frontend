@@ -32,6 +32,7 @@ services:
         USER: fe # username for mysql
         ENV: production # set to production
         ORIGINS: 'http://localhost/' # domain name for frontend
+        FLOWER_LIMIT: 5000 # max number of flower
         SECRET_KEY: 'not_really_needed' # no sessions used
 #      ports:
 #        - 5000:5000
