@@ -13,7 +13,7 @@
     "dependencies": {
         "@cristianglezm/flower-evolver-wasm": "^1.0.5",
         "axios": "^1.7.2",
-        "dexie": "^4.0.7",
+        "dexie": "^4.0.8",
         "mitt": "^3.0.1",
         "pinia": "^2.1.6",
         "vite-plugin-eslint": "^1.8.1",
