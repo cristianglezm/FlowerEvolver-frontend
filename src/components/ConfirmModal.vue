@@ -5,7 +5,7 @@
         <h2>{{ data.title }}</h2>
         <span class="close" @click="closeModal()">&times;</span>
       </div>
-      <p>{{ data.message }}</p>
+      <p style="text-align: center;">{{ data.message }}</p>
       <div>
         <button @click="closeModal()">{{ data.btnNo }}</button>
         <button @click="data.accept(data.dialog)">{{ data.btnYes }}</button>
@@ -113,6 +113,7 @@ onBeforeUnmount(() => {
         width: 50%;
         display: flex;
         flex-flow: column nowrap;
+        text-align: center;
     }
     .ConfirmModal-container p{
         overflow: auto;
@@ -124,7 +125,6 @@ onBeforeUnmount(() => {
         color: lightgreen;
         border-color: lightgreen;
         position: relative;
-        left: 35%;
         margin-bottom: 0.6rem;
         cursor: pointer;
         margin-left: 0.31rem;
@@ -136,7 +136,6 @@ onBeforeUnmount(() => {
             width: 90%;
         }
         .ConfirmModal-container button{
-            left: 20%;
             transform: translate(20%);
             font-size: 0.9rem;
         }

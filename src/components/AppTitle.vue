@@ -17,12 +17,36 @@
 import { onMounted, reactive } from 'vue';
 import { STORAGE_KEY_GARDEN, useFlowersStore } from '../store';
 import gardenWorker from '../workers/garden.worker?worker';
+import WorkerManager from '../store/WorkerManager';
+import mitt from 'mitt';
 
 const gardenRadius = 8;
 const STORAGE_KEY_WARNING = "FlowerEvolverShowWarning";
 
-let worker = gardenWorker();
 let store = useFlowersStore();
+const emitter = mitt();
+let wm = new WorkerManager(emitter);
+
+wm.addWorker('garden', gardenWorker());
+wm.onError('garden', (e) => {
+    store.errors.push({ message: e});
+});
+wm.onResponse('garden', (e) => {
+    let position = {
+        x: Math.floor(e.id * (gardenRadius * 4)),
+        y: data.flowerGardenRect.height - (gardenRadius * 3 + 4)
+    };
+    let ready = e.ready;
+    if(ready){
+        // this will be used in settings to export the garden.
+        sessionStorage.setItem(STORAGE_KEY_GARDEN, e.garden);
+        wm.deleteWorker('garden');
+    }else{
+        let flowerGarden = document.getElementById("flowerGarden");
+        let ctx = flowerGarden.getContext("2d");
+        ctx.drawImage(e.image, position.x, position.y);
+    }
+});
 
 const data = reactive({
     showWarning: JSON.parse(localStorage.getItem(STORAGE_KEY_WARNING) || "true"),
@@ -30,30 +54,10 @@ const data = reactive({
     flowerGardenRect: {width:200, height:200},
 });
 
-worker.onmessage = (e) =>{
-    let position = {
-        x: Math.floor(e.data.id * (gardenRadius * 4)),
-        y: data.flowerGardenRect.height - (gardenRadius * 3 + 4)
-    };
-    let ready = e.data.ready;
-    if(ready){
-        // this will be used in settings to export the garden.
-        sessionStorage.setItem(STORAGE_KEY_GARDEN, e.data.garden);
-        worker.terminate();
-    }else{
-        let flowerGarden = document.getElementById("flowerGarden");
-        let ctx = flowerGarden.getContext("2d");
-        ctx.drawImage(e.data.image, position.x, position.y);
-    }
-};
-worker.onerror = (e) => {
-    store.errors.push({message: e});
-};
-
 onMounted(() => {
     data.flowerGardenRect = getRect();
     let numFlowers = data.flowerGardenRect.width / (gardenRadius * 4);
-    worker.postMessage({
+    wm.sendRequest('garden', {
         numFlowers: numFlowers,
         radius: gardenRadius
     });
