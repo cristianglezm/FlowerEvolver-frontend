@@ -298,6 +298,7 @@ const deleteNonFavourites = () => {
                 ids[id] = id;
                 flowers[id].id = id;
             }
+            /// @todo keep descriptions for favourites.
             store.localSelected.flowers = [];
             store.localSelected.index = 0;
             store.db.delete();
