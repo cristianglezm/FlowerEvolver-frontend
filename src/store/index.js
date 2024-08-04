@@ -417,7 +417,7 @@ export const useFlowersStore = defineStore('FlowersStore', {
 						return;
 					}
 					let id = await this.db.flowers.add({
-						genome: genome, 
+						genome: genome,
 						image: this.getDataURL()
 					});
 					let f = await this.db.flowers.get(id);
@@ -461,8 +461,9 @@ export const useFlowersStore = defineStore('FlowersStore', {
 		async deleteLocalFlower(id){
 			this.localSelected.flowers = [];
 			this.localSelected.index = 0;
-			const handleError = (e) => this.errors.push({message:e});
+			const handleError = (e) => this.errors.push({ message: e });
 			await this.db.favourites.delete(id).catch(handleError);
+			await this.db.descriptions.delete(id).catch(handleError);
 			await this.db.descendants.delete(id).catch(handleError);
 			await this.db.flowers.delete(id).catch(handleError);
 			this.db.mutations.where("original").equals(id).or(":id").equals(id).toArray()
