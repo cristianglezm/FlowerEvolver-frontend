@@ -18,12 +18,14 @@ import FlowersTable from '../components/FlowersTable.vue';
 import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
 import ProgressModal from '../components/ProgressModal.vue';
 import { useFlowersStore } from '../store';
+import { useAIStore } from '../store/AIStore';
 import { useRoute, useRouter } from 'vue-router';
 import importWorker from '../workers/import.worker?worker';
 
 const routes = useRoute();
 const router = useRouter();
 const store = useFlowersStore();
+const AIStore = useAIStore();
 const emitter = inject('emitter');
 const data = reactive({
     offset: 0,
@@ -49,6 +51,7 @@ onMounted(() => {
         store.getLocalFlowersCount().then(c => data.totalPages = Math.round(c / store.settings.limit));
     }else{
         store.updateLocalFlowers({limit: store.settings.limit, offset: data.offset});
+        AIStore.loadLocalDescriptions(data.offset, store.settings.limit);
         data.offset = store.increaseOffset(data.offset);
     }
     loadDemoFlowers();
@@ -59,12 +62,14 @@ const nextBatch = () => {
 };
 const updateFlowers = (limit, offset) => {
     store.updateAndConcatLocalFlowers({limit:limit, offset:offset});
+    AIStore.loadAndConcatLocalDescriptions(offset, limit);
     data.offset = store.increaseOffset(offset);
 };
 const getFlowersFrom = (page) => {
     nextTick(() => {
         data.offset = store.calcOffset(page);
         store.updateLocalFlowers({limit: store.settings.limit, offset: data.offset});
+        AIStore.loadLocalDescriptions(data.offset, store.settings.limit);
     });
 };
 const prevPage = () => {

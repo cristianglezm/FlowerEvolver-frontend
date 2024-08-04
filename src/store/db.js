@@ -5,5 +5,6 @@ db.version(1).stores({
     flowers: '++id', // genome and image are not to be indexed
     mutations:'id, original',
     descendants:'id, father, mother',
-    favourites:', &id'
+    favourites:', &id',
+    descriptions: 'id, description'
 });

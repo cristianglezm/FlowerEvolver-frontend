@@ -15,7 +15,10 @@ export default defineConfig({
         },
     },
     build: {
-	chunkSizeWarningLimit: 2500,
+	    chunkSizeWarningLimit: 2500,
+    },
+    esbuild: {
+        legalComments: 'inline',
     },
     envPrefix: ["VITE_APP_"],
     sourcemap: process.env.NODE_ENV === "production" ? false : true,
