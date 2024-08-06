@@ -150,11 +150,10 @@
         AIStore.channel.on('captioner#done', (e) => {
             if(e.id === props.id){
                 data.description = "Flower " + props.id + " - " + e.description;
-                if(props.isLocal){
-                    store.errors.push({message: AIStore.getLocalDescription(props.id)});
-                }else{
-                    store.errors.push({message: AIStore.getRemoteDescription(props.id)});
-                }
+                emitter.emit('updateDesc', {
+                    loading: false,
+                    description: e.description
+                });
             }
         });
         data.selected = isSelected();
@@ -198,19 +197,47 @@
         store.shareFlower(props.genome);
     };
     const describe = () => {
+        if(!store.settings.loadModel){
+            store.errors.push({message: "check load model option in Settings to use this."});
+            return;
+        }
         if(props.isLocal){
             if(AIStore.localDescriptions.has(props.id)){
-                // @todo replace by modal to show desc
-                store.errors.push({message: AIStore.getLocalDescription(props.id)});
+                emitter.emit('showDescriptionModal', {
+                    FlowerImage: getImage(),
+                    FlowerID: props.id
+                });
+                setTimeout(() => {
+                    emitter.emit('updateDesc', {
+                        loading: false,
+                        description: AIStore.getLocalDescription(props.id)
+                    });
+                }, 500);
             }else{
                 AIStore.requestDescription({ id: props.id, image: props.image, isLocal: props.isLocal });
+                emitter.emit('showDescriptionModal', {
+                    FlowerImage: getImage(),
+                    FlowerID: props.id
+                });
             }
         }else{
             if(AIStore.remoteDescriptions.has(props.id)){
-                // @todo replace by modal to show desc
-                store.errors.push({message: AIStore.getRemoteDescription(props.id)});
+                emitter.emit('showDescriptionModal', {
+                    FlowerImage: getImage(),
+                    FlowerID: props.id
+                });
+                setTimeout(() => {
+                    emitter.emit('updateDesc', {
+                        loading: false,
+                        description: AIStore.getRemoteDescription(props.id)
+                    });
+                }, 500);
             }else{
                 AIStore.requestDescription({ id: props.id, image: props.image, isLocal: props.isLocal });
+                emitter.emit('showDescriptionModal', {
+                    FlowerImage: getImage(),
+                    FlowerID: props.id
+                });
             }
         }
     };
