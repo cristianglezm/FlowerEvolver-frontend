@@ -1,7 +1,6 @@
 <template>
   <div style="background-color: rgb(37, 39, 41); padding: 0.6rem;">
     <div id="settings-container">
-      <ProgressModal :id="'progressBar'" :channel="emitter" :on="'showProgress'" :update="'updateProgress'" />
       <UploadFileModal :id="'importModal'" :channel="emitter" :on="'showImport'" />
       <div id="settings-options" class="settings-box">
         <h2>Options</h2>
@@ -15,6 +14,11 @@
           <label for="loadDemoFlowers">Load Demo Flowers: </label>
           <input id="loadDemoFlowers" v-model="store.settings.loadDemoFlowers" type="checkbox" @change="saveSettings()">
         </div>
+        <div id="loadModel-option" class="option-box labelInputArea">
+          <ToolTip :info="'if checked the model will download / load when the website is loaded.'" />
+          <label for="loadModel">Load Model: </label>
+          <input id="loadModel" v-model="store.settings.loadModel" type="checkbox" @change="saveSettings()">
+        </div>
         <div id="persists-option" class="option-box labelInputArea">
           <ToolTip :info="'it will keep data even when low on space'" />
           <label for="persist">Persistent storage: </label>
@@ -27,7 +31,7 @@
             <input id="setLimit" v-model.number="store.settings.limit" type="number" min="1" @change="validateLimit()">
           </div>
           <div style="color: lightgreen; text-align: center;"> 
-            <ToolTip :info="'Space used by the flowers (usage / quota) if persistent storage is enabled it will use a bit more space.'" />
+            <ToolTip :info="'Space used by the flowers (usage / quota) if persistent storage is enabled it will use a bit more space, the model adds around 240mb'" />
             {{ data.spaceUsage.toFixed(2) }} / {{ data.spaceQuota.toFixed(2) }} MB
           </div>
         </div>
@@ -35,7 +39,7 @@
       <div id="params-settings" class="settings-box">
         <h2>Creation parameters</h2>
         <div class="labelInputArea">
-          <ToolTip :info="'radius of the flower, min: 4 and max: 256, for bigger radius use the native app.'" />
+          <ToolTip :info="'radius of the flower, min: 4 and max: 256, for bigger radius use the desktop app.'" />
           <label for="params-radius">Radius: </label>
           <input id="params-radius" v-model.number="params.radius" type="number" min="4" max="256" @change="validateParams()">
         </div>
@@ -153,7 +157,6 @@
 import { reactive, inject, toRaw, onBeforeUnmount, onMounted } from 'vue';
 import ToolTip from '../components/ToolTip.vue';
 import { useFlowersStore, STORAGE_KEY, STORAGE_KEY_GARDEN } from '../store';
-import ProgressModal from '../components/ProgressModal.vue';
 import UploadFileModal from '../components/UploadFileModal.vue';
 import redrawWorker from '../workers/redraw.worker?worker';
 import exportWorker from '../workers/export.worker?worker';
@@ -294,11 +297,17 @@ const deleteNonFavourites = () => {
         onConfirm: async (dialog) => {
             let ids = await store.db.favourites.toArray();
             let flowers = await store.db.flowers.bulkGet(ids);
-            for(let id = 1;id < flowers.length; ++id){
-                ids[id] = id;
-                flowers[id].id = id;
+            let descs = await store.db.descriptions.bulkGet(ids);
+            for(let id = 0;id < flowers.length; ++id){
+                ids[id] = id + 1;
+                flowers[id].id = id + 1;
+                if(descs[id] !== undefined){
+                    descs[id].id = id + 1;
+                }
             }
-            /// @todo keep descriptions for favourites.
+            descs = descs.filter((d) => {
+                return d !== undefined;
+            });
             store.localSelected.flowers = [];
             store.localSelected.index = 0;
             store.db.delete();
@@ -306,6 +315,7 @@ const deleteNonFavourites = () => {
             store.db.flowers.bulkAdd(flowers);
             dialog.close();
             await store.db.favourites.bulkAdd(ids, ids);
+            await store.db.descriptions.bulkAdd(descs);
             calcSpace();
         }
     });
