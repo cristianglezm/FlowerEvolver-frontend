@@ -1,6 +1,6 @@
 import { pipeline, env } from '@xenova/transformers';
 
-env.userBrowserCache = false;
+env.userBrowserCache = true;
 env.allowLocalModels = false;
 
 const BACKEND = import.meta.env.VITE_APP_DOWNLOAD_URL;
