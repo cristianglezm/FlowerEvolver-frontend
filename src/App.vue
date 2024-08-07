@@ -1,6 +1,7 @@
 <template>
   <div id="app-container">
     <ProgressModal :id="'progressBar'" :channel="emitter" :on="'showProgress'" :update="'updateProgress'" />
+    <MultiProgressNodal :id="'multiProgressBar'" :channel="emitter" :on="'requestMultiProgressBar'" />
     <DescriptionModal :id="'descriptionModal'" :channel="emitter" :on="'showDescriptionModal'" :update="'updateDesc'" />
     <AppTitle />
     <AppMenu :is-local="isLocal()" />
@@ -13,6 +14,7 @@
 
 import { onMounted, inject } from 'vue';
 import ProgressModal from './components/ProgressModal.vue';
+import MultiProgressNodal from './components/MultiProgressModal.vue';
 import DescriptionModal from './components/DescriptionModal.vue';
 import AppTitle from './components/AppTitle.vue';
 import AppMenu from './components/AppMenu.vue';
@@ -27,36 +29,35 @@ const store = useFlowersStore();
 
 emitter.on('loadModel', () => {
   setTimeout(() => {
-      let progress = 1;
-      emitter.emit('showProgress', {
+      emitter.emit('requestMultiProgressBar', {
+            status: "setup",
             title: "downloading or loading model for describing flowers",
-            progress: 0,
-            total: 100,
-            onLoad: () => {
+            onLoad: async () => {
               Captioner.getInstance((data) => {
-                console.log();
-                switch(data.status){
-                  case "initialize":{
-
+                  switch(data.status){
+                    case "initiate":{
+                        let event = {
+                          status: "init",
+                          name: data.file,
+                          progress: 0,
+                          total: 100
+                        };
+                        emitter.emit('requestMultiProgressBar', event);
+                    }
+                      break;
+                    case "progress":{
+                        let event = {
+                          status: "update",
+                          name: data.file,
+                          progress: data.progress
+                        };
+                        emitter.emit('requestMultiProgressBar', event);
+                    }
+                      break;
                   }
-                    break;
-                  case "progress":{
-
-                  }
-                    break;
-                  case "ready":
-                      progress = 100;
-                    break;
-                  default:
-                      progress = 50;
-                    break;
-                }
-                emitter.emit('updateProgress', {
-                                progress: progress
-                            });
               });
             }
-        });
+      });
     }, 2000);
 });
 
@@ -75,7 +76,7 @@ onMounted(() => {
 
 <style>
 @font-face {
-  /**
+  /*!
             SIL Open Font License 1.1 - Copyright (c) 2023, GitHub
             https://github.com/githubnext/monaspace
             with Reserved Font Name "Monaspace", including subfamilies: "Argon", "Neon", "Xenon", "Radon", and "Krypton"
