@@ -7,5 +7,5 @@
     * [x] make component to show flower descriptions
     * [x] change (i) in settings for space to add that around 240mb is the model.
     * [x] add load model option.
-    * [ ] refactor - AppTitle, Settings workers to use WorkerManager.
+    * [x] refactor - AppTitle, Settings workers to use WorkerManager.
     * [ ] refactor - split store into stores

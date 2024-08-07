@@ -17,7 +17,7 @@
         <div id="loadModel-option" class="option-box labelInputArea">
           <ToolTip :info="'if checked the model will download / load when the website is loaded.'" />
           <label for="loadModel">Load Model: </label>
-          <input id="loadModel" v-model="store.settings.loadModel" type="checkbox" @change="saveSettings()">
+          <input id="loadModel" v-model="store.settings.loadModel" type="checkbox" @change="saveSettings(); loadModel();">
         </div>
         <div id="persists-option" class="option-box labelInputArea">
           <ToolTip :info="'it will keep data even when low on space'" />
@@ -161,9 +161,13 @@ import UploadFileModal from '../components/UploadFileModal.vue';
 import redrawWorker from '../workers/redraw.worker?worker';
 import exportWorker from '../workers/export.worker?worker';
 import importWorker from '../workers/import.worker?worker';
+import WorkerManager from '../store/WorkerManager';
+import mitt from 'mitt';
 
 const store = useFlowersStore();
 let emitter = inject('emitter');
+let channel = mitt();
+let wm = new WorkerManager(channel);
 
 const data = reactive({
     persisted: false,
@@ -186,12 +190,68 @@ const mutationRates = reactive({
     disableRate: store.settings.mutationRates.disableRate,
     actTypeRate: store.settings.mutationRates.actTypeRate
 });
-const workers = {
-    redrawWorker: redrawWorker(),
-    exportWorker: exportWorker(),
-    importWorker: importWorker()
-};
 
+wm.addWorker('redraw', redrawWorker());
+wm.addWorker('exporter', exportWorker());
+wm.addWorker('importer', importWorker());
+
+const onError = (e) => {
+    store.errors.push({ message: e});
+};
+wm.onError('redraw', onError);
+wm.onResponse('redraw', (e) => {
+    emitter.emit('updateProgress', {
+        progress: e.progress,
+    });
+});
+wm.onError('importer', onError);
+wm.onResponse('importer', (e) => {
+    let type = e.type;
+    if(type === "showProgress"){
+        showProgressBar(e.title, e.total, () => {});
+    }else if(type === "updateProgress"){
+        emitter.emit('updateProgress', {
+            progress: e.progress,
+        });
+    }else if(type === "done"){
+        calcSpace();
+    }
+});
+wm.onError('exporter', onError);
+wm.onResponse('exporter', (e) => {
+    let type = e.type;
+    let ready = e.ready;
+    if(type == "favourites"){
+        if(ready){
+            let gen = e.filedata;
+            const a = document.createElement("a");
+            a.href = 'data:text/json;charset=utf-8,' + JSON.stringify(gen);
+            a.download = "favouritesFlowers.json";
+            a.click();
+        }else{
+            emitter.emit('updateProgress', {
+                progress: e.progress,
+            });
+        }
+    }else if(type == "all"){
+        if(ready){
+            let gen = e.filedata;
+            const a = document.createElement("a");
+            a.href = 'data:text/json;charset=utf-8,' + JSON.stringify(gen);
+            a.download = "localFlowers.json";
+            a.click();
+        }else{
+            emitter.emit('updateProgress', {
+                progress: e.progress,
+            });
+        }
+    }
+});
+const loadModel = () => {
+    if(store.settings.loadModel){
+        emitter.emit('loadModel');
+    }
+};
 const restoreDefaults = () => {
     params.radius = 64;
     params.numLayers = 3;
@@ -226,9 +286,9 @@ onMounted(() => {
     calcSpace();
 });
 onBeforeUnmount(() => {
-    workers.redrawWorker.terminate();
-    workers.exportWorker.terminate();
-    workers.importWorker.terminate();
+    wm.deleteWorker('redraw');
+    wm.deleteWorker('exporter');
+    wm.deleteWorker('importer');
 });
 
 const clamp = (val, min, max) => {
@@ -321,15 +381,7 @@ const deleteNonFavourites = () => {
     });
 };
 const redrawLocalFlowers = async () => {
-    workers.redrawWorker.onmessage = (e) => {
-        emitter.emit('updateProgress', {
-            progress: e.data.progress,
-        });
-    };
-    workers.redrawWorker.onerror = (_) => {
-        store.errors.push({message: "redraw Web Worker had an error."});
-    };
-    workers.redrawWorker.postMessage({
+    wm.sendRequest('redraw', {
         batchSize: store.settings.limit,
         params: structuredClone(toRaw(params))
     });
@@ -411,22 +463,7 @@ const importFiles = async (files, toFavs) => {
         store.errors.push({message: "You must upload at least one json file."});
         return;
     }
-    workers.importWorker.onmessage = (e) => {
-        let type = e.data.type;
-        if(type === "showProgress"){
-            showProgressBar(e.data.title, e.data.total, () => {});
-        }else if(type === "updateProgress"){
-            emitter.emit('updateProgress', {
-                progress: e.data.progress,
-            });
-        }else if(type === "done"){
-            calcSpace();
-        }
-    };
-    workers.importWorker.onerror = (e) => {
-        store.errors.push({message: e});
-    };
-    workers.importWorker.postMessage({
+    wm.sendRequest('importer', {
         files: files,
         toFavs: toFavs,
         batchSize: store.settings.limit
@@ -459,39 +496,7 @@ const exportFlowers = (type) => {
         a.click();
         return;
     }
-    workers.exportWorker.onmessage = (e) => {
-        let type = e.data.type;
-        let ready = e.data.ready;
-        if(type == "favourites"){
-            if(ready){
-                let gen = e.data.filedata;
-                const a = document.createElement("a");
-                a.href = 'data:text/json;charset=utf-8,' + JSON.stringify(gen);
-                a.download = "favouritesFlowers.json";
-                a.click();
-            }else{
-                emitter.emit('updateProgress', {
-                    progress: e.data.progress,
-                });
-            }
-        }else if(type == "all"){
-            if(ready){
-                let gen = e.data.filedata;
-                const a = document.createElement("a");
-                a.href = 'data:text/json;charset=utf-8,' + JSON.stringify(gen);
-                a.download = "localFlowers.json";
-                a.click();
-            }else{
-                emitter.emit('updateProgress', {
-                    progress: e.data.progress,
-                });
-            }
-        }
-    };
-    workers.exportWorker.onerror = (_) => {
-        store.errors.push({message: "export Web Worker had an error."});
-    };
-    workers.exportWorker.postMessage({
+    wm.sendRequest('exporter', {
         type: type,
         batchSize: store.settings.limit
     });

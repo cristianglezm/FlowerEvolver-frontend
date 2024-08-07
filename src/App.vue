@@ -25,15 +25,8 @@ const routes = useRoute();
 const emitter = inject('emitter');
 const store = useFlowersStore();
 
-const isLocal = () => {
-  return routes.path === '/Local' || 
-          routes.path === '/Favourites' || 
-          routes.params.isLocal === 'local' || 
-          routes.path === '/Settings';
-};
-onMounted(() => {
-  if(store.settings.loadModel){
-    setTimeout(() => {
+emitter.on('loadModel', () => {
+  setTimeout(() => {
       let progress = 1;
       emitter.emit('showProgress', {
             title: "downloading or loading model for describing flowers",
@@ -41,7 +34,16 @@ onMounted(() => {
             total: 100,
             onLoad: () => {
               Captioner.getInstance((data) => {
+                console.log();
                 switch(data.status){
+                  case "initialize":{
+
+                  }
+                    break;
+                  case "progress":{
+
+                  }
+                    break;
                   case "ready":
                       progress = 100;
                     break;
@@ -56,6 +58,17 @@ onMounted(() => {
             }
         });
     }, 2000);
+});
+
+const isLocal = () => {
+  return routes.path === '/Local' || 
+          routes.path === '/Favourites' || 
+          routes.params.isLocal === 'local' || 
+          routes.path === '/Settings';
+};
+onMounted(() => {
+  if(store.settings.loadModel){
+    emitter.emit('loadModel');
   }
 })
 </script>
