@@ -13,6 +13,7 @@
             <li><a @click="mutate(); data.clicked = !data.clicked;">Mutate</a></li>
             <li><a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a></li>
             <li><a @click="shareFlower(); data.clicked = !data.clicked;">Share</a></li>
+            <li><a @click="describe(); data.clicked = !data.clicked;">Describe</a></li>
             <li><a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a></li>
             <li><a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a></li>
             <li><a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a></li>
@@ -22,7 +23,7 @@
           </ul>
         </div>
       </div>
-      <img :id="'FlImage' + props.id" loading="lazy" :src="getImage()" :alt="'flower ' + props.id" class="FlowerImage">
+      <img :id="'FlImage' + props.id" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage">
       <p><strong>{{ props.id }}</strong></p>
     </div>
     <div v-else>
@@ -38,6 +39,7 @@
             <li><a @click="mutate(); data.clicked = !data.clicked;">Mutate</a></li>
             <li><a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a></li>
             <li><a @click="addToLocal(); data.clicked = !data.clicked;">Add to local</a></li>
+            <li><a @click="describe(); data.clicked = !data.clicked;">Describe</a></li>
             <li><a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a></li>
             <li><a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a></li>
             <li><a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a></li>
@@ -45,7 +47,7 @@
           </ul>
         </div>
       </div>
-      <img :id="'FlImage' + props.id" loading="lazy" :src="getImage()" :alt="'flower ' + props.id" class="FlowerImage">
+      <img :id="'FlImage' + props.id" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage">
       <p><strong>{{ props.id }}</strong></p>
     </div>
   </div>
@@ -54,6 +56,7 @@
 <script setup>
 
     import { useFlowersStore } from '../store';
+    import { useAIStore } from '../store/AIStore';
     import { onMounted, reactive, inject, onUnmounted } from 'vue';
     import { useRouter } from 'vue-router';
     import ParamsInfo from './ParamsInfo.vue';
@@ -106,6 +109,7 @@
     const data = reactive({
         IMAGES_URL: import.meta.env.VITE_APP_IMAGES_URL,
         DOWNLOAD_URL: import.meta.env.VITE_APP_DOWNLOAD_URL,
+        description: "Flower " + props.id + " - click describe for a better description",
         clicked: false,
         selected: false,
         index: 0,
@@ -128,6 +132,7 @@
     });
     const router = useRouter();
     const store = useFlowersStore();
+    const AIStore = useAIStore();
     const emitter = inject('emitter');
     onMounted(() => {
         if(props.isLocal){
@@ -138,7 +143,19 @@
                         data.heartIconSrc = loadImage("heart_full.png","x32");
                     }
                 });
+            if(AIStore.localDescriptions.has(props.id)){
+                data.description = "Flower " + props.id + " - " + AIStore.getLocalDescription(props.id);
+            }
         }
+        AIStore.channel.on('captioner#done', (e) => {
+            if(e.id === props.id){
+                data.description = "Flower " + props.id + " - " + e.description;
+                emitter.emit('updateDesc', {
+                    loading: false,
+                    description: e.description
+                });
+            }
+        });
         data.selected = isSelected();
         emitter.on('checkSelected', () => {
             data.selected = isSelected();
@@ -146,6 +163,7 @@
     });
     onUnmounted(() => {
         emitter.off('checkSelected');
+        AIStore.channel.off('captioner#done');
     });
 
     const deleteThisFlower = () => {
@@ -177,6 +195,51 @@
     };
     const shareFlower = () => {
         store.shareFlower(props.genome);
+    };
+    const describe = () => {
+        if(!store.settings.loadModel){
+            store.errors.push({message: "check load model option in Settings to use this."});
+            return;
+        }
+        if(props.isLocal){
+            if(AIStore.localDescriptions.has(props.id)){
+                emitter.emit('showDescriptionModal', {
+                    FlowerImage: getImage(),
+                    FlowerID: props.id
+                });
+                setTimeout(() => {
+                    emitter.emit('updateDesc', {
+                        loading: false,
+                        description: AIStore.getLocalDescription(props.id)
+                    });
+                }, 500);
+            }else{
+                AIStore.requestDescription({ id: props.id, image: props.image, isLocal: props.isLocal });
+                emitter.emit('showDescriptionModal', {
+                    FlowerImage: getImage(),
+                    FlowerID: props.id
+                });
+            }
+        }else{
+            if(AIStore.remoteDescriptions.has(props.id)){
+                emitter.emit('showDescriptionModal', {
+                    FlowerImage: getImage(),
+                    FlowerID: props.id
+                });
+                setTimeout(() => {
+                    emitter.emit('updateDesc', {
+                        loading: false,
+                        description: AIStore.getRemoteDescription(props.id)
+                    });
+                }, 500);
+            }else{
+                AIStore.requestDescription({ id: props.id, image: props.image, isLocal: props.isLocal });
+                emitter.emit('showDescriptionModal', {
+                    FlowerImage: getImage(),
+                    FlowerID: props.id
+                });
+            }
+        }
     };
     const showMutations = () => {
         let localOr = props.isLocal ? "local":"remote";

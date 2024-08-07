@@ -1,3 +1,3 @@
 ## TODO
 
-* [ ] refactor - split store into stores
+    * [ ] refactor - split store into stores
