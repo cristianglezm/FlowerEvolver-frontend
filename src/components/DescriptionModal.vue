@@ -192,7 +192,6 @@ const closeModal = () => {
             width: 90%;
         }
         .descriptionModal-container button{
-            left: 20%;
             transform: translate(20%);
             font-size: 0.9rem;
         }
