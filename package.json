@@ -15,7 +15,7 @@
         "axios": "^1.7.3",
         "dexie": "^4.0.8",
         "mitt": "^3.0.1",
-        "pinia": "^2.2.0",
+        "pinia": "^2.2.1",
         "vite-plugin-eslint": "^1.8.1",
         "vue": "^3.4.35",
         "vue-axios": "^3.5.2",
