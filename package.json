@@ -11,7 +11,7 @@
         "lint": "eslint --fix src"
     },
     "dependencies": {
-        "@cristianglezm/flower-evolver-wasm": "^1.0.5",
+        "@cristianglezm/flower-evolver-wasm": "^1.0.6",
         "axios": "^1.7.4",
         "dexie": "^4.0.8",
         "mitt": "^3.0.1",
