@@ -7,7 +7,7 @@ const BACKEND = import.meta.env.VITE_APP_DOWNLOAD_URL;
 
 export class Captioner{
     static task = 'image-to-text';
-    static model = 'Xenova/vit-gpt2-image-captioning';
+    static model = 'cristianglezm/ViT-GPT2-FlowerCaptioner-ONNX';
     static instance = null;
 
     static async getInstance(progress_callback = null){
