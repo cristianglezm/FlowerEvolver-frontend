@@ -178,6 +178,14 @@ const closeModal = () => {
         text-align: center;
         height: 90%;
     }
+    @media only screen and (max-width: 1280px){
+        #multiProgress-container{
+            width: 90%;
+        }
+        h1, h2{
+            font-size: 0.9rem;
+        }
+    }
     .bar-background{
         background-color: rgba(4, 97, 43, 0.986);
         box-shadow: inset 0rem 0rem 0.6rem 0.125rem black;
