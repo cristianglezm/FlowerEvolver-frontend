@@ -1,9 +1,19 @@
-import { pipeline, env } from '@xenova/transformers';
+import { pipeline, env } from '@huggingface/transformers';
 
 env.userBrowserCache = true;
 env.allowLocalModels = false;
 
+//@todo remove this - new onnx local test
+env.allowLocalModels = true;
+env.allowRemoteModels = false;
+env.localModelPath = 'http://localhost/';
+//
+
 const BACKEND = import.meta.env.VITE_APP_DOWNLOAD_URL;
+
+export const isGPUAvailable = () => {
+    return !!navigator.gpu;
+};
 
 export class Captioner{
     static task = 'image-to-text';
@@ -12,7 +22,16 @@ export class Captioner{
 
     static async getInstance(progress_callback = null){
         if(this.instance === null){
-            this.instance = pipeline(this.task, this.model, { progress_callback });
+            const device = isGPUAvailable() ? "webgpu":"wasm";
+            this.instance = pipeline(this.task, this.model,
+            {
+                dtype: {
+                    encoder_model: "q8",
+                    decoder_model_merged: "q8",
+                },
+                device: device,
+                progress_callback
+            });
         }
         return this.instance;
     }
@@ -43,4 +62,4 @@ export const describe = async (image) => {
     return output[0].generated_text;
 }
 
-export default { Captioner, describe };
+export default { isGPUAvailable, Captioner, describe };

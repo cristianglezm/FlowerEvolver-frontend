@@ -53,7 +53,8 @@ const props = defineProps({
     },
     anchor:{
         type: String,
-        required: false
+        required: false,
+        default: null
     }
 });
 let showButton = ref(false);
