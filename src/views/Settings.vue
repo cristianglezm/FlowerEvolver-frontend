@@ -127,6 +127,7 @@
         <button class="safe-button" @click="showExport('favourites')"> Export favourite flowers </button>
         <button class="safe-button" @click="showExport('all')"> Export local Flowers </button>
         <button class="safe-button" @click="showExport('garden')"> Export garden Flowers </button>
+        <button class="safe-button" @click="importGarden()"> Import garden Flowers </button>
         <button class="safe-button" @click="showImport(false)"> Import Flowers </button>
         <button class="safe-button" @click="showImport(true)"> Import Flowers to favourites </button>
       </div>
@@ -463,6 +464,18 @@ const importFiles = async (files, toFavs) => {
         store.errors.push({message: "You must upload at least one json file."});
         return;
     }
+    wm.sendRequest('importer', {
+        files: files,
+        toFavs: toFavs,
+        batchSize: store.settings.limit
+    });
+};
+const importGarden = async () => {
+    let files = new Array();
+    files.push(new File([sessionStorage.getItem(STORAGE_KEY_GARDEN)], "gardenFlowers.json", {
+        type: "application/json",
+    }));
+    const toFavs = false;
     wm.sendRequest('importer', {
         files: files,
         toFavs: toFavs,
