@@ -5,7 +5,7 @@
       :current-page="data.page" :total-pages="data.totalPages"
       @next-page="nextPage" @prev-page="prevPage" @update-page="nextBatch"
     >
-      <FlowersTable :Flowers="flowers" :is-local="true" :no-flower-message="'There are no Flowers'" />
+      <FlowersTable :flowers="flowers" :is-local="true" :no-flower-message="'There are no Flowers'" />
     </PaginationOrInfiniteScroll>
     <ProgressModal :id="'demoProgressBar'" :channel="emitter" :on="'showDemoProgress'" :update="'updateDemoProgress'" />
   </div>

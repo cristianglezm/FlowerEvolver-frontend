@@ -1,6 +1,6 @@
 <template>
   <div class="LastAdded">
-    <FlowersTable :Flowers="flowers" :isLocal="false" :noFlowerMessage="'There are no Flowers'" />
+    <FlowersTable :flowers="flowers" :isLocal="false" :noFlowerMessage="'There are no Flowers'" />
   </div>
 </template>
 

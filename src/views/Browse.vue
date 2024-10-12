@@ -4,7 +4,7 @@
       :pagination="isPaginated()" :itemsLength="flowers.length" :currentPage="data.page" :totalPages="data.totalPages"
       @next-page="nextPage" @prev-page="prevPage" @update-page="nextBatch"
     >
-      <FlowersTable :Flowers="flowers" :isLocal="false" :noFlowerMessage="'There are no Flowers'" />
+      <FlowersTable :flowers="flowers" :isLocal="false" :noFlowerMessage="'There are no Flowers'" />
     </PaginationOrInfiniteScroll>
   </div>
 </template>

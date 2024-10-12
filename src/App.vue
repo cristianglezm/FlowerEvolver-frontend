@@ -1,12 +1,12 @@
 <template>
   <div id="app-container">
-    <ProgressModal :id="'progressBar'" :channel="emitter" :on="'showProgress'" :update="'updateProgress'" />
-    <MultiProgressNodal :id="'multiProgressBar'" :channel="emitter" :on="'requestMultiProgressBar'" />
-    <DescriptionModal :id="'descriptionModal'" :channel="emitter" :on="'showDescriptionModal'" :update="'updateDesc'" />
     <AppTitle />
     <AppMenu :is-local="isLocal()" />
     <router-view :key="routes.fullPath" class="view" />
     <AppFooter />
+    <ProgressModal :id="'progressBar'" :channel="emitter" :on="'showProgress'" :update="'updateProgress'" />
+    <MultiProgressNodal :id="'multiProgressBar'" :channel="emitter" :on="'requestMultiProgressBar'" />
+    <DescriptionModal :id="'descriptionModal'" :channel="emitter" :on="'showDescriptionModal'" :update="'updateDesc'" />
   </div>
 </template>
 

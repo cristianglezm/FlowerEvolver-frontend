@@ -2,27 +2,27 @@
   <div class="Ancestors">
     <div v-if="!hasFatherOnly()">
       <div v-if="data.flower1.genome != '' && data.flower2.genome != ''" class="gridFlowers">
-        <div><Flower :id="data.flower1.id" :genome="data.flower1.genome" :image="data.flower1.image" :isLocal="data.isLocal" /></div>
-        <div><Flower :id="data.flower2.id" :genome="data.flower2.genome" :image="data.flower2.image" :isLocal="data.isLocal" /></div>
+        <div><FlowerCard :id="data.flower1.id" :genome="data.flower1.genome" :image="data.flower1.image" :isLocal="data.isLocal" /></div>
+        <div><FlowerCard :id="data.flower2.id" :genome="data.flower2.genome" :image="data.flower2.image" :isLocal="data.isLocal" /></div>
       </div>
       <div class="header"><p><strong>Descendants of {{ data.flower1.id }} and {{ data.flower2.id }}</strong></p></div>
       <PaginationOrInfiniteScroll
         :pagination="isPaginated()" :itemsLength="ancestors.length" :currentPage="data.page" :totalPages="data.totalPages"
         @next-page="nextPage" @prev-page="prevPage" @update-page="updateAncestors"
       >
-        <FlowersTable :Flowers="ancestors" :isLocal="data.isLocal" :noFlowerMessage="'These Flowers have no descendants.'" />
+        <FlowersTable :flowers="ancestors" :isLocal="data.isLocal" :noFlowerMessage="'These Flowers have no descendants.'" />
       </PaginationOrInfiniteScroll>
     </div>
     <div v-else>
       <div v-if="data.flower1.genome != ''" class="fatherFlower">
-        <Flower :id="data.flower1.id" :genome="data.flower1.genome" :image="data.flower1.image" :isLocal="data.isLocal" />
+        <FlowerCard :id="data.flower1.id" :genome="data.flower1.genome" :image="data.flower1.image" :isLocal="data.isLocal" />
       </div>
       <div class="header"><p><strong>Descendants of {{ data.flower1.id }}</strong></p></div>
       <PaginationOrInfiniteScroll
         :pagination="isPaginated()" :itemsLength="ancestors.length" :currentPage="data.page" :totalPages="data.totalPages"
         @next-page="nextPage" @prev-page="prevPage" @update-page="updateAncestors"
       >
-        <FlowersTable :Flowers="ancestors" :isLocal="data.isLocal" :noFlowerMessage="'This Flower has no descendants.'" />
+        <FlowersTable :flowers="ancestors" :isLocal="data.isLocal" :noFlowerMessage="'This Flower has no descendants.'" />
       </PaginationOrInfiniteScroll>
     </div>
   </div>
@@ -31,7 +31,7 @@
 <script setup>
 
     import { reactive, computed, nextTick, onBeforeMount } from 'vue';
-    import Flower from '../components/Flower.vue';
+    import FlowerCard from '../components/FlowerCard.vue';
     import FlowersTable from '../components/FlowersTable.vue';
     import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
     import { useFlowersStore } from '../store';

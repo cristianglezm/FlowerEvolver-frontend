@@ -4,7 +4,7 @@
       :pagination="isPaginated()" :itemsLength="favourites.length" :currentPage="data.page" :totalPages="data.totalPages"
       @next-page="nextPage" @prev-page="prevPage" @update-page="updateFlowers"
     >
-      <FlowersTable :Flowers="favourites" :isLocal="true" :noFlowerMessage="'You don\'t have favourites.'" />
+      <FlowersTable :flowers="favourites" :isLocal="true" :noFlowerMessage="'You don\'t have favourites.'" />
     </PaginationOrInfiniteScroll>
   </div>
 </template>
@@ -32,6 +32,7 @@
     });
     onMounted(() => {
         store.favourites = [];
+        data.offset = 0;
         if(isPaginated()){
             getFlowersFrom(data.page);
             store.getFavouritesCount().then(c => data.totalPages = Math.round(c / store.settings.limit));

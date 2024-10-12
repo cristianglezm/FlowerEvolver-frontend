@@ -1,5 +1,5 @@
 <template>
-  <div class="Flower">
+  <div class="FlowerCard">
     <div v-if="props.isLocal">
       <div class="flowerMenu" :class="{Selected: data.selected}">
         <img v-if="!data.clicked" class="drop-menu pointer" src="@/assets/x32/Arrow_down.png" @click="data.clicked = !data.clicked; ">
@@ -323,10 +323,10 @@
         width: 100%;
         height: auto;
     }
-    .Flower{
+    .FlowerCard{
         margin: auto auto auto auto;
     }
-    .Flower p{
+    .FlowerCard p{
         text-align: center;
     }
     .flowerMenu{
@@ -343,7 +343,7 @@
         border-style: solid solid solid solid;
         border-color: red;
     }
-    .Flower{
+    .FlowerCard{
         padding: 0.6rem;
         background-color: rgb(37, 39, 41);
     }

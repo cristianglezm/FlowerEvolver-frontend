@@ -1,14 +1,14 @@
 <template>
   <div class="Mutations">
     <div v-if="data.original.genome != ''" class="mutFlower">
-      <Flower :id="data.original.id" :genome="data.original.genome" :image="data.original.image" :isLocal="data.isLocal" />
+      <FlowerCard :id="data.original.id" :genome="data.original.genome" :image="data.original.image" :isLocal="data.isLocal" />
     </div>
     <div class="header"><p><strong>Mutations of {{ data.original.id }}</strong></p></div>
     <PaginationOrInfiniteScroll
       :pagination="isPaginated()" :itemsLength="mutations.length" :currentPage="data.page" :totalPages="data.totalPages"
       @next-page="nextPage" @prev-page="prevPage" @update-page="updateMutations"
     >
-      <FlowersTable :Flowers="mutations" :isLocal="data.isLocal" :noFlowerMessage="'This Flower Has no Mutations.'" />
+      <FlowersTable :flowers="mutations" :isLocal="data.isLocal" :noFlowerMessage="'This Flower Has no Mutations.'" />
     </PaginationOrInfiniteScroll>
   </div>
 </template>
@@ -16,7 +16,7 @@
 <script setup>
 
     import { reactive, computed, nextTick, onBeforeMount } from 'vue';
-    import Flower from '../components/Flower.vue';
+    import FlowerCard from '../components/FlowerCard.vue';
     import FlowersTable from '../components/FlowersTable.vue';
     import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
     import { useRoute, useRouter } from 'vue-router';

@@ -1,7 +1,7 @@
 <template>
-  <div v-if="props.Flowers && props.Flowers.length" class="grid">
-    <div v-for="flower in props.Flowers" :key="flower.id">
-      <Flower :id="flower.id" :genome="flower.genome" :image="flower.image" :isLocal="props.isLocal" />
+  <div v-if="props.flowers && props.flowers.length" class="grid">
+    <div v-for="flower in props.flowers" :key="flower.id">
+      <FlowerCard :id="flower.id" :genome="flower.genome" :image="flower.image" :isLocal="props.isLocal" />
     </div>
   </div>
   <div v-else class="error">
@@ -11,10 +11,10 @@
 
 <script setup>
 
-import Flower from './Flower.vue';
+import FlowerCard from './FlowerCard.vue';
 
 const props = defineProps({
-    Flowers:{
+    flowers:{
         type: Array,
         required: true
     },
