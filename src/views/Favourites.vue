@@ -22,6 +22,7 @@
     const AIStore = useAIStore();
     const routes = useRoute();
     const router = useRouter();
+
     let data = reactive({
         offset: 0,
         page: parseInt(routes.query.page, 10) || 0,
@@ -70,14 +71,12 @@
         });
     };
     const loadFavourites = async () => {
-        await store.db.favourites.reverse().offset(data.offset)
-        .limit(store.settings.limit).toArray()
-        .then(ids => {
-            for(const id of ids){
-                store.db.flowers.get(id)
-                .then(f => store.favourites.push(f));
-            }
-        });
+        let ids = await store.db.favourites.reverse().offset(data.offset)
+                                .limit(store.settings.limit).toArray();
+        for(const id of ids){
+            let f = await store.db.flowers.get(id);
+            store.favourites.push(f);
+        }
         AIStore.loadLocalDescriptions(data.offset, store.settings.limit);
     };
     
