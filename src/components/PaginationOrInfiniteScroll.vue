@@ -6,6 +6,9 @@
   </div>
   <div v-else>
     <slot />
+    <div v-if="showButton">
+        <button class="return-button" @click="scrollToAnchor()"> back to top </button>
+    </div>
   </div>
 </template>
 
@@ -24,7 +27,7 @@
  * @param {number} currentPage - The current page number.
  * @param {number} totalPages - The total number of pages.
  */
-import { onMounted, onBeforeUnmount} from 'vue';
+import { onMounted, onBeforeUnmount, ref } from 'vue';
 
 const emit = defineEmits({
     'next-page': null,
@@ -48,7 +51,12 @@ const props = defineProps({
         type: Number,
         required: true
     },
+    anchor:{
+        type: String,
+        required: false
+    }
 });
+let showButton = ref(false);
 const atStart = () => {
     return props.currentPage == 0;
 };
@@ -65,17 +73,49 @@ const prevPage = () => {
         emit('prev-page');
     }
 };
+const scrollToAnchor = () => {
+    if(props.anchor === undefined || props.anchor === null){
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }else{
+        const anchorElement = document.getElementById(props.anchor);
+        if (anchorElement) {
+            anchorElement.scrollIntoView({ behavior: "smooth" });
+        }
+    }
+    showButton.value = false;
+};
+
+const debounce = (func, delay) => {
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
+    };
+};
+
+const handleScroll = debounce(() => {
+    const bottomOfWindow = document.documentElement.scrollTop + window.innerHeight >= document.documentElement.offsetHeight;
+    if (bottomOfWindow) {
+        showButton.value = true;
+        emit('update-page');
+    }
+}, 200);
+
 if(!props.pagination){
     onMounted(() => {
-        window.onscroll = () => {
-            var bottomOfWindow = document.documentElement.scrollTop + window.innerHeight >= document.documentElement.offsetHeight;
-            if(bottomOfWindow){
-                emit('update-page');
+        if(props.anchor === undefined || props.anchor === null){
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }else{
+            const anchorElement = document.getElementById(props.anchor);
+            if (anchorElement) {
+                anchorElement.scrollIntoView({ behavior: "smooth" });
             }
-        };
+        }
+        window.addEventListener('scroll', handleScroll);
     });
     onBeforeUnmount(() => {
-        window.onscroll = () => {};
+        showButton.value = false;
+        window.removeEventListener('scroll', handleScroll);
     });
 }
 
@@ -114,6 +154,26 @@ if(!props.pagination){
         opacity: 0.5;
         margin-bottom: -12.5rem;
     }
+    .return-button{
+        position: fixed;
+        right: 2%;
+        bottom: 15%;
+        background-color: green;
+        color: lightgreen;
+        padding: 0.31rem 0.93rem 0.31rem 0.93rem;
+        text-align: center;
+        cursor: pointer;
+        border-radius: 19.68rem 20.93rem 9.68rem 8.43rem;
+        border-color: lightgreen;
+        font-size: 1.25rem;
+        float: right;
+        z-index: 1;
+    }
+    .return-button:hover{
+        background-color: lightgreen;
+        border-color: green;
+        color: green;
+    }
 @media only screen and (max-width: 1280px){
     .arrow button{
         font-size: 0.93rem;
@@ -121,6 +181,9 @@ if(!props.pagination){
         padding: 0.125rem 0.75rem 0.125rem 0.75rem;
         top: 50%;
         left: 0.1em;
+    }
+    .return-button{
+        font-size: 0.93rem;
     }
 }
     .arrow button:hover{
