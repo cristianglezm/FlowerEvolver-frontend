@@ -7,7 +7,6 @@
     >
       <FlowersTable :flowers="flowers" :is-local="true" :no-flower-message="'There are no Flowers'" />
     </PaginationOrInfiniteScroll>
-    <ProgressModal :id="'demoProgressBar'" :channel="emitter" :on="'showDemoProgress'" :update="'updateDemoProgress'" />
   </div>
 </template>
 
@@ -16,17 +15,23 @@
 import { nextTick, onMounted, reactive, computed, inject, watch } from 'vue';
 import FlowersTable from '../components/FlowersTable.vue';
 import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
-import ProgressModal from '../components/ProgressModal.vue';
 import { useFlowersStore } from '../store';
 import { useAIStore } from '../store/AIStore';
 import { useRoute, useRouter } from 'vue-router';
 import importWorker from '../workers/import.worker?worker';
+import WorkerManager from '../store/WorkerManager';
+import mitt from 'mitt';
 
 const routes = useRoute();
 const router = useRouter();
 const store = useFlowersStore();
 const AIStore = useAIStore();
 const emitter = inject('emitter');
+let channel = mitt();
+let wm = new WorkerManager(channel);
+
+wm.addWorker('importer', importWorker());
+
 const data = reactive({
     offset: 0,
     page: 0,
@@ -34,10 +39,9 @@ const data = reactive({
     demoFlowersFile: import.meta.env.BASE_URL + "demoFlowers.json",
     killWorker: false
 });
-let worker = importWorker();
 watch(data, () => {
     if(data.killWorker){
-        worker.terminate();
+        wm.deleteWorker('importer');
     }
 });
 const flowers = computed(() => {
@@ -60,6 +64,29 @@ onMounted(() => {
 const nextBatch = () => {
     updateFlowers(store.settings.limit, data.offset);
 };
+const onError = (e) => {
+    store.errors.push({ message: e});
+};
+wm.onError('importer', onError);
+wm.onResponse('importer', (e) => {
+    let type = e.type;
+    if(type === "showProgress"){
+        emitter.emit('showProgress', {
+            title: e.title,
+            progress: 0,
+            total: e.total,
+            onLoad: () => {}
+        });
+    }else if(type === "updateProgress"){
+        emitter.emit('updateProgress', {
+            progress: e.progress,
+        });
+    }else if(type === "done"){
+        data.offset = 0;
+        nextBatch();
+        data.killWorker = true;
+    }
+});
 const updateFlowers = (limit, offset) => {
     store.updateAndConcatLocalFlowers({limit:limit, offset:offset});
     AIStore.loadAndConcatLocalDescriptions(offset, limit);
@@ -88,43 +115,18 @@ const isPaginated = () => {
     return store.settings.pagination;
 };
 
-const loadDemoFlowersWorker = async () => {
-    worker.onmessage = (e) => {
-        let type = e.data.type;
-        if(type === "showProgress"){
-            emitter.emit('showDemoProgress', {
-                title: e.data.title,
-                progress: 0,
-                total: e.data.total,
-                onLoad: () => {}
-            });
-        }else if(type === "updateProgress"){
-            emitter.emit('updateDemoProgress', {
-                progress: e.data.progress,
-            });
-        }else if(type === "done"){
-            data.offset = 0;
-            nextBatch();
-            data.killWorker = true;
-        }
-    };
-    worker.onerror = (e) => {
-        store.errors.push({message: e});
-    };
-    const blob = await fetch(data.demoFlowersFile)
-            .then(response => {
-                return response.blob();
-            });
-    const files = new Array(new File([blob], "demoFlowers.json", {type: "application/json"}));
-    worker.postMessage({
-        files: files,
-        toFavs: false,
-        batchSize: store.settings.limit
-    });
-};
 const loadDemoFlowers = async () => {
     if(store.settings.loadDemoFlowers){
-        loadDemoFlowersWorker();
+        const blob = await fetch(data.demoFlowersFile)
+                .then(response => {
+                    return response.blob();
+                });
+        const files = new Array(new File([blob], "demoFlowers.json", {type: "application/json"}));
+        wm.sendRequest('importer', {
+            files: files,
+            toFavs: false,
+            batchSize: store.settings.limit
+        });
         store.setLoadDemoFlowers(false);
     }else{
         data.killWorker = true;

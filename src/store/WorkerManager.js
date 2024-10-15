@@ -24,10 +24,21 @@ export default class WorkerManager{
         }
     }
     /**
+     * @brief it checks if worker with given name is added.
+     * @param {String} name The name of the worker to check if added.
+     * @returns {Boolean} boolean indicating if the worker exists or not.
+     */
+    has(name){
+        return this.workers.has(name);
+    }
+    /**
      * @brief Removes a worker from the manager and cleans up event listeners.
      * @param name {String} The name of the worker to remove.
      */
     deleteWorker(name){
+        if(!this.has(name)){
+            return;
+        }
         this.channel.off(name + '#onerror');
         this.channel.off(name + '#onmessage');
         this.workers.get(name).terminate();
