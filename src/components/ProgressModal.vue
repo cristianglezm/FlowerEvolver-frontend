@@ -140,6 +140,14 @@ const closeModal = () => {
         box-shadow: inset 0rem 0rem 0.6rem 0.125rem black;
         margin: 0.6rem;
     }
+    @media only screen and (max-width: 1280px){
+        #progress-container{
+            width: 90%;
+        }
+        h1{
+            font-size: 0.9rem;
+        }
+    }
     ::backdrop{
         background-color: white;
         opacity: 0.55;

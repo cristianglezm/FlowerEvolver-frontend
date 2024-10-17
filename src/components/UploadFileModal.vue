@@ -129,6 +129,7 @@ onBeforeUnmount(() => {
     }
     .inlined h2{
         width: 100%;
+        text-align: center;
     }
     .center{
         position: absolute;

@@ -21,6 +21,6 @@ export default defineConfig({
         legalComments: 'inline',
     },
     envPrefix: ["VITE_APP_"],
-    sourcemap: process.env.NODE_ENV === "production" ? false : true,
+    sourcemap: process.env.NODE_ENV === 'development',
     base: process.env.NODE_ENV === 'production' ? process.env.VITE_APP_BASE_URL:'/',
 });
