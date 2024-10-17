@@ -9,18 +9,16 @@
           <ParamsInfo :params="data.params" />
         </div>
         <div v-if="data.clicked" class="flower-buttons">
-          <ul>
-            <li><a @click="mutate(); data.clicked = !data.clicked;">Mutate</a></li>
-            <li><a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a></li>
-            <li><a @click="shareFlower(); data.clicked = !data.clicked;">Share</a></li>
-            <li><a @click="describe(); data.clicked = !data.clicked;">Describe</a></li>
-            <li><a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a></li>
-            <li><a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a></li>
-            <li><a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a></li>
-            <li><a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a></li>
-            <li><a @click="deleteThisFlower(); data.clicked = !data.clicked;">Delete Flower</a></li>
-            <li><a @click="store.redrawFlower({genome: props.genome}); data.clicked = !data.clicked;">Redraw Flower</a></li>
-          </ul>
+            <a @click="mutate(); data.clicked = !data.clicked;">Mutate</a>
+            <a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a>
+            <a @click="shareFlower(); data.clicked = !data.clicked;">Share</a>
+            <a @click="describe(); data.clicked = !data.clicked;">Describe</a>
+            <a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a>
+            <a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a>
+            <a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a>
+            <a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a>
+            <a @click="deleteThisFlower(); data.clicked = !data.clicked;">Delete Flower</a>
+            <a @click="store.redrawFlower({genome: props.genome}); data.clicked = !data.clicked;">Redraw Flower</a>
         </div>
       </div>
       <img :id="'FlImage' + props.id" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage">
@@ -35,16 +33,14 @@
           <ParamsInfo :params="data.params" />
         </div>
         <div v-if="data.clicked" class="flower-buttons">
-          <ul>
-            <li><a @click="mutate(); data.clicked = !data.clicked;">Mutate</a></li>
-            <li><a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a></li>
-            <li><a @click="addToLocal(); data.clicked = !data.clicked;">Add to local</a></li>
-            <li><a @click="describe(); data.clicked = !data.clicked;">Describe</a></li>
-            <li><a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a></li>
-            <li><a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a></li>
-            <li><a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a></li>
-            <li><a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a></li>
-          </ul>
+            <a @click="mutate(); data.clicked = !data.clicked;">Mutate</a>
+            <a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a>
+            <a @click="addToLocal(); data.clicked = !data.clicked;">Add to local</a>
+            <a @click="describe(); data.clicked = !data.clicked;">Describe</a>
+            <a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a>
+            <a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a>
+            <a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a>
+            <a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a>
         </div>
       </div>
       <img :id="'FlImage' + props.id" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage">
@@ -353,43 +349,31 @@
     }
     .flower-buttons{
         position: absolute;
-        float: right;
         z-index: 1;
-        translate: 0 14%;
-        padding: 0rem 1.31rem 0rem 0rem;
+        translate: 0 12%;
+        padding: 0rem 1.31rem 1.31rem 0rem;
         background-color: green;
-        border-top: 0.125rem lightgreen;
         box-shadow: 0.125rem 0.375rem 1rem 0.375rem rgba(0,128,0,0.5);
+        display: flex;
+        flex-flow: column wrap;
+        border-radius: 0rem 0rem 1.25rem 1.25rem;
     }
-    .flower-buttons ul{
-        margin: 0.6rem 1.25rem 0.6rem 1.18rem;
-        text-align: left;
-        padding: 0rem;
-        padding-right: 0.25rem;
-        list-style: none;
-    }
-    .flower-buttons li{
-        font-size: 1.25rem;
+    .flower-buttons a{
+        font-size: 1.15rem;
         border-radius: 0.25rem;
+        color: lightgreen;
         position: relative;
         margin: 0.6rem 0rem 0rem 1.18rem;
-        list-style: none;
         background-color: green;
         cursor: pointer;
         text-decoration: none;
     }
     .pointer{
-        cursor: pointer;        
-    }
-    .flower-buttons a{
-        color: lightgreen;
+        cursor: pointer;
     }
     .flower-buttons a:hover{
         color: green;
-    }
-    .flower-buttons li:hover{
         background-color: lightgreen;
-        color: green;
     }
     .disabled {
       opacity: 0.6;
