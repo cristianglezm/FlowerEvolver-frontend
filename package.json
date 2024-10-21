@@ -22,7 +22,7 @@
         "vue-router": "^4.4.5"
     },
     "devDependencies": {
-        "eslint": "^9.12.0",
+        "eslint": "^9.13.0",
         "@eslint/js": "^9.6.0",
         "eslint-plugin-vue": "^9.29.0",
         "globals": "^15.11.0",
