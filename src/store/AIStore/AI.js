@@ -3,10 +3,16 @@ import { pipeline, env } from '@huggingface/transformers';
 env.userBrowserCache = true;
 env.allowLocalModels = false;
 
+//@todo remove this - new onnx local test
+env.allowLocalModels = true;
+env.allowRemoteModels = false;
+env.localModelPath = 'http://localhost/';
+//
+
 const BACKEND = import.meta.env.VITE_APP_DOWNLOAD_URL;
 
 export const isGPUAvailable = () => {
-    return navigator.gpu;
+    return !!navigator.gpu;
 };
 
 export class Captioner{
