@@ -7,7 +7,7 @@
   <div v-else>
     <slot />
     <div v-if="showButton">
-        <button class="return-button" @click="scrollToAnchor()"> back to top </button>
+      <button class="return-button" @click="scrollToAnchor()"> back to top </button>
     </div>
   </div>
 </template>
@@ -53,7 +53,8 @@ const props = defineProps({
     },
     anchor:{
         type: String,
-        required: false
+        required: false,
+        default: null
     }
 });
 let showButton = ref(false);
