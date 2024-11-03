@@ -22,10 +22,12 @@ import AppFooter from './components/AppFooter.vue';
 import { useRoute } from 'vue-router';
 import { Captioner } from './store/AIStore/AI';
 import { useFlowersStore } from './store';
+import { useAIStore } from './store/AIStore';
 
 const routes = useRoute();
 const emitter = inject('emitter');
 const store = useFlowersStore();
+const AIStore = useAIStore();
 
 emitter.on('loadModel', () => {
   setTimeout(() => {
@@ -33,6 +35,7 @@ emitter.on('loadModel', () => {
             status: "setup",
             title: "downloading or loading model for describing flowers",
             onLoad: async () => {
+              Captioner.setModelOptions(AIStore.modelOptions);
               Captioner.getInstance((data) => {
                   switch(data.status){
                     case "initiate":{
@@ -54,6 +57,11 @@ emitter.on('loadModel', () => {
                         emitter.emit('requestMultiProgressBar', event);
                     }
                       break;
+                    case "done":{
+                      emitter.emit('ModelOptions#updateBtnTitle', {
+                        title: "load model"
+                      });
+                    }
                   }
               });
             }
