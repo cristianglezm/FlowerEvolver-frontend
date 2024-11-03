@@ -9,16 +9,16 @@
           <ParamsInfo :params="data.params" />
         </div>
         <div v-if="data.clicked" class="flower-buttons">
-            <a @click="mutate(); data.clicked = !data.clicked;">Mutate</a>
-            <a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a>
-            <a @click="shareFlower(); data.clicked = !data.clicked;">Share</a>
-            <a @click="describe(); data.clicked = !data.clicked;">Describe</a>
-            <a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a>
-            <a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a>
-            <a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a>
-            <a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a>
-            <a @click="deleteThisFlower(); data.clicked = !data.clicked;">Delete Flower</a>
-            <a @click="store.redrawFlower({genome: props.genome}); data.clicked = !data.clicked;">Redraw Flower</a>
+          <a @click="mutate(); data.clicked = !data.clicked;">Mutate</a>
+          <a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a>
+          <a @click="shareFlower(); data.clicked = !data.clicked;">Share</a>
+          <a @click="describe(); data.clicked = !data.clicked;">Describe</a>
+          <a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a>
+          <a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a>
+          <a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a>
+          <a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a>
+          <a @click="deleteThisFlower(); data.clicked = !data.clicked;">Delete Flower</a>
+          <a @click="store.redrawFlower({genome: props.genome}); data.clicked = !data.clicked;">Redraw Flower</a>
         </div>
       </div>
       <img :id="'FlImage' + props.id" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage">
@@ -33,14 +33,14 @@
           <ParamsInfo :params="data.params" />
         </div>
         <div v-if="data.clicked" class="flower-buttons">
-            <a @click="mutate(); data.clicked = !data.clicked;">Mutate</a>
-            <a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a>
-            <a @click="addToLocal(); data.clicked = !data.clicked;">Add to local</a>
-            <a @click="describe(); data.clicked = !data.clicked;">Describe</a>
-            <a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a>
-            <a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a>
-            <a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a>
-            <a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a>
+          <a @click="mutate(); data.clicked = !data.clicked;">Mutate</a>
+          <a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a>
+          <a @click="addToLocal(); data.clicked = !data.clicked;">Add to local</a>
+          <a @click="describe(); data.clicked = !data.clicked;">Describe</a>
+          <a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a>
+          <a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a>
+          <a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a>
+          <a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a>
         </div>
       </div>
       <img :id="'FlImage' + props.id" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage">
@@ -56,7 +56,8 @@
     import { onMounted, reactive, inject, onUnmounted } from 'vue';
     import { useRouter } from 'vue-router';
     import ParamsInfo from './ParamsInfo.vue';
-	
+    import { Captioner } from '../store/AIStore/AI';
+
     const props = defineProps({
         id: {
             type: Number,
@@ -193,8 +194,8 @@
         store.shareFlower(props.genome);
     };
     const describe = () => {
-        if(!store.settings.loadModel){
-            store.errors.push({message: "check load model option in Settings to use this."});
+        if(!Captioner.hasModelLoaded()){
+            store.errors.push({message: "check load model option or click download / load Model in Settings to use this."});
             return;
         }
         if(props.isLocal){
