@@ -27,12 +27,20 @@ wm.onResponse('captioner', (data) => {
     channel.emit('captioner#done', desc);
 });
 
+export const STORAGE_KEY_MODEL_OPTIONS = "FlowerEVolverModelOptions";
 export const useAIStore = defineStore('AIStore', {
     state: () => ({
         wm: wm,
         channel: channel,
         remoteDescriptions: new Map(),
-        localDescriptions: new Map()
+        localDescriptions: new Map(),
+        modelOptions: JSON.parse(localStorage.getItem(STORAGE_KEY_MODEL_OPTIONS) || JSON.stringify({
+            host: "huggingface",
+            model: "cristianglezm/ViT-GPT2-FlowerCaptioner-ONNX",
+            device: "CPU",
+            encoder: "q8",
+            decoder: "q8"
+        }))
     }),
     getters: {
         getLocalDescription: (state) => (id) => {
@@ -76,6 +84,9 @@ export const useAIStore = defineStore('AIStore', {
                     urlOrDataURL: Flower.image,
                     isLocal: Flower.isLocal
             });
+        },
+        async saveModelOptions(){
+            localStorage.setItem(STORAGE_KEY_MODEL_OPTIONS, JSON.stringify(this.modelOptions));
         }
     }
 });
