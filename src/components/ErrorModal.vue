@@ -73,6 +73,11 @@ const popError = () => {
         font-size: 1.6rem;
         overflow: auto;
     }
+    @media only screen and (max-width: 1280px){
+        p{
+            font-size: 0.9rem;
+        }
+    }
     .ErrorModal-content{
         margin: 15% auto;
         padding: 1.25rem;
