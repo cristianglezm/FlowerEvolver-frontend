@@ -35,6 +35,7 @@
             {{ data.spaceUsage.toFixed(2) }} / {{ data.spaceQuota.toFixed(2) }} MB
           </div>
         </div>
+        <ModelOptions />
       </div>
       <div id="params-settings" class="settings-box">
         <h2>Creation parameters</h2>
@@ -157,6 +158,7 @@
  **/
 import { reactive, inject, toRaw, onBeforeUnmount, onMounted } from 'vue';
 import ToolTip from '../components/ToolTip.vue';
+import ModelOptions from '../components/ModelOptions.vue';
 import { useFlowersStore, STORAGE_KEY, STORAGE_KEY_GARDEN } from '../store';
 import UploadFileModal from '../components/UploadFileModal.vue';
 import redrawWorker from '../workers/redraw.worker?worker';
