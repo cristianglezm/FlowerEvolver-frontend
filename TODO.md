@@ -1,7 +1,7 @@
 ## TODO
 
 * [x] cache manager (to delete models files)
-* [ ] make model options component for settings
+* [x] make model options component for settings
 * [ ] refactor settings - split into components?
     - [ ] Options
     - [ ] CreationParams
