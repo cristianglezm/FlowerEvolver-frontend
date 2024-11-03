@@ -12,7 +12,7 @@
 
 <script setup>
 
-import { onMounted, inject } from 'vue';
+import { onMounted, inject, onUnmounted } from 'vue';
 import ProgressModal from './components/ProgressModal.vue';
 import MultiProgressNodal from './components/MultiProgressModal.vue';
 import DescriptionModal from './components/DescriptionModal.vue';
@@ -22,44 +22,12 @@ import AppFooter from './components/AppFooter.vue';
 import { useRoute } from 'vue-router';
 import { Captioner } from './store/AIStore/AI';
 import { useFlowersStore } from './store';
+import { useAIStore } from './store/AIStore';
 
 const routes = useRoute();
 const emitter = inject('emitter');
 const store = useFlowersStore();
-
-emitter.on('loadModel', () => {
-  setTimeout(() => {
-      emitter.emit('requestMultiProgressBar', {
-            status: "setup",
-            title: "downloading or loading model for describing flowers",
-            onLoad: async () => {
-              Captioner.getInstance((data) => {
-                  switch(data.status){
-                    case "initiate":{
-                        let event = {
-                          status: "init",
-                          name: data.file,
-                          progress: 0,
-                          total: 100
-                        };
-                        emitter.emit('requestMultiProgressBar', event);
-                    }
-                      break;
-                    case "progress":{
-                        let event = {
-                          status: "update",
-                          name: data.file,
-                          progress: data.progress
-                        };
-                        emitter.emit('requestMultiProgressBar', event);
-                    }
-                      break;
-                  }
-              });
-            }
-      });
-    }, 2000);
-});
+const AIStore = useAIStore();
 
 const isLocal = () => {
   return routes.path === '/Local' || 
@@ -68,9 +36,49 @@ const isLocal = () => {
           routes.path === '/Settings';
 };
 onMounted(() => {
+  emitter.on('App#loadModel', () => {
+    setTimeout(() => {
+        emitter.emit('requestMultiProgressBar', {
+              status: "setup",
+              title: "downloading or loading model for describing flowers",
+              onLoad: async () => {
+                Captioner.setModelOptions(AIStore.modelOptions);
+                Captioner.getInstance((data) => {
+                    switch(data.status){
+                      case "initiate":{
+                          let event = {
+                            status: "init",
+                            name: data.file,
+                            progress: 0,
+                            total: 100
+                          };
+                          emitter.emit('requestMultiProgressBar', event);
+                      }
+                        break;
+                      case "progress":{
+                          let event = {
+                            status: "update",
+                            name: data.file,
+                            progress: data.progress
+                          };
+                          emitter.emit('requestMultiProgressBar', event);
+                      }
+                        break;
+                      case "done":{
+                        emitter.emit('ModelOptions#updateBtnTitle');
+                      }
+                    }
+                });
+              }
+        });
+      }, 2000);
+  });
   if(store.settings.loadModel){
-    emitter.emit('loadModel');
+    emitter.emit('App#loadModel');
   }
+})
+onUnmounted(() => {
+  emitter.off("App#loadModel");
 })
 
   /*!

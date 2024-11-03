@@ -1,14 +1,6 @@
 import { pipeline, env } from '@huggingface/transformers';
 
 env.userBrowserCache = true;
-env.allowLocalModels = false;
-
-//@todo remove this - new onnx local test
-env.allowLocalModels = true;
-env.allowRemoteModels = false;
-env.localModelPath = 'http://localhost/';
-//
-
 const BACKEND = import.meta.env.VITE_APP_DOWNLOAD_URL;
 
 export const isGPUAvailable = () => {
@@ -17,23 +9,48 @@ export const isGPUAvailable = () => {
 
 export class Captioner{
     static task = 'image-to-text';
-    static model = 'cristianglezm/ViT-GPT2-FlowerCaptioner-ONNX';
+    static modelOptions = {
+        host: "huggingface",
+        model: "cristianglezm/ViT-GPT2-FlowerCaptioner-ONNX",
+        device: "CPU",
+        encoder: "q8",
+        decoder: "q8"
+    };
     static instance = null;
-
+    static setModelOptions(modelOptions){
+        this.modelOptions = modelOptions;
+    }
     static async getInstance(progress_callback = null){
         if(this.instance === null){
-            const device = isGPUAvailable() ? "webgpu":"wasm";
-            this.instance = pipeline(this.task, this.model,
+            if(this.modelOptions.host === 'localhost'){
+                env.localModelPath = 'http://localhost/';
+                env.allowLocalModels = true;
+                env.allowRemoteModels = false;
+            }else{
+                env.localModelPath = '/models/';
+                env.allowLocalModels = false;
+                env.allowRemoteModels = true;
+            }
+            this.instance = pipeline(this.task, this.modelOptions.model,
             {
                 dtype: {
-                    encoder_model: "q8",
-                    decoder_model_merged: "q8",
+                    encoder_model: this.modelOptions.encoder,
+                    decoder_model_merged: this.modelOptions.decoder,
                 },
-                device: device,
+                device: this.modelOptions.device === "CPU" ? "wasm":"webgpu",
                 progress_callback
             });
         }
         return this.instance;
+    }
+    static hasModelLoaded(){
+        return this.instance !== null;
+    }
+    static async reset(){
+        if(this.hasModelLoaded()){
+            (await this.getInstance()).dispose();
+            this.instance = null;
+        }
     }
 }
 
