@@ -56,7 +56,8 @@
     import { onMounted, reactive, inject, onUnmounted } from 'vue';
     import { useRouter } from 'vue-router';
     import ParamsInfo from './ParamsInfo.vue';
-	
+    import { Captioner } from '../store/AIStore/AI';
+
     const props = defineProps({
         id: {
             type: Number,
@@ -193,8 +194,8 @@
         store.shareFlower(props.genome);
     };
     const describe = () => {
-        if(!store.settings.loadModel){
-            store.errors.push({message: "check load model option in Settings to use this."});
+        if(!Captioner.hasModelLoaded()){
+            store.errors.push({message: "check load model option or click download / load Model in Settings to use this."});
             return;
         }
         if(props.isLocal){
