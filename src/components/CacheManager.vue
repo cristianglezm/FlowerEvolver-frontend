@@ -83,7 +83,7 @@ const deleteCacheHost = async (host) => {
     if(!host) return;
         emitter.emit('showYesNo', {
             title: 'delete Host files',
-            message: 'Are you sure you want to delete all host files?',
+            message: 'Are you sure you want to delete the selected host files?',
             btnNo: 'no',
             btnYes: 'delete Host from cache.',
             onConfirm: async (dialog) => {
