@@ -74,8 +74,7 @@
     return data.modelOptions.host === 'localhost';
   });
   const reloadCache = () => {
-    cm.isInitialized = false;
-    cm.initCache();
+    cm.reload();
   };
   const isModelLoaded = () => {
     return Captioner.hasModelLoaded() && !data.forceReload;
