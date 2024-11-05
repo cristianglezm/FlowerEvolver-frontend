@@ -52,6 +52,15 @@ export class CacheManager{
         }
     }
     /**
+     * @brief it reloads the cache
+     */
+    reload(){
+        this.isInitialized = false;
+        this.cacheRequests = [];
+        this.cacheHosts = new Map();
+        this.initCache();
+    }
+    /**
      * @brief return how many hosts are in this cache.
      * @returns number
      */
