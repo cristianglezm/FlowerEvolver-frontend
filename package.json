@@ -12,7 +12,7 @@
     },
     "dependencies": {
         "@cristianglezm/flower-evolver-wasm": "^1.0.6",
-        "@huggingface/transformers": "^3.0.1",
+        "@huggingface/transformers": "^3.0.2",
         "axios": "^1.7.9",
         "dexie": "^4.0.11",
         "mitt": "^3.0.1",
