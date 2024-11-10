@@ -12,7 +12,7 @@
 
 <script setup>
 
-import { onMounted, inject } from 'vue';
+import { onMounted, inject, onUnmounted } from 'vue';
 import ProgressModal from './components/ProgressModal.vue';
 import MultiProgressNodal from './components/MultiProgressModal.vue';
 import DescriptionModal from './components/DescriptionModal.vue';
@@ -29,46 +29,6 @@ const emitter = inject('emitter');
 const store = useFlowersStore();
 const AIStore = useAIStore();
 
-emitter.on('loadModel', () => {
-  setTimeout(() => {
-      emitter.emit('requestMultiProgressBar', {
-            status: "setup",
-            title: "downloading or loading model for describing flowers",
-            onLoad: async () => {
-              Captioner.setModelOptions(AIStore.modelOptions);
-              Captioner.getInstance((data) => {
-                  switch(data.status){
-                    case "initiate":{
-                        let event = {
-                          status: "init",
-                          name: data.file,
-                          progress: 0,
-                          total: 100
-                        };
-                        emitter.emit('requestMultiProgressBar', event);
-                    }
-                      break;
-                    case "progress":{
-                        let event = {
-                          status: "update",
-                          name: data.file,
-                          progress: data.progress
-                        };
-                        emitter.emit('requestMultiProgressBar', event);
-                    }
-                      break;
-                    case "done":{
-                      emitter.emit('ModelOptions#updateBtnTitle', {
-                        title: "load model"
-                      });
-                    }
-                  }
-              });
-            }
-      });
-    }, 2000);
-});
-
 const isLocal = () => {
   return routes.path === '/Local' || 
           routes.path === '/Favourites' || 
@@ -76,9 +36,49 @@ const isLocal = () => {
           routes.path === '/Settings';
 };
 onMounted(() => {
+  emitter.on('App#loadModel', () => {
+    setTimeout(() => {
+        emitter.emit('requestMultiProgressBar', {
+              status: "setup",
+              title: "downloading or loading model for describing flowers",
+              onLoad: async () => {
+                Captioner.setModelOptions(AIStore.modelOptions);
+                Captioner.getInstance((data) => {
+                    switch(data.status){
+                      case "initiate":{
+                          let event = {
+                            status: "init",
+                            name: data.file,
+                            progress: 0,
+                            total: 100
+                          };
+                          emitter.emit('requestMultiProgressBar', event);
+                      }
+                        break;
+                      case "progress":{
+                          let event = {
+                            status: "update",
+                            name: data.file,
+                            progress: data.progress
+                          };
+                          emitter.emit('requestMultiProgressBar', event);
+                      }
+                        break;
+                      case "done":{
+                        emitter.emit('ModelOptions#updateBtnTitle');
+                      }
+                    }
+                });
+              }
+        });
+      }, 2000);
+  });
   if(store.settings.loadModel){
-    emitter.emit('loadModel');
+    emitter.emit('App#loadModel');
   }
+})
+onUnmounted(() => {
+  emitter.off("App#loadModel");
 })
 
   /*!

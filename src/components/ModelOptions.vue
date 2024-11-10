@@ -22,8 +22,8 @@
     </div>
     <div id="model-encoder-type" class="option-box labelInputArea">
       <ToolTip :info="'select which quantification the encoder will have.'" />
-      <label for="quant-select"> Encoder: </label>
-      <select id="quant-select" v-model="data.modelOptions.encoder" class="styled-select" name="quants" @change="onChange()">
+      <label for="quant-select-encoder"> Encoder: </label>
+      <select id="quant-select-encoder" v-model="data.modelOptions.encoder" class="styled-select" name="quants-encoder" @change="onChange()">
         <option v-for="val in quants" :key="val" :value="val">
           {{ val }}
         </option>
@@ -31,8 +31,8 @@
     </div>
     <div id="model-decoder-type" class="option-box labelInputArea">
       <ToolTip :info="'select which quantification the decoder will have.'" />
-      <label for="quant-select"> Decoder: </label>
-      <select id="quant-select" v-model="data.modelOptions.decoder" class="styled-select" name="quants" @change="onChange()">
+      <label for="quant-select-decoder"> Decoder: </label>
+      <select id="quant-select-decoder" v-model="data.modelOptions.decoder" class="styled-select" name="quants-decoder" @change="onChange()">
         <option v-for="val in quants" :key="val" :value="val">
           {{ val }}
         </option>
@@ -74,6 +74,7 @@
     return data.modelOptions.host === 'localhost';
   });
   const reloadCache = () => {
+    emitter.emit('AppOptions#recalcSpace');
     cm.reload();
   };
   const isModelLoaded = () => {
@@ -82,12 +83,31 @@
   const isModelDownloaded = () => {
     return cm.size() > 0;
   };
+  const isModelInCache = () => {
+    let host = "https://huggingface.co";
+    if(AIStore.modelOptions.host !== "huggingface"){
+      host = "http://localhost";
+    }
+    const getQuantName = (quantType) => {
+      ///@todo add conversions for missing types?
+      switch(quantType){
+        case "q8": return "_quantized";
+        case "fp32": return "";
+        default: return "_" + quantType;
+      }
+    };
+    let encoder = "encoder_model" + getQuantName(AIStore.modelOptions.encoder) + ".onnx";
+    let decoder = "decoder_model_merged" + getQuantName(AIStore.modelOptions.decoder) + ".onnx";
+    return cm.hasFiles(host, ["config.json", "tokenizer_config.json", 
+                        "preprocessor_config.json", "tokenizer.json",
+                        "generation_config.json", encoder, decoder]);
+  };
   const loadModel = async () => {
     if(isModelLoaded()){
       return;
     }
     await Captioner.reset();
-    emitter.emit("loadModel");
+    emitter.emit("App#loadModel");
     data.forceReload = false;
   }
   const hasModelOptionsChanged = () => {
@@ -97,6 +117,13 @@
               Captioner.modelOptions.encoder === AIStore.modelOptions.encoder &&
               Captioner.modelOptions.decoder === AIStore.modelOptions.decoder);
   };
+  const setCorrectBtnTitle = () => {
+    if(isModelInCache()){
+      data.btnTitle = "Load Model";
+    }else{
+      data.btnTitle = "Download Model";
+    }
+  };
   const onChange = () => {
     if(data.modelOptions.model === "" || data.modelOptions.host === "huggingface"){
       data.modelOptions.model = "cristianglezm/ViT-GPT2-FlowerCaptioner-ONNX";
@@ -105,6 +132,7 @@
       data.forceReload = true;
     }
     AIStore.saveModelOptions();
+    setCorrectBtnTitle();
   };
   const openCacheManager = () => {
     if(isModelDownloaded()){
@@ -114,15 +142,15 @@
   onMounted(() => {
     setTimeout(() => {
       if(isModelDownloaded()){
-        data.btnTitle = "Load model";
+        data.btnTitle = "Load Model";
       }else{
-        data.btnTitle = "Download model";
+        data.btnTitle = "Download Model";
       }
     }, 500);
-    emitter.on('ModelOptions#updateBtnTitle', (e) => {
+    emitter.on('ModelOptions#updateBtnTitle', () => {
       nextTick(() => {
         reloadCache();
-        data.btnTitle = e.title;
+        setCorrectBtnTitle();
       });
     });
     emitter.on('modelOptions#forceReload', () => {
@@ -130,13 +158,19 @@
     });
   });
   onUnmounted(() => {
-    
     emitter.off('ModelOptions#updateBtnTitle');
     emitter.off('modelOptions#forceReload');
   });
 </script>
 
 <style scoped>
+  .ModelOptions-container{
+    background-color: green;
+    border: solid lightgreen;
+    border-radius: 2rem;
+    margin: 1em 1em;
+    padding: 1em 1em;
+  }
   .ModelOptions-container h2{
     text-align: center;
   }
@@ -262,7 +296,7 @@
           margin: 0.6rem 0.6rem 0rem 1.25rem;
       }
       .labelInputArea label{
-          width: 6rem;
+          width: 5rem;
           display: inline-block;
           margin: 0rem 0rem 0rem 0.93rem;
       }
