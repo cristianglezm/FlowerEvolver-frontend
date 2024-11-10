@@ -54,11 +54,11 @@ export class CacheManager{
     /**
      * @brief it reloads the cache
      */
-    reload(){
+    async reload(){
         this.isInitialized = false;
         this.cacheRequests = [];
         this.cacheHosts = new Map();
-        this.initCache();
+        await this.initCache();
     }
     /**
      * @brief return how many hosts are in this cache.
@@ -116,6 +116,23 @@ export class CacheManager{
         }catch (e){
             console.error(`Failed to delete files from host ${host}:`, e);
         }
+    }
+    /**
+     * @brief check if has all files inside host.
+     * @param {String} host 
+     * @param {Array} files 
+     * @returns Boolean
+     */
+    hasFiles(host, files){
+        if(!this.cacheHosts.has(host)){
+            return false;
+        }
+        for(const file of files){
+            if(!this.cacheHosts.get(host).find( f => f === file)){
+                return false;
+            }
+        }
+        return true;
     }
 }
 
