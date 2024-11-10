@@ -2,12 +2,12 @@
 
 * [x] cache manager (to delete models files)
 * [x] make model options component for settings
-* [ ] refactor settings - split into components?
-    - [ ] AppOptions
-    - [ ] CreationParams
-    - [ ] mutationsRates
-    - [ ] AppActions
-    - [ ] make new layout for settings?
+* [x] refactor settings - split into components
+    - [x] AppOptions
+    - [x] CreationParams
+    - [x] mutationsRates
+    - [x] AppActions
+    - [x] make new layout for settings
 * [x] change xenova/transformers to huggingface/transformers
     - [x] adapt code for it
 * [ ] test all models

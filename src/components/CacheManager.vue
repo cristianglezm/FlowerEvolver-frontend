@@ -37,7 +37,7 @@
    * 
    * @component CacheManager
    * @prop {String} cacheName - The name of the cache to manage.
-   * @event on-delete - Emitted when a cache host or file is successfully deleted.
+   * @event on-delete - Emitted when a cache host or files are deleted.
    * 
    * @example
    * // Usage in a parent component or view
@@ -123,33 +123,32 @@ const deleteCacheHost = async (host) => {
   
   <style scoped>
     #cacheManager {
-        padding: 20px;
+        padding: 1.25rem;
     }
     h2{
         text-align: center;
     }
     .columns {
         display: flex;
-        gap: 20px;
-        margin-bottom: 15px;
+        gap: 1.25rem;
+        margin-bottom: 0.9rem;
+        justify-content: center;
     }
-    
     .column {
-        width: 200px;
-        padding: 10px;
-        border: 0.25rem solid lightgreen;
-        border-radius: 4px;
+        width: 12.5em;
+        padding: 0.625em;
+        border: 0.25em solid lightgreen;
+        border-radius: 0.5rem;
         overflow-y: auto;
     }
-    
     .column h3{
         text-align: center;
     }
     .buttons{
         display: flex;
-        gap: 10px;
+        gap: 1.25em;
         justify-content: center;
-        margin-top: 15px;
+        margin-top: 0.9em;
     }
     .unsafe-button{
         position: relative;
@@ -182,9 +181,9 @@ const deleteCacheHost = async (host) => {
     .styled-select {
         background-color: lightgreen;
         color: green;
-        border: 1px solid green;
-        padding: 8px;
-        font-size: 16px;
+        border: solid green;
+        padding: 0.5rem;
+        font-size: 1.0rem;
         width: 100%;
         overflow: auto;
     }
