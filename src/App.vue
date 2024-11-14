@@ -20,7 +20,6 @@ import AppTitle from './components/AppTitle.vue';
 import AppMenu from './components/AppMenu.vue';
 import AppFooter from './components/AppFooter.vue';
 import { useRoute } from 'vue-router';
-import { Captioner } from './store/AIStore/AI';
 import { useFlowersStore } from './store';
 import { useAIStore } from './store/AIStore';
 
@@ -42,44 +41,22 @@ onMounted(() => {
               status: "setup",
               title: "downloading or loading model for describing flowers",
               onLoad: async () => {
-                Captioner.setModelOptions(AIStore.modelOptions);
-                Captioner.getInstance((data) => {
-                    switch(data.status){
-                      case "initiate":{
-                          let event = {
-                            status: "init",
-                            name: data.file,
-                            progress: 0,
-                            total: 100
-                          };
-                          emitter.emit('requestMultiProgressBar', event);
-                      }
-                        break;
-                      case "progress":{
-                          let event = {
-                            status: "update",
-                            name: data.file,
-                            progress: data.progress
-                          };
-                          emitter.emit('requestMultiProgressBar', event);
-                      }
-                        break;
-                      case "done":{
-                        emitter.emit('ModelOptions#updateBtnTitle');
-                      }
-                    }
-                });
+                AIStore.requestModelLoad();
               }
         });
       }, 2000);
   });
+  AIStore.channel.on('App#ToEmitter', (e) => {
+    emitter.emit(e.eventName, e.event);
+  });
   if(store.settings.loadModel){
     emitter.emit('App#loadModel');
   }
-})
+});
 onUnmounted(() => {
+  AIStore.channel.off('App#ToEmitter');
   emitter.off("App#loadModel");
-})
+});
 
   /*!
    * @license SIL Open Font License 1.1 - Copyright (c) 2023, GitHub
