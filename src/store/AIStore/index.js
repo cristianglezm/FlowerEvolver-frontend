@@ -3,6 +3,7 @@ import { defineStore } from 'pinia';
 import { useFlowersStore } from '../index';
 import WorkerManager from '../WorkerManager';
 import captioner from '../../workers/captioner.worker?worker';
+import { toRaw } from 'vue';
 
 let channel = new mitt();
 const wm = new WorkerManager(channel);
@@ -14,24 +15,39 @@ wm.onError('captioner', (e) => {
 wm.onResponse('captioner', (data) => {
     const store = useFlowersStore();
     const AIStore = useAIStore();
-    const desc = {
-        id: data.FlowerID,
-        description: data.description,
-    };
-    if(data.isLocal){
-        AIStore.localDescriptions.set(desc.id, desc.description);
-        store.db.descriptions.add(desc);
-    }else{
-        AIStore.remoteDescriptions.set(desc.id, desc.description);
+    const jobType = data.jobType;
+    switch(jobType){
+        case "updateBtnTitle":{
+            channel.emit('App#ToEmitter', data);
+        }
+            break;
+        case "updateProgressBar":{
+            channel.emit('App#ToEmitter', data);
+        }
+            break;
+        case "descResult":{
+            const desc = {
+                id: data.FlowerID,
+                description: data.description,
+            };
+            if(data.isLocal){
+                AIStore.localDescriptions.set(desc.id, desc.description);
+                store.db.descriptions.add(desc);
+            }else{
+                AIStore.remoteDescriptions.set(desc.id, desc.description);
+            }
+            channel.emit('captioner#done', desc);
+        }
+            break;
     }
-    channel.emit('captioner#done', desc);
 });
 
 export const STORAGE_KEY_MODEL_OPTIONS = "FlowerEVolverModelOptions";
 export const useAIStore = defineStore('AIStore', {
     state: () => ({
-        wm: wm,
-        channel: channel,
+        wm,
+        channel,
+        isModelLoaded: false,
         remoteDescriptions: new Map(),
         localDescriptions: new Map(),
         modelOptions: JSON.parse(localStorage.getItem(STORAGE_KEY_MODEL_OPTIONS) || JSON.stringify({
@@ -40,7 +56,8 @@ export const useAIStore = defineStore('AIStore', {
             device: "CPU",
             encoder: "q8",
             decoder: "q8"
-        }))
+        })),
+        oldModelOptions: null
     }),
     getters: {
         getLocalDescription: (state) => (id) => {
@@ -48,6 +65,17 @@ export const useAIStore = defineStore('AIStore', {
         },
         getRemoteDescription: (state) => (id) => {
             return state.remoteDescriptions.get(id);
+        },
+        hasModelLoaded: (state) => () => {
+            return state.isModelLoaded;
+        },
+        hasModelOptionsChanged: (state) => () => {
+            if(state.oldModelOptions === null) return true;
+            return ((state.oldModelOptions.host !== state.modelOptions.host) ||
+                    (state.oldModelOptions.model !== state.modelOptions.model) ||
+                    (state.oldModelOptions.device !== state.modelOptions.device) ||
+                    (state.oldModelOptions.encoder !== state.modelOptions.encoder) ||
+                    (state.oldModelOptions.decoder !== state.modelOptions.decoder));
         }
     },
     actions: {
@@ -80,10 +108,20 @@ export const useAIStore = defineStore('AIStore', {
         },
         async requestDescription(Flower){
             this.wm.sendRequest('captioner', {
-                    FlowerID: Flower.id,
-                    urlOrDataURL: Flower.image,
-                    isLocal: Flower.isLocal
+                jobType: "describe",
+                FlowerID: Flower.id,
+                urlOrDataURL: Flower.image,
+                isLocal: Flower.isLocal
             });
+        },
+        async requestModelLoad(){
+            this.oldModelOptions = structuredClone(toRaw(this.modelOptions))
+            this.isModelLoaded = false;
+            this.wm.sendRequest('captioner', {
+                jobType: "loadModel",
+                modelOptions: structuredClone(toRaw(this.modelOptions))
+            });
+            this.isModelLoaded = true;
         },
         async saveModelOptions(){
             localStorage.setItem(STORAGE_KEY_MODEL_OPTIONS, JSON.stringify(this.modelOptions));
