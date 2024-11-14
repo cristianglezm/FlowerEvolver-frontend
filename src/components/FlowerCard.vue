@@ -56,7 +56,6 @@
     import { onMounted, reactive, inject, onUnmounted } from 'vue';
     import { useRouter } from 'vue-router';
     import ParamsInfo from './ParamsInfo.vue';
-    import { Captioner } from '../store/AIStore/AI';
 
     const props = defineProps({
         id: {
@@ -194,7 +193,7 @@
         store.shareFlower(props.genome);
     };
     const describe = () => {
-        if(!Captioner.hasModelLoaded()){
+        if(!AIStore.hasModelLoaded()){
             store.errors.push({message: "check load model option or click download / load Model in Settings to use this."});
             return;
         }
