@@ -7,23 +7,23 @@
 <script setup>
 
     import FlowersTable from '../components/FlowersTable.vue';
-    import { useFlowersStore } from '../store';
+    import { useFlowerStore } from '../stores/FlowerStore';
     import { onMounted, onUnmounted, computed } from 'vue';
 
-    const store = useFlowersStore();
+    const FlowerStore = useFlowerStore();
     let flowers = computed(() => {
-        return store.lastAdded
+        return FlowerStore.lastAdded
     });
     onMounted( () => {
         updateList(30, 0);
-        store.timer = window.setInterval(updateList, 30000, 30, 0);
+        FlowerStore.timer = window.setInterval(updateList, 30000, 30, 0);
     });
     onUnmounted(() => {
-        window.clearInterval(store.timer);
-        store.timer = 0;
+        window.clearInterval(FlowerStore.timer);
+        FlowerStore.timer = 0;
     });
     const updateList = (limit, offset) => {
-        store.updateLastAdded({limit: limit, offset: offset});
+        FlowerStore.updateLastAdded({limit: limit, offset: offset});
     };
 </script>
 
