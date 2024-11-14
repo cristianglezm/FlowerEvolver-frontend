@@ -1,6 +1,6 @@
 <template>
   <div class="ModelOptions-container">
-    <h2> Model Options</h2>
+    <h2> Captioner Model Options</h2>
     <div id="host-option" class="option-box labelInputArea">
       <ToolTip :info="'Host from which to download the model'" />
       <label for="host-select"> Host: </label>
@@ -42,8 +42,8 @@
       <button class="safe-button" :class="{ 'disabled': isModelLoaded() }" @click="loadModel"> {{ data.btnTitle }}</button>
     </div>
     <div v-if="data.openCache && isModelDownloaded()" style="text-align: center;">
-      <CacheManager :cacheName="'transformers-cache'" @on-delete="reloadCache" />
       <button class="safe-button" @click="data.openCache = false"> Close </button>
+      <CacheManager :cacheName="'transformers-cache'" @on-delete="reloadCache" />
     </div>
     <div v-else style="text-align: center;">
       <button class="safe-button" :class="{'disabled': !isModelDownloaded() }" :disabled="!isModelDownloaded()" @click="openCacheManager()"> Manage model cache </button>
@@ -53,17 +53,17 @@
 
 <script setup>
   import { computed, inject, nextTick, onMounted, onUnmounted, reactive } from 'vue';
-  import { Captioner, isGPUAvailable } from '../store/AIStore/AI'
-  import { useAIStore } from '../store/AIStore';
-  import { CacheManager as CM } from '../store/CacheManager';
+  import { isGPUAvailable } from '../stores/CaptionerStore/AI'
+  import { useCaptionerStore } from '../stores/CaptionerStore';
+  import { CacheManager as CM } from '../stores/CacheManager';
   import CacheManager from './CacheManager.vue';
   import ToolTip from './ToolTip.vue';
 
   const emitter = inject('emitter');
-  const AIStore = useAIStore();
+  const CaptionerStore = useCaptionerStore();
   
   let data = reactive({
-    modelOptions: AIStore.modelOptions,
+    modelOptions: CaptionerStore.modelOptions,
     openCache: false,
     forceReload: false,
     btnTitle: "download / load model"
@@ -78,14 +78,14 @@
     cm.reload();
   };
   const isModelLoaded = () => {
-    return Captioner.hasModelLoaded() && !data.forceReload;
+    return CaptionerStore.hasModelLoaded() && !data.forceReload;
   };
   const isModelDownloaded = () => {
     return cm.size() > 0;
   };
   const isModelInCache = () => {
     let host = "https://huggingface.co";
-    if(AIStore.modelOptions.host !== "huggingface"){
+    if(CaptionerStore.modelOptions.host !== "huggingface"){
       host = "http://localhost";
     }
     const getQuantName = (quantType) => {
@@ -96,8 +96,8 @@
         default: return "_" + quantType;
       }
     };
-    let encoder = "encoder_model" + getQuantName(AIStore.modelOptions.encoder) + ".onnx";
-    let decoder = "decoder_model_merged" + getQuantName(AIStore.modelOptions.decoder) + ".onnx";
+    let encoder = "encoder_model" + getQuantName(CaptionerStore.modelOptions.encoder) + ".onnx";
+    let decoder = "decoder_model_merged" + getQuantName(CaptionerStore.modelOptions.decoder) + ".onnx";
     return cm.hasFiles(host, ["config.json", "tokenizer_config.json", 
                         "preprocessor_config.json", "tokenizer.json",
                         "generation_config.json", encoder, decoder]);
@@ -106,16 +106,11 @@
     if(isModelLoaded()){
       return;
     }
-    await Captioner.reset();
     emitter.emit("App#loadModel");
     data.forceReload = false;
   }
   const hasModelOptionsChanged = () => {
-    return (Captioner.modelOptions.host === AIStore.modelOptions.host &&
-              Captioner.modelOptions.model === AIStore.modelOptions.model &&
-              Captioner.modelOptions.device === AIStore.modelOptions.device &&
-              Captioner.modelOptions.encoder === AIStore.modelOptions.encoder &&
-              Captioner.modelOptions.decoder === AIStore.modelOptions.decoder);
+    return CaptionerStore.hasModelOptionsChanged();
   };
   const setCorrectBtnTitle = () => {
     if(isModelInCache()){
@@ -130,8 +125,10 @@
     }
     if(hasModelOptionsChanged()){
       data.forceReload = true;
+    }else{
+      data.forceReload = false;
     }
-    AIStore.saveModelOptions();
+    CaptionerStore.saveModelOptions();
     setCorrectBtnTitle();
   };
   const openCacheManager = () => {

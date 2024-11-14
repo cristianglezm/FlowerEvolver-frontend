@@ -9,14 +9,42 @@
     - [x] AppActions
     - [x] make new layout for settings
 * [x] change xenova/transformers to huggingface/transformers
-    - [x] adapt code for it
 * [ ] test all models
-    - it is slower than 2.17 version.
-    - q4 / q4f16 gives exception.
-    - q8 gives garbled output on Chrome
-* [ ] review regression on inference time for CPU (master takes ~12s, q8 hf v3 takes ~1m5s)
-* [ ] review RAM usage skyrockets to ~5GB (master is ~1GB)
-* [ ] fix not working on Chrome or Edge. (new models)
+    - fp32 works on CPU(it takes ~13s), GPU(it takes ~1m30s)
+    - fp16 gives exception
+    - q8 works on CPU (Firefox, Chrome, Edge)
+    - q8 gives garbled output on Chrome and Edge (GPU)
+    - int8 gives error on session creation (Can't create a session. ERROR_CODE: 9, ERROR_MESSAGE: Could not find an implementation for ConvInteger(10) node with name '/embeddings/patch_embeddings/projection/Conv_quant')
+    - uint8 works on CPU
+    - q4 works on CPU (it takes ~24s)
+    - q4f16 gives exception.
+    - bnb4 - works on CPU (it takes ~24s)
+* [ ] fix not working on Chrome or Edge GPU
 * [ ] Firefox webGPU not supported yet. (wait for it)
 
+* [x] rename ModelOptions to CaptionerModelOptions
+* [x] rename AIStore to CaptionerStore
+* [ ] rename AI.js for Chatbot and Captioner
+* [ ] add reset command to Captioner and chatbot workers
+    - [ ] add requestReset to stores for ChatBot and Captioner
+* [ ] make ChatBot pipeline
+    - [ ] ChatBot class
+    - [ ] ChatBot Worker
+    - [ ] ChatBotStore
+        - [ ] make command executor
+* [ ] make ChaBotModelOptions component
+* [ ] make ChatBotWidget component
+    - [ ] make it grabbable
+    - [ ] App.vue  - add a desplegable button on the left to show the chatbot and close it when open
+    - [ ] add message if user writes to chatbot when offline to click on the red dot?
+* [ ] add show chatbot checkbox to AppOptions?
+* [ ] test all models
+    - fp32 -
+    - fp16 -
+    - q4   -
+    - q4f16-
+* [ ] finetune model
+
 * [ ] refactor - split store into stores
+    - [x] prepare store split
+

@@ -46,7 +46,7 @@
    * </template>
    */
   import { inject, onMounted, reactive } from 'vue';
-  import { CacheManager as CM } from '../store/CacheManager';
+  import { CacheManager as CM } from '../stores/CacheManager';
   
   const emit = defineEmits({
     'on-delete': null,
