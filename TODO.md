@@ -8,12 +8,11 @@
     - [x] mutationsRates
     - [x] AppActions
     - [x] make new layout for settings
-    - [ ] fix error chrome - multiProgressBar closes after opening?
-    - [ ] chrome modelOptions - localhost not working
+* [ ] fix error chrome - multiProgressBar closes after opening?
+* [ ] chrome modelOptions - localhost not working
 * [x] change xenova/transformers to huggingface/transformers
     - [x] adapt code for it
 * [ ] test all models
-    - it is slower than 2.17 version.
     - fp32 works on CPU
     - fp16 gives exception
     - q8 works on CPU (firefox, chrome)
