@@ -160,6 +160,8 @@ const closeModal = () => {
         z-index: 1;
         padding: 0.125rem;
         width: 50%;
+        max-width: 90%;
+        max-height: 90%;
         display: flex;
         flex-flow: column nowrap;
         text-align: center;
