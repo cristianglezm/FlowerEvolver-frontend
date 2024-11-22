@@ -54,7 +54,7 @@ const hasModelOptionsChanged = (modelOptions) => {
 };
 const loadModel = async (modelOptions) => {
     if(hasModelOptionsChanged(modelOptions)){
-        Captioner.reset();
+        await Captioner.reset();
     }
     Captioner.setModelOptions(modelOptions);
     Captioner.getInstance((data) => {

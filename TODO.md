@@ -8,7 +8,6 @@
     - [x] mutationsRates
     - [x] AppActions
     - [x] make new layout for settings
-* [ ] Chrome, Edge - modelOptions - localhost not working
 * [x] change xenova/transformers to huggingface/transformers
 * [ ] test all models
     - fp32 works on CPU(it takes ~13s), GPU(it takes ~1m30s)
