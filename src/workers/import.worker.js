@@ -8,7 +8,7 @@
  *     worker.postMessage({
  *       files: files,
  *       toFavs: false,
- *       batchSize: store.settings.limit
+ *       batchSize: FlowerStore.settings.limit
  *   });
  * // worker will send these:
  * // starting processing file
@@ -28,7 +28,7 @@
  *       type: "done",
  *   });
  */
-import { db } from  '../store/db';
+import { db } from  '../stores/FlowerStore/db';
 import fe from '@cristianglezm/flower-evolver-wasm';
 
 let FE;

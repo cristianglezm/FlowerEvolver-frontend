@@ -15,21 +15,21 @@
 <script setup>
 
 import { onMounted, reactive } from 'vue';
-import { STORAGE_KEY_GARDEN, useFlowersStore } from '../store';
+import { STORAGE_KEY_GARDEN, useFlowerStore } from '../stores/FlowerStore';
 import gardenWorker from '../workers/garden.worker?worker';
-import WorkerManager from '../store/WorkerManager';
+import WorkerManager from '../stores/WorkerManager';
 import mitt from 'mitt';
 
 const gardenRadius = 8;
 const STORAGE_KEY_WARNING = "FlowerEvolverShowWarning";
 
-let store = useFlowersStore();
+let FlowerStore = useFlowerStore();
 const emitter = mitt();
 let wm = new WorkerManager(emitter);
 
 wm.addWorker('garden', gardenWorker());
 wm.onError('garden', (e) => {
-    store.errors.push({ message: e});
+    FlowerStore.errors.push({ message: e});
 });
 wm.onResponse('garden', (e) => {
     let position = {

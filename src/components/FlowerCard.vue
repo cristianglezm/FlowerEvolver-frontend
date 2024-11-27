@@ -18,7 +18,7 @@
           <a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a>
           <a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a>
           <a @click="deleteThisFlower(); data.clicked = !data.clicked;">Delete Flower</a>
-          <a @click="store.redrawFlower({genome: props.genome}); data.clicked = !data.clicked;">Redraw Flower</a>
+          <a @click="FlowerStore.redrawFlower({genome: props.genome}); data.clicked = !data.clicked;">Redraw Flower</a>
         </div>
       </div>
       <img :id="'FlImage' + props.id" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage">
@@ -51,8 +51,8 @@
 
 <script setup>
 
-    import { useFlowersStore } from '../store';
-    import { useCaptionerStore } from '../store/CaptionerStore';
+    import { useFlowerStore } from '../stores/FlowerStore';
+    import { useCaptionerStore } from '../stores/CaptionerStore';
     import { onMounted, reactive, inject, onUnmounted } from 'vue';
     import { useRouter } from 'vue-router';
     import ParamsInfo from './ParamsInfo.vue';
@@ -127,13 +127,13 @@
                 },
     });
     const router = useRouter();
-    const store = useFlowersStore();
+    const FlowerStore = useFlowerStore();
     const CaptionerStore = useCaptionerStore();
     const emitter = inject('emitter');
     onMounted(() => {
         if(props.isLocal){
             parseParams();
-            store.isFavourited(props.id)
+            FlowerStore.isFavourited(props.id)
                 .then((isFav) => {
                     if(isFav){
                         data.heartIconSrc = loadImage("heart_full.png","x32");
@@ -169,7 +169,7 @@
             btnNo: 'No',
             btnYes: 'Delete Flower',
             onConfirm: (dialog) => {
-                store.deleteLocalFlower(props.id);
+                FlowerStore.deleteLocalFlower(props.id);
                 dialog.close();
             },
         });
@@ -183,18 +183,18 @@
     };
     const onSelected = () => {
         if(props.isLocal){
-            store.selectLocalFlower({id: props.id, genome: props.genome,image: props.image});
+            FlowerStore.selectLocalFlower({id: props.id, genome: props.genome,image: props.image});
         }else{
-            store.selectRemoteFlower({id: props.id, genome: props.genome,image: props.image});
+            FlowerStore.selectRemoteFlower({id: props.id, genome: props.genome,image: props.image});
         }
         emitter.emit('checkSelected');
     };
     const shareFlower = () => {
-        store.shareFlower(props.genome);
+        FlowerStore.shareFlower(props.genome);
     };
     const describe = () => {
         if(!CaptionerStore.hasModelLoaded()){
-            store.errors.push({message: "check load model option or click download / load Model in Settings to use this."});
+            FlowerStore.errors.push({message: "check load model option or click download / load Model in Settings to use this."});
             return;
         }
         if(props.isLocal){
@@ -247,31 +247,31 @@
     };
     const isSelected = () => {
         if(props.isLocal){
-            return store.isLocalFlowerSelected({id: props.id, genome: props.genome, image: props.image})
+            return FlowerStore.isLocalFlowerSelected({id: props.id, genome: props.genome, image: props.image})
         }
-        return store.isRemoteFlowerSelected({id: props.id, genome: props.genome, image: props.image})
+        return FlowerStore.isRemoteFlowerSelected({id: props.id, genome: props.genome, image: props.image})
     };
     const toggleFavourite = async (id) => {
         if(props.isLocal){
-            let isFav = await store.isFavourited(id);
+            let isFav = await FlowerStore.isFavourited(id);
             if(isFav){
                 data.index = 6;
                 setTimeout(changeHeartIcon, 50, true);
-                store.removeFlowerFromFav(id);
+                FlowerStore.removeFlowerFromFav(id);
             }else{
                 data.index = 0;
                 setTimeout(changeHeartIcon, 50, false);
-                await store.addFlowerToFav(id);
+                await FlowerStore.addFlowerToFav(id);
             }
         }else{
-            store.errors.push({message: "Add the flower to local first to add it to favourites."});
+            FlowerStore.errors.push({message: "Add the flower to local first to add it to favourites."});
         }
     };
     const addToLocal = () => {
         if(!props.isLocal){
-            store.addRemoteFlowerToLocal({id: props.id, genome: props.genome, image: props.image});
+            FlowerStore.addRemoteFlowerToLocal({id: props.id, genome: props.genome, image: props.image});
         }else{
-            store.errors.push({message: "This flower is a local flower already."});
+            FlowerStore.errors.push({message: "This flower is a local flower already."});
         }
     };
     const changeHeartIcon = (desc) => {
@@ -306,9 +306,9 @@
     };
     const mutate = () => {
         if(props.isLocal){
-            store.makeLocalMutation({id: props.id, image: props.image, genome: props.genome});
+            FlowerStore.makeLocalMutation({id: props.id, image: props.image, genome: props.genome});
         }else{
-            store.makeRemoteMutation({id: props.id, image: props.image, genome: props.genome});
+            FlowerStore.makeRemoteMutation({id: props.id, image: props.image, genome: props.genome});
         }
     };
 

@@ -5,7 +5,7 @@
  * @example
  * // start worker
  *   workers.redrawWorker.postMessage({
- *       batchSize: store.settings.limit,
+ *       batchSize: FlowerStore.settings.limit,
  *       params: structuredClone(toRaw(params))
  *  });
  * // updates
@@ -13,7 +13,7 @@
  *       progress: progress
  *   });
  */
-import { db } from  '../store/db';
+import { db } from  '../stores/FlowerStore/db';
 import fe from '@cristianglezm/flower-evolver-wasm';
 
 const updateFlowers = (flowers) => {

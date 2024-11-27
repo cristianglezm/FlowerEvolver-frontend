@@ -28,15 +28,15 @@
 <script setup>
 import { reactive } from 'vue';
 import ToolTip from '../components/ToolTip.vue';
-import { useFlowersStore, STORAGE_KEY } from '../store';
+import { useFlowerStore, STORAGE_KEY } from '../stores/FlowerStore';
 
-const store = useFlowersStore();
+const FlowerStore = useFlowerStore();
 
 const params = reactive({
-    radius: store.settings.params.radius,
-    numLayers: store.settings.params.numLayers,
-    P: store.settings.params.P,
-    bias: store.settings.params.bias
+    radius: FlowerStore.settings.params.radius,
+    numLayers: FlowerStore.settings.params.numLayers,
+    P: FlowerStore.settings.params.P,
+    bias: FlowerStore.settings.params.bias
 });
 
 const restoreDefaults = () => {
@@ -51,7 +51,7 @@ const clamp = (val, min, max) => {
     return Math.min(max, Math.max(val, min));
 }
 const saveSettings = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(store.settings));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(FlowerStore.settings));
 };
 
 const validateParams = () => {
@@ -59,7 +59,7 @@ const validateParams = () => {
     params.numLayers = Math.max(1, params.numLayers);
     params.P = validateFloat(params.P, 6.0);
     params.bias = validateFloat(params.bias, 1.0);
-    store.settings.params = params;
+    FlowerStore.settings.params = params;
     saveSettings();
 };
 const validateFloat = (number, Default) => {

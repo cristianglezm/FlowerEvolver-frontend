@@ -53,9 +53,9 @@
 
 <script setup>
   import { computed, inject, nextTick, onMounted, onUnmounted, reactive } from 'vue';
-  import { isGPUAvailable } from '../store/CaptionerStore/AI'
-  import { useCaptionerStore } from '../store/CaptionerStore';
-  import { CacheManager as CM } from '../store/CacheManager';
+  import { isGPUAvailable } from '../stores/CaptionerStore/AI'
+  import { useCaptionerStore } from '../stores/CaptionerStore';
+  import { CacheManager as CM } from '../stores/CacheManager';
   import CacheManager from './CacheManager.vue';
   import ToolTip from './ToolTip.vue';
 

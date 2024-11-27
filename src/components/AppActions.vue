@@ -27,15 +27,15 @@
 
 <script setup>
 import { inject, toRaw, onBeforeUnmount } from 'vue';
-import { useFlowersStore, STORAGE_KEY_GARDEN } from '../store';
+import { useFlowerStore, STORAGE_KEY_GARDEN } from '../stores/FlowerStore';
 import UploadFileModal from '../components/UploadFileModal.vue';
 import redrawWorker from '../workers/redraw.worker?worker';
 import exportWorker from '../workers/export.worker?worker';
 import importWorker from '../workers/import.worker?worker';
-import WorkerManager from '../store/WorkerManager';
+import WorkerManager from '../stores/WorkerManager';
 import mitt from 'mitt';
 
-const store = useFlowersStore();
+const FlowerStore = useFlowerStore();
 let emitter = inject('emitter');
 let channel = mitt();
 let wm = new WorkerManager(channel);
@@ -45,7 +45,7 @@ wm.addWorker('exporter', exportWorker());
 wm.addWorker('importer', importWorker());
 
 const onError = (e) => {
-    store.errors.push({ message: e});
+    FlowerStore.errors.push({ message: e});
 };
 wm.onError('redraw', onError);
 wm.onResponse('redraw', (e) => {
@@ -111,10 +111,10 @@ const deleteAllFlowers = () => {
         btnYes: 'Delete all',
         onConfirm: async (dialog) => {
             dialog.close();
-            store.localSelected.flowers = [];
-            store.localSelected.index = 0;
-            await store.db.delete();
-            store.db.open();
+            FlowerStore.localSelected.flowers = [];
+            FlowerStore.localSelected.index = 0;
+            await FlowerStore.db.delete();
+            FlowerStore.db.open();
             emitter.emit('AppOptions#recalcSpace');
         },
     });
@@ -126,9 +126,9 @@ const deleteNonFavourites = () => {
         btnNo: 'no',
         btnYes: 'Delete non favourites',
         onConfirm: async (dialog) => {
-            let ids = await store.db.favourites.toArray();
-            let flowers = await store.db.flowers.bulkGet(ids);
-            let descs = await store.db.descriptions.bulkGet(ids);
+            let ids = await FlowerStore.db.favourites.toArray();
+            let flowers = await FlowerStore.db.flowers.bulkGet(ids);
+            let descs = await FlowerStore.db.descriptions.bulkGet(ids);
             for(let id = 0;id < flowers.length; ++id){
                 ids[id] = id + 1;
                 flowers[id].id = id + 1;
@@ -139,22 +139,22 @@ const deleteNonFavourites = () => {
             descs = descs.filter((d) => {
                 return d !== undefined;
             });
-            store.localSelected.flowers = [];
-            store.localSelected.index = 0;
-            store.db.delete();
-            store.db.open();
-            store.db.flowers.bulkAdd(flowers);
+            FlowerStore.localSelected.flowers = [];
+            FlowerStore.localSelected.index = 0;
+            FlowerStore.db.delete();
+            FlowerStore.db.open();
+            FlowerStore.db.flowers.bulkAdd(flowers);
             dialog.close();
-            await store.db.favourites.bulkAdd(ids, ids);
-            await store.db.descriptions.bulkAdd(descs);
+            await FlowerStore.db.favourites.bulkAdd(ids, ids);
+            await FlowerStore.db.descriptions.bulkAdd(descs);
             emitter.emit('AppOptions#recalcSpace');
         }
     });
 };
 const redrawLocalFlowers = async () => {
     wm.sendRequest('redraw', {
-        batchSize: store.settings.limit,
-        params: structuredClone(toRaw(store.settings.params))
+        batchSize: FlowerStore.settings.limit,
+        params: structuredClone(toRaw(FlowerStore.settings.params))
     });
 };
 const showRedrawFlowers = () => {
@@ -164,11 +164,11 @@ const showRedrawFlowers = () => {
         btnNo: 'no',
         btnYes: 'redraw local flowers',
         onConfirm: (dialog) => {
-            store.db.flowers.count((totalFlowers) => {
+            FlowerStore.db.flowers.count((totalFlowers) => {
                 if(totalFlowers != 0){
                     showProgressBar('re-drawing flowers', totalFlowers, redrawLocalFlowers);   
                 }else{
-                    store.errors.push({message: "You have no local flowers to redraw."});
+                    FlowerStore.errors.push({message: "You have no local flowers to redraw."});
                 }
             });
             dialog.close();
@@ -183,14 +183,14 @@ const showExport = (type) => {
             btnNo: 'no',
             btnYes: 'Export favourite flowers',
             onConfirm: (dialog) => {
-                store.db.favourites.count((totalFlowers) => {
+                FlowerStore.db.favourites.count((totalFlowers) => {
                     if(totalFlowers != 0){
                         showProgressBar('exporting favourite flowers', totalFlowers, 
                             () => {
                                 exportFlowers(type);
                             });
                     }else{
-                        store.errors.push({message: "You have no favourites to export"});
+                        FlowerStore.errors.push({message: "You have no favourites to export"});
                     }
                 });
                 dialog.close();
@@ -203,14 +203,14 @@ const showExport = (type) => {
             btnNo: 'no',
             btnYes: 'Export all local flowers',
             onConfirm: (dialog) => {
-                store.db.flowers.count((totalFlowers) => {
+                FlowerStore.db.flowers.count((totalFlowers) => {
                     if(totalFlowers != 0){
                         showProgressBar('exporting flowers', totalFlowers, 
                             () => {
                                 exportFlowers(type);
                             });
                     }else{
-                        store.errors.push({message: "You have no flowers to export"});
+                        FlowerStore.errors.push({message: "You have no flowers to export"});
                     }
                 });
                 dialog.close();
@@ -231,13 +231,13 @@ const showExport = (type) => {
 };
 const importFiles = async (files, toFavs) => {
     if(!files.length){
-        store.errors.push({message: "You must upload at least one json file."});
+        FlowerStore.errors.push({message: "You must upload at least one json file."});
         return;
     }
     wm.sendRequest('importer', {
         files: files,
         toFavs: toFavs,
-        batchSize: store.settings.limit
+        batchSize: FlowerStore.settings.limit
     });
 };
 const importGarden = async () => {
@@ -249,7 +249,7 @@ const importGarden = async () => {
     wm.sendRequest('importer', {
         files: files,
         toFavs: toFavs,
-        batchSize: store.settings.limit
+        batchSize: FlowerStore.settings.limit
     });
 };
 const showImport = (toFavs) => {
@@ -281,7 +281,7 @@ const exportFlowers = (type) => {
     }
     wm.sendRequest('exporter', {
         type: type,
-        batchSize: store.settings.limit
+        batchSize: FlowerStore.settings.limit
     });
 };
 

@@ -7,7 +7,7 @@
  * // start worker
  *   workers.exportWorker.postMessage({
  *       type: type,
- *       batchSize: store.settings.limit
+ *       batchSize: FlowerStore.settings.limit
  *   });
  * // worker will send
  * // update
@@ -23,7 +23,7 @@
  *           filedata: data // data is a json to export.
  *       });
  */
-import { db } from  '../store/db';
+import { db } from  '../stores/FlowerStore/db';
 
 self.onmessage = async (e) => {
     let type = e.data.type;
