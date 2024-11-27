@@ -8,7 +8,7 @@ export const URL = import.meta.env.VITE_APP_DOWNLOAD_URL;
 export const STORAGE_KEY = 'FlowerEvolverSettings';
 export const STORAGE_KEY_GARDEN = "FlowerEvolverGarden";
 
-export const useFlowersStore = defineStore('FlowersStore', {
+export const useFlowerStore = defineStore('FlowerStore', {
 	state: () => ({
 		fe: null,
 		canvas: document.getElementById("canvas"),
