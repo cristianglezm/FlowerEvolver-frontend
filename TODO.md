@@ -22,4 +22,6 @@
 * [ ] fix not working on Chrome or Edge GPU
 * [ ] Firefox webGPU not supported yet. (wait for it)
 
+* [x] rename ModelOptions to CaptionerModelOptions
+
 * [ ] refactor - split store into stores
