@@ -5,7 +5,7 @@
         <CreationParams />
         <mutationRates />
         <AppOptions />
-        <ModelOptions />
+        <CaptionerModelOptions />
       </div>
       <div class="flex">
         <AppActions />
@@ -33,7 +33,7 @@ import AppOptions from '../components/AppOptions.vue';
 import CreationParams from '../components/CreationParams.vue';
 import MutationRates from '../components/MutationRates.vue';
 import AppActions from '../components/AppActions.vue';
-import ModelOptions from '../components/ModelOptions.vue';
+import CaptionerModelOptions from '../components/CaptionerModelOptions.vue';
 
 </script>
 

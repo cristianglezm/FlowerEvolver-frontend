@@ -1,6 +1,6 @@
 <template>
   <div class="ModelOptions-container">
-    <h2> Model Options</h2>
+    <h2> Captioner Model Options</h2>
     <div id="host-option" class="option-box labelInputArea">
       <ToolTip :info="'Host from which to download the model'" />
       <label for="host-select"> Host: </label>
