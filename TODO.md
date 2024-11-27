@@ -24,6 +24,18 @@
 
 * [x] rename ModelOptions to CaptionerModelOptions
 * [x] rename AIStore to CaptionerStore
+* [ ] make ChatBot pipeline
+    - [ ] ChatBot class
+    - [ ] ChatBot Worker
+    - [ ] ChatBotStore
+* [ ] make ChaBotModelOptions component
+* [ ] make ChatBotWidget component
+* [ ] test all models
+    - fp32 -
+    - fp16 -
+    - q4   -
+    - q4f16-
 
 * [ ] refactor - split store into stores
     - [x] prepare store split
+
