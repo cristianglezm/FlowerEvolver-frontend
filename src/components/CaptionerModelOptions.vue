@@ -53,17 +53,17 @@
 
 <script setup>
   import { computed, inject, nextTick, onMounted, onUnmounted, reactive } from 'vue';
-  import { isGPUAvailable } from '../store/AIStore/AI'
-  import { useAIStore } from '../store/AIStore';
+  import { isGPUAvailable } from '../store/CaptionerStore/AI'
+  import { useCaptionerStore } from '../store/CaptionerStore';
   import { CacheManager as CM } from '../store/CacheManager';
   import CacheManager from './CacheManager.vue';
   import ToolTip from './ToolTip.vue';
 
   const emitter = inject('emitter');
-  const AIStore = useAIStore();
+  const CaptionerStore = useCaptionerStore();
   
   let data = reactive({
-    modelOptions: AIStore.modelOptions,
+    modelOptions: CaptionerStore.modelOptions,
     openCache: false,
     forceReload: false,
     btnTitle: "download / load model"
@@ -78,14 +78,14 @@
     cm.reload();
   };
   const isModelLoaded = () => {
-    return AIStore.hasModelLoaded() && !data.forceReload;
+    return CaptionerStore.hasModelLoaded() && !data.forceReload;
   };
   const isModelDownloaded = () => {
     return cm.size() > 0;
   };
   const isModelInCache = () => {
     let host = "https://huggingface.co";
-    if(AIStore.modelOptions.host !== "huggingface"){
+    if(CaptionerStore.modelOptions.host !== "huggingface"){
       host = "http://localhost";
     }
     const getQuantName = (quantType) => {
@@ -96,8 +96,8 @@
         default: return "_" + quantType;
       }
     };
-    let encoder = "encoder_model" + getQuantName(AIStore.modelOptions.encoder) + ".onnx";
-    let decoder = "decoder_model_merged" + getQuantName(AIStore.modelOptions.decoder) + ".onnx";
+    let encoder = "encoder_model" + getQuantName(CaptionerStore.modelOptions.encoder) + ".onnx";
+    let decoder = "decoder_model_merged" + getQuantName(CaptionerStore.modelOptions.decoder) + ".onnx";
     return cm.hasFiles(host, ["config.json", "tokenizer_config.json", 
                         "preprocessor_config.json", "tokenizer.json",
                         "generation_config.json", encoder, decoder]);
@@ -110,7 +110,7 @@
     data.forceReload = false;
   }
   const hasModelOptionsChanged = () => {
-    return AIStore.hasModelOptionsChanged();
+    return CaptionerStore.hasModelOptionsChanged();
   };
   const setCorrectBtnTitle = () => {
     if(isModelInCache()){
@@ -128,7 +128,7 @@
     }else{
       data.forceReload = false;
     }
-    AIStore.saveModelOptions();
+    CaptionerStore.saveModelOptions();
     setCorrectBtnTitle();
   };
   const openCacheManager = () => {

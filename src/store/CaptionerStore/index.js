@@ -14,7 +14,7 @@ wm.onError('captioner', (e) => {
 });
 wm.onResponse('captioner', (data) => {
     const store = useFlowersStore();
-    const AIStore = useAIStore();
+    const CaptionerStore = useCaptionerStore();
     const jobType = data.jobType;
     switch(jobType){
         case "updateBtnTitle":{
@@ -31,10 +31,10 @@ wm.onResponse('captioner', (data) => {
                 description: data.description,
             };
             if(data.isLocal){
-                AIStore.localDescriptions.set(desc.id, desc.description);
+                CaptionerStore.localDescriptions.set(desc.id, desc.description);
                 store.db.descriptions.add(desc);
             }else{
-                AIStore.remoteDescriptions.set(desc.id, desc.description);
+                CaptionerStore.remoteDescriptions.set(desc.id, desc.description);
             }
             channel.emit('captioner#done', desc);
         }
@@ -42,15 +42,15 @@ wm.onResponse('captioner', (data) => {
     }
 });
 
-export const STORAGE_KEY_MODEL_OPTIONS = "FlowerEVolverModelOptions";
-export const useAIStore = defineStore('AIStore', {
+export const STORAGE_KEY_CAPTIONER_MODEL_OPTIONS = "FlowerEVolverCaptionerModelOptions";
+export const useCaptionerStore = defineStore('CaptionerStore', {
     state: () => ({
         wm,
         channel,
         isModelLoaded: false,
         remoteDescriptions: new Map(),
         localDescriptions: new Map(),
-        modelOptions: JSON.parse(localStorage.getItem(STORAGE_KEY_MODEL_OPTIONS) || JSON.stringify({
+        modelOptions: JSON.parse(localStorage.getItem(STORAGE_KEY_CAPTIONER_MODEL_OPTIONS) || JSON.stringify({
             host: "huggingface",
             model: "cristianglezm/ViT-GPT2-FlowerCaptioner-ONNX",
             device: "CPU",
@@ -124,7 +124,7 @@ export const useAIStore = defineStore('AIStore', {
             this.isModelLoaded = true;
         },
         async saveModelOptions(){
-            localStorage.setItem(STORAGE_KEY_MODEL_OPTIONS, JSON.stringify(this.modelOptions));
+            localStorage.setItem(STORAGE_KEY_CAPTIONER_MODEL_OPTIONS, JSON.stringify(this.modelOptions));
         }
     }
 });
