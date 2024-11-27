@@ -29,13 +29,13 @@
  *
  * @example
  * // usage in another component, view or store actions.
- * const store = useFlowerStore();
- * store.$state.errors.push({message: "error 1"});
- * store.$state.errors.push({message: "error 2"});
+ * const FlowerStore = useFlowerStore();
+ * FlowerStore.errors.push({message: "error 1"});
+ * FlowerStore.errors.push({message: "error 2"});
  */
-import { useFlowersStore } from '../store';
+import { useFlowerStore } from '../stores/FlowerStore';
 
-const store = useFlowersStore();
+const FlowerStore = useFlowerStore();
 const props = defineProps({
     errors:{
         type: Array,
@@ -43,10 +43,10 @@ const props = defineProps({
     }
 });
 const clearErrors = () => {
-    store.errors = [];
+    FlowerStore.errors = [];
 };
 const popError = () => {
-    store.errors.pop();
+    FlowerStore.errors.pop();
 };
 
 </script>

@@ -26,3 +26,4 @@
 * [x] rename AIStore to CaptionerStore
 
 * [ ] refactor - split store into stores
+    - [x] prepare store split

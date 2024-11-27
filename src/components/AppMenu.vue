@@ -21,13 +21,13 @@
         </nav>
         <nav class="actions" alt="actions">
           <div v-if="props.isLocal || data.blocked" style="display: flex; flex-flow: column wrap;z-index: 1;left: 0rem;position: absolute;">
-            <button @click="store.makeLocalFlower(); data.showMenu = !data.showMenu"> New Local Flower</button>
-            <button @click="store.localReproduce(); data.showMenu = !data.showMenu"> Local Reproduce Selected</button>
+            <button @click="FlowerStore.makeLocalFlower(); data.showMenu = !data.showMenu"> New Local Flower</button>
+            <button @click="FlowerStore.localReproduce(); data.showMenu = !data.showMenu"> Local Reproduce Selected</button>
             <button @click="showAncestors(); data.showMenu = !data.showMenu"> Show Local Selected Descendants</button>
           </div>
           <div v-else style="display: flex; flex-flow: column wrap;z-index: 1;left: 0rem;position: absolute;">
-            <button @click="block(store.makeRemoteFlower); data.showMenu = !data.showMenu"> New Remote Flower</button>
-            <button @click="block(store.remoteReproduce); data.showMenu = !data.showMenu"> Remote Reproduce Selected</button>
+            <button @click="block(FlowerStore.makeRemoteFlower); data.showMenu = !data.showMenu"> New Remote Flower</button>
+            <button @click="block(FlowerStore.remoteReproduce); data.showMenu = !data.showMenu"> Remote Reproduce Selected</button>
             <button @click="block(showAncestors); data.showMenu = !data.showMenu"> Show Remote Selected Descendants</button>
           </div>
         </nav>
@@ -54,8 +54,8 @@
       </nav>
       <div class="actions" alt="actions">
         <ul v-if="props.isLocal">
-          <button @click="store.makeLocalFlower()"> New Local Flower</button>
-          <button @click="store.localReproduce()"> Local Reproduce Selected</button>
+          <button @click="FlowerStore.makeLocalFlower()"> New Local Flower</button>
+          <button @click="FlowerStore.localReproduce()"> Local Reproduce Selected</button>
           <button @click="showAncestors()"> Show Local Selected Descendants</button>
         </ul>
         <ul v-else-if="data.blocked">
@@ -64,24 +64,24 @@
           <button class="disabled"> Show Remote Selected Descendants</button>                
         </ul>
         <ul v-else>
-          <button @click="block(store.makeRemoteFlower)"> New Remote Flower</button>
-          <button @click="block(store.remoteReproduce)"> Remote Reproduce Selected</button>
+          <button @click="block(FlowerStore.makeRemoteFlower)"> New Remote Flower</button>
+          <button @click="block(FlowerStore.remoteReproduce)"> Remote Reproduce Selected</button>
           <button @click="block(showAncestors)"> Show Remote Selected Descendants</button>
         </ul>
       </div>
     </div>
-    <ErrorModal :errors="store.errors" />
+    <ErrorModal :errors="FlowerStore.errors" />
     <ConfirmModal :id="'globalConfirm'" :channel="emitter" :on="'showYesNo'" />
   </div>
 </template>
 
 <script setup>
 
-	import { reactive, inject } from 'vue';
-	import { useFlowersStore } from '../store';
+    import { reactive, inject } from 'vue';
+    import { useRouter } from 'vue-router';
     import ErrorModal from './ErrorModal.vue';
     import ConfirmModal from './ConfirmModal.vue';
-    import { useRouter } from 'vue-router';
+    import { useFlowerStore } from '../stores/FlowerStore';
 
     const props = defineProps({
         isLocal: {
@@ -95,7 +95,7 @@
         showMenu: false
     });
     const emitter = inject('emitter');
-    const store = useFlowersStore();
+    const FlowerStore = useFlowerStore();
     const router = useRouter();
 
     const block = (Fn) => {
@@ -109,23 +109,23 @@
     };
     const showAncestors = () =>{
         if(props.isLocal){
-            let selected = store.getLocalSelected;
+            let selected = FlowerStore.getLocalSelected;
             if(selected.length < 1){
-                store.errors.push({message:'You need to select two flowers'});
+                FlowerStore.errors.push({message:'You need to select two flowers'});
             }else{
                 router.push({name:'DescendantsFatherAndMother', params:{father:selected[0], mother:selected[1], isLocal: "local"}});
             }
         }else{
-            let selected = store.getRemoteSelected;
+            let selected = FlowerStore.getRemoteSelected;
             if(selected.length < 1){
-                store.errors.push({message:'You need to select two flowers'});
+                FlowerStore.errors.push({message:'You need to select two flowers'});
             }else{
                 router.push({name:'DescendantsFatherAndMother', params:{father:selected[0], mother:selected[1], isLocal: "remote"}});
             }
         }
     };
     const isPaginated = () => {
-        return store.settings.pagination;
+        return FlowerStore.settings.pagination;
     };
     const isMobile = () => {
         return window.innerWidth <= 1280;

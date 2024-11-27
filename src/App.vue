@@ -20,12 +20,12 @@ import AppTitle from './components/AppTitle.vue';
 import AppMenu from './components/AppMenu.vue';
 import AppFooter from './components/AppFooter.vue';
 import { useRoute } from 'vue-router';
-import { useFlowersStore } from './store';
-import { useCaptionerStore } from './store/CaptionerStore';
+import { useFlowerStore } from './stores/FlowerStore';
+import { useCaptionerStore } from './stores/CaptionerStore';
 
 const routes = useRoute();
 const emitter = inject('emitter');
-const store = useFlowersStore();
+const FlowerStore = useFlowerStore();
 const CaptionerStore = useCaptionerStore();
 
 const isLocal = () => {
@@ -49,7 +49,7 @@ onMounted(() => {
   CaptionerStore.channel.on('App#ToEmitter', (e) => {
     emitter.emit(e.eventName, e.event);
   });
-  if(store.settings.loadModel){
+  if(FlowerStore.settings.loadModel){
     emitter.emit('App#loadModel');
   }
 });
