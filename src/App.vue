@@ -21,12 +21,12 @@ import AppMenu from './components/AppMenu.vue';
 import AppFooter from './components/AppFooter.vue';
 import { useRoute } from 'vue-router';
 import { useFlowersStore } from './store';
-import { useAIStore } from './store/AIStore';
+import { useCaptionerStore } from './store/CaptionerStore';
 
 const routes = useRoute();
 const emitter = inject('emitter');
 const store = useFlowersStore();
-const AIStore = useAIStore();
+const CaptionerStore = useCaptionerStore();
 
 const isLocal = () => {
   return routes.path === '/Local' || 
@@ -41,12 +41,12 @@ onMounted(() => {
               status: "setup",
               title: "downloading or loading model for describing flowers",
               onLoad: async () => {
-                AIStore.requestModelLoad();
+                CaptionerStore.requestModelLoad();
               }
         });
       }, 2000);
   });
-  AIStore.channel.on('App#ToEmitter', (e) => {
+  CaptionerStore.channel.on('App#ToEmitter', (e) => {
     emitter.emit(e.eventName, e.event);
   });
   if(store.settings.loadModel){
@@ -54,7 +54,7 @@ onMounted(() => {
   }
 });
 onUnmounted(() => {
-  AIStore.channel.off('App#ToEmitter');
+  CaptionerStore.channel.off('App#ToEmitter');
   emitter.off("App#loadModel");
 });
 

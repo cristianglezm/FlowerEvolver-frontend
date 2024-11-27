@@ -1,4 +1,4 @@
-import { describe, Captioner } from '../store/AIStore/AI';
+import { describe, Captioner } from '../store/CaptionerStore/AI';
 
 /**
  * @brief Processes an image URL/Data URL to generate a description of a flower, or loads model configurations as needed.
