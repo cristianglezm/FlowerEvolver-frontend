@@ -65,25 +65,25 @@
 
 import { reactive } from 'vue';
 import ToolTip from '../components/ToolTip.vue';
-import { useFlowersStore, STORAGE_KEY } from '../store';
+import { useFlowerStore, STORAGE_KEY } from '../stores/FlowerStore';
 
-const store = useFlowersStore();
+const FlowerStore = useFlowerStore();
 
 const mutationRates = reactive({
-    addNodeRate: store.settings.mutationRates.addNodeRate,
-    addConnRate: store.settings.mutationRates.addConnRate,
-    removeConnRate: store.settings.mutationRates.removeConnRate,
-    perturbWeightsRate: store.settings.mutationRates.perturbWeightsRate,
-    enableRate: store.settings.mutationRates.enableRate,
-    disableRate: store.settings.mutationRates.disableRate,
-    actTypeRate: store.settings.mutationRates.actTypeRate
+    addNodeRate: FlowerStore.settings.mutationRates.addNodeRate,
+    addConnRate: FlowerStore.settings.mutationRates.addConnRate,
+    removeConnRate: FlowerStore.settings.mutationRates.removeConnRate,
+    perturbWeightsRate: FlowerStore.settings.mutationRates.perturbWeightsRate,
+    enableRate: FlowerStore.settings.mutationRates.enableRate,
+    disableRate: FlowerStore.settings.mutationRates.disableRate,
+    actTypeRate: FlowerStore.settings.mutationRates.actTypeRate
 });
 
 const clamp = (val, min, max) => {
     return Math.min(max, Math.max(val, min));
 }
 const saveSettings = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(store.settings));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(FlowerStore.settings));
 };
 const restoreDefaults = () => {
     mutationRates.addNodeRate = 0.2;
@@ -103,7 +103,7 @@ const validateMutationRates = () => {
     mutationRates.enableRate = clamp(mutationRates.enableRate, 0.0, 1.0)
     mutationRates.perturbWeightsRate = clamp(mutationRates.perturbWeightsRate, 0.0, 1.0)
     mutationRates.removeConnRate = clamp(mutationRates.removeConnRate, 0.0, 1.0)
-    store.settings.mutationRates = mutationRates;
+    FlowerStore.settings.mutationRates = mutationRates;
     saveSettings();
 };
 
