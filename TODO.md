@@ -23,5 +23,6 @@
 * [ ] Firefox webGPU not supported yet. (wait for it)
 
 * [x] rename ModelOptions to CaptionerModelOptions
+* [x] rename AIStore to CaptionerStore
 
 * [ ] refactor - split store into stores

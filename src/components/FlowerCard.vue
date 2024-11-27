@@ -52,7 +52,7 @@
 <script setup>
 
     import { useFlowersStore } from '../store';
-    import { useAIStore } from '../store/AIStore';
+    import { useCaptionerStore } from '../store/CaptionerStore';
     import { onMounted, reactive, inject, onUnmounted } from 'vue';
     import { useRouter } from 'vue-router';
     import ParamsInfo from './ParamsInfo.vue';
@@ -128,7 +128,7 @@
     });
     const router = useRouter();
     const store = useFlowersStore();
-    const AIStore = useAIStore();
+    const CaptionerStore = useCaptionerStore();
     const emitter = inject('emitter');
     onMounted(() => {
         if(props.isLocal){
@@ -139,11 +139,11 @@
                         data.heartIconSrc = loadImage("heart_full.png","x32");
                     }
                 });
-            if(AIStore.localDescriptions.has(props.id)){
-                data.description = "Flower " + props.id + " - " + AIStore.getLocalDescription(props.id);
+            if(CaptionerStore.localDescriptions.has(props.id)){
+                data.description = "Flower " + props.id + " - " + CaptionerStore.getLocalDescription(props.id);
             }
         }
-        AIStore.channel.on('captioner#done', (e) => {
+        CaptionerStore.channel.on('captioner#done', (e) => {
             if(e.id === props.id){
                 data.description = "Flower " + props.id + " - " + e.description;
                 emitter.emit('updateDesc', {
@@ -159,7 +159,7 @@
     });
     onUnmounted(() => {
         emitter.off('checkSelected');
-        AIStore.channel.off('captioner#done');
+        CaptionerStore.channel.off('captioner#done');
     });
 
     const deleteThisFlower = () => {
@@ -193,12 +193,12 @@
         store.shareFlower(props.genome);
     };
     const describe = () => {
-        if(!AIStore.hasModelLoaded()){
+        if(!CaptionerStore.hasModelLoaded()){
             store.errors.push({message: "check load model option or click download / load Model in Settings to use this."});
             return;
         }
         if(props.isLocal){
-            if(AIStore.localDescriptions.has(props.id)){
+            if(CaptionerStore.localDescriptions.has(props.id)){
                 emitter.emit('showDescriptionModal', {
                     FlowerImage: getImage(),
                     FlowerID: props.id
@@ -206,18 +206,18 @@
                 setTimeout(() => {
                     emitter.emit('updateDesc', {
                         loading: false,
-                        description: AIStore.getLocalDescription(props.id)
+                        description: CaptionerStore.getLocalDescription(props.id)
                     });
                 }, 500);
             }else{
-                AIStore.requestDescription({ id: props.id, image: props.image, isLocal: props.isLocal });
+                CaptionerStore.requestDescription({ id: props.id, image: props.image, isLocal: props.isLocal });
                 emitter.emit('showDescriptionModal', {
                     FlowerImage: getImage(),
                     FlowerID: props.id
                 });
             }
         }else{
-            if(AIStore.remoteDescriptions.has(props.id)){
+            if(CaptionerStore.remoteDescriptions.has(props.id)){
                 emitter.emit('showDescriptionModal', {
                     FlowerImage: getImage(),
                     FlowerID: props.id
@@ -225,11 +225,11 @@
                 setTimeout(() => {
                     emitter.emit('updateDesc', {
                         loading: false,
-                        description: AIStore.getRemoteDescription(props.id)
+                        description: CaptionerStore.getRemoteDescription(props.id)
                     });
                 }, 500);
             }else{
-                AIStore.requestDescription({ id: props.id, image: props.image, isLocal: props.isLocal });
+                CaptionerStore.requestDescription({ id: props.id, image: props.image, isLocal: props.isLocal });
                 emitter.emit('showDescriptionModal', {
                     FlowerImage: getImage(),
                     FlowerID: props.id
