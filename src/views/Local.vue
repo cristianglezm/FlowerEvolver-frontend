@@ -16,7 +16,7 @@ import { nextTick, onMounted, reactive, computed, inject, watch } from 'vue';
 import FlowersTable from '../components/FlowersTable.vue';
 import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
 import { useFlowersStore } from '../store';
-import { useAIStore } from '../store/AIStore';
+import { useCaptionerStore } from '../store/CaptionerStore';
 import { useRoute, useRouter } from 'vue-router';
 import importWorker from '../workers/import.worker?worker';
 import WorkerManager from '../store/WorkerManager';
@@ -25,7 +25,7 @@ import mitt from 'mitt';
 const routes = useRoute();
 const router = useRouter();
 const store = useFlowersStore();
-const AIStore = useAIStore();
+const CaptionerStore = useCaptionerStore();
 const emitter = inject('emitter');
 let channel = mitt();
 let wm = new WorkerManager(channel);
@@ -55,7 +55,7 @@ onMounted(() => {
         store.getLocalFlowersCount().then(c => data.totalPages = Math.round(c / store.settings.limit));
     }else{
         store.updateLocalFlowers({limit: store.settings.limit, offset: data.offset});
-        AIStore.loadLocalDescriptions(data.offset, store.settings.limit);
+        CaptionerStore.loadLocalDescriptions(data.offset, store.settings.limit);
         data.offset = store.increaseOffset(data.offset);
     }
     loadDemoFlowers();
@@ -89,14 +89,14 @@ wm.onResponse('importer', (e) => {
 });
 const updateFlowers = (limit, offset) => {
     store.updateAndConcatLocalFlowers({limit:limit, offset:offset});
-    AIStore.loadAndConcatLocalDescriptions(offset, limit);
+    CaptionerStore.loadAndConcatLocalDescriptions(offset, limit);
     data.offset = store.increaseOffset(offset);
 };
 const getFlowersFrom = (page) => {
     nextTick(() => {
         data.offset = store.calcOffset(page);
         store.updateLocalFlowers({limit: store.settings.limit, offset: data.offset});
-        AIStore.loadLocalDescriptions(data.offset, store.settings.limit);
+        CaptionerStore.loadLocalDescriptions(data.offset, store.settings.limit);
     });
 };
 const prevPage = () => {

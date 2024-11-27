@@ -15,11 +15,11 @@
     import FlowersTable from '../components/FlowersTable.vue';
     import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
     import { useFlowersStore } from '../store';
-    import { useAIStore } from '../store/AIStore';
+    import { useCaptionerStore } from '../store/CaptionerStore';
     import { useRoute, useRouter } from 'vue-router';
 
     const store = useFlowersStore();
-    const AIStore = useAIStore();
+    const CaptionerStore = useCaptionerStore();
     const routes = useRoute();
     const router = useRouter();
 
@@ -77,7 +77,7 @@
             let f = await store.db.flowers.get(id);
             store.favourites.push(f);
         }
-        AIStore.loadLocalDescriptions(data.offset, store.settings.limit);
+        CaptionerStore.loadLocalDescriptions(data.offset, store.settings.limit);
     };
     
 </script>
