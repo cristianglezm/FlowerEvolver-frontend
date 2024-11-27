@@ -4,17 +4,17 @@
     <div id="pagination-option" class="option-box labelInputArea">
       <ToolTip :info="'if checked pagination will be used, infinite Scroll otherwise.'" />
       <label for="pagination">Pagination: </label>
-      <input id="pagination" v-model="store.settings.pagination" type="checkbox" @change="saveSettings()">
+      <input id="pagination" v-model="FlowerStore.settings.pagination" type="checkbox" @change="saveSettings()">
     </div>
     <div id="loadDemoFlowers-option" class="option-box labelInputArea">
       <ToolTip :info="'if checked the demo flowers will load in Local.'" />
       <label for="loadDemoFlowers">Load Demo Flowers: </label>
-      <input id="loadDemoFlowers" v-model="store.settings.loadDemoFlowers" type="checkbox" @change="saveSettings()">
+      <input id="loadDemoFlowers" v-model="FlowerStore.settings.loadDemoFlowers" type="checkbox" @change="saveSettings()">
     </div>
     <div id="loadModel-option" class="option-box labelInputArea">
       <ToolTip :info="'if checked the model will download / load when the website is loaded.'" />
       <label for="loadModel">Load Model: </label>
-      <input id="loadModel" v-model="store.settings.loadModel" type="checkbox" @change="saveSettings(); loadModel();">
+      <input id="loadModel" v-model="FlowerStore.settings.loadModel" type="checkbox" @change="saveSettings(); loadModel();">
     </div>
     <div id="persists-option" class="option-box labelInputArea">
       <ToolTip :info="'it will keep data even when low on space'" />
@@ -25,7 +25,7 @@
       <div id="limit-settings" class="option-box labelInputArea">
         <ToolTip :info="'limit for how many flowers it will load at a time.'" />
         <label for="setLimit">Limit per Page: </label>
-        <input id="setLimit" v-model.number="store.settings.limit" type="number" min="1" @change="validateLimit()">
+        <input id="setLimit" v-model.number="FlowerStore.settings.limit" type="number" min="1" @change="validateLimit()">
       </div>
       <div style="color: lightgreen; text-align: center;"> 
         <ToolTip :info="'Space used by the flowers (usage / quota) if persistent storage is enabled it will use a bit more space, the model adds around 240mb'" />
@@ -39,9 +39,9 @@
 
 import { reactive, inject, onBeforeUnmount, onMounted } from 'vue';
 import ToolTip from '../components/ToolTip.vue';
-import { useFlowersStore, STORAGE_KEY } from '../store';
+import { useFlowerStore, STORAGE_KEY } from '../stores/FlowerStore';
 
-const store = useFlowersStore();
+const FlowerStore = useFlowerStore();
 let emitter = inject('emitter');
 
 const data = reactive({
@@ -51,7 +51,7 @@ const data = reactive({
 });
 
 const loadModel = () => {
-    if(store.settings.loadModel){
+    if(FlowerStore.settings.loadModel){
         emitter.emit('App#loadModel');
     }
 };
@@ -90,10 +90,10 @@ onBeforeUnmount(() => {
 });
 
 const saveSettings = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(store.settings));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(FlowerStore.settings));
 };
 const validateLimit = () => {
-    store.settings.limit = validateInteger(store.settings.limit, 100);
+    FlowerStore.settings.limit = validateInteger(FlowerStore.settings.limit, 100);
     saveSettings();
 };
 
