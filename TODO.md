@@ -24,17 +24,26 @@
 
 * [x] rename ModelOptions to CaptionerModelOptions
 * [x] rename AIStore to CaptionerStore
+* [ ] rename AI.js for Chatbot and Captioner
+* [ ] add reset command to Captioner and chatbot workers
+    - [ ] add requestReset to stores for ChatBot and Captioner
 * [ ] make ChatBot pipeline
     - [ ] ChatBot class
     - [ ] ChatBot Worker
     - [ ] ChatBotStore
+        - [ ] make command executor
 * [ ] make ChaBotModelOptions component
 * [ ] make ChatBotWidget component
+    - [ ] make it grabbable
+    - [ ] App.vue  - add a desplegable button on the left to show the chatbot and close it when open
+    - [ ] add message if user writes to chatbot when offline to click on the red dot?
+* [ ] add show chatbot checkbox to AppOptions?
 * [ ] test all models
     - fp32 -
     - fp16 -
     - q4   -
     - q4f16-
+* [ ] finetune model
 
 * [ ] refactor - split store into stores
     - [x] prepare store split
