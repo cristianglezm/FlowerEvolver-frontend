@@ -1,38 +1,38 @@
 <template>
   <div class="ModelOptions-container">
     <h2> Captioner Model Options</h2>
-    <div id="host-option" class="option-box labelInputArea">
+    <div id="captioner-host-option" class="option-box labelInputArea">
       <ToolTip :info="'Host from which to download the model'" />
-      <label for="host-select"> Host: </label>
-      <select id="host-select" v-model="data.modelOptions.host" class="styled-select" name="hosts" @change="onChange()">
+      <label for="captioner-host-select"> Host: </label>
+      <select id="captioner-host-select" v-model="data.modelOptions.host" class="styled-select" name="hosts" @change="onChange()">
         <option value="huggingface"> https://huggingface.co </option>
         <option value="localhost"> http://localhost </option>
       </select>
     </div>
-    <div id="model-option" class="option-box labelInputArea">
+    <div id="captioner-model-option" class="option-box labelInputArea">
       <ToolTip :info="'model to download'" />
-      <label for="model-id"> Model: </label>
-      <input id="model-id" v-model="data.modelOptions.model" type="text" :class="{'disabled': !isLocalHost}" :disabled="isLocalHost === false" placeholder="cristianglezm/ViT-GPT2-FlowerCaptioner-ONNX" @change="onChange()">
+      <label for="captioner-model-id"> Model: </label>
+      <input id="captioner-model-id" v-model="data.modelOptions.model" type="text" :class="{'disabled': !isLocalHost}" :disabled="isLocalHost === false" :placeholder="data.defaultModel" @change="onChange()">
     </div>
-    <div id="device-option" class="option-box labelInputArea">
+    <div id="captioner-device-option" class="option-box labelInputArea">
       <ToolTip :info="'where to run the model'" />
-      <label for="device"> Device: </label>
-      <input id="device-cpu" v-model="data.modelOptions.device" type="radio" name="device" value="CPU" @change="onChange()"> CPU
-      <input id="device-gpu" v-model="data.modelOptions.device" type="radio" name="device" :disabled="isGPUAvailable() === false" value="GPU" @change="onChange()"> GPU
+      <label for="captioner-device"> Device: </label>
+      <input id="captioner-device-cpu" v-model="data.modelOptions.device" type="radio" name="captioner-device" value="CPU" @change="onChange()"> CPU
+      <input id="captioner-device-gpu" v-model="data.modelOptions.device" type="radio" name="captioner-device" :disabled="isGPUAvailable() === false" value="GPU" @change="onChange()"> GPU
     </div>
-    <div id="model-encoder-type" class="option-box labelInputArea">
+    <div id="captioner-model-encoder-type" class="option-box labelInputArea">
       <ToolTip :info="'select which quantification the encoder will have.'" />
-      <label for="quant-select-encoder"> Encoder: </label>
-      <select id="quant-select-encoder" v-model="data.modelOptions.encoder" class="styled-select" name="quants-encoder" @change="onChange()">
+      <label for="captioner-quant-select-encoder"> Encoder: </label>
+      <select id="captioner-quant-select-encoder" v-model="data.modelOptions.encoder" class="styled-select" name="quants-encoder" @change="onChange()">
         <option v-for="val in quants" :key="val" :value="val">
           {{ val }}
         </option>
       </select>
     </div>
-    <div id="model-decoder-type" class="option-box labelInputArea">
+    <div id="captioner-model-decoder-type" class="option-box labelInputArea">
       <ToolTip :info="'select which quantification the decoder will have.'" />
-      <label for="quant-select-decoder"> Decoder: </label>
-      <select id="quant-select-decoder" v-model="data.modelOptions.decoder" class="styled-select" name="quants-decoder" @change="onChange()">
+      <label for="captioner-quant-select-decoder"> Decoder: </label>
+      <select id="captioner-quant-select-decoder" v-model="data.modelOptions.decoder" class="styled-select" name="quants-decoder" @change="onChange()">
         <option v-for="val in quants" :key="val" :value="val">
           {{ val }}
         </option>
@@ -43,7 +43,7 @@
     </div>
     <div v-if="data.openCache && isModelDownloaded()" style="text-align: center;">
       <button class="safe-button" @click="data.openCache = false"> Close </button>
-      <CacheManager :cacheName="'transformers-cache'" @on-delete="reloadCache" />
+      <CacheManager :cacheName="data.cacheKey" @on-delete="reloadCache" />
     </div>
     <div v-else style="text-align: center;">
       <button class="safe-button" :class="{'disabled': !isModelDownloaded() }" :disabled="!isModelDownloaded()" @click="openCacheManager()"> Manage model cache </button>
@@ -53,7 +53,7 @@
 
 <script setup>
   import { computed, inject, nextTick, onMounted, onUnmounted, reactive } from 'vue';
-  import { isGPUAvailable } from '../stores/CaptionerStore/AI'
+  import { Captioner, isGPUAvailable, CACHE_KEY as CAPTIONER_CACHE_KEY } from '../stores/CaptionerStore/Captioner'
   import { useCaptionerStore } from '../stores/CaptionerStore';
   import { CacheManager as CM } from '../stores/CacheManager';
   import CacheManager from './CacheManager.vue';
@@ -65,10 +65,12 @@
   let data = reactive({
     modelOptions: CaptionerStore.modelOptions,
     openCache: false,
+    cacheKey: CAPTIONER_CACHE_KEY,
     forceReload: false,
+    defaultModel: Captioner.modelOptions.model,
     btnTitle: "download / load model"
   });
-  let cm = new CM("transformers-cache");
+  let cm = new CM(data.cacheKey);
   const quants = ["fp32", "fp16", "q8", "int8", "uint8", "q4", "q4f16", "bnb4"];
   const isLocalHost = computed(() => {
     return data.modelOptions.host === 'localhost';
@@ -106,7 +108,7 @@
     if(isModelLoaded()){
       return;
     }
-    emitter.emit("App#loadModel");
+    emitter.emit("App#loadCaptionerModel");
     data.forceReload = false;
   }
   const hasModelOptionsChanged = () => {
@@ -121,7 +123,7 @@
   };
   const onChange = () => {
     if(data.modelOptions.model === "" || data.modelOptions.host === "huggingface"){
-      data.modelOptions.model = "cristianglezm/ViT-GPT2-FlowerCaptioner-ONNX";
+      data.modelOptions.model = data.defaultModel;
     }
     if(hasModelOptionsChanged()){
       data.forceReload = true;
@@ -137,6 +139,7 @@
     }
   }
   onMounted(() => {
+    CaptionerStore.saveModelOptions();
     setTimeout(() => {
       if(isModelDownloaded()){
         data.btnTitle = "Load Model";
@@ -144,19 +147,19 @@
         data.btnTitle = "Download Model";
       }
     }, 500);
-    emitter.on('ModelOptions#updateBtnTitle', () => {
+    emitter.on('CaptionerModelOptions#updateBtnTitle', () => {
       nextTick(() => {
         reloadCache();
         setCorrectBtnTitle();
       });
     });
-    emitter.on('modelOptions#forceReload', () => {
+    emitter.on('CaptionerModelOptions#forceReload', () => {
       data.forceReload = true;
     });
   });
   onUnmounted(() => {
-    emitter.off('ModelOptions#updateBtnTitle');
-    emitter.off('modelOptions#forceReload');
+    emitter.off('CaptionerModelOptions#updateBtnTitle');
+    emitter.off('CaptionerModelOptions#forceReload');
   });
 </script>
 
@@ -254,11 +257,7 @@
         border-radius: 1.25rem;
         text-align: center;
     }
-    .styled-select option:checked{
-        background-color: green;
-        color: lightgreen;
-    }
-    .styled-select option:hover{
+    .styled-select::selection{
       background-color: green;
       color:lightgreen;
       cursor: pointer;
@@ -283,6 +282,15 @@
     .styled-select:focus-within::after {
       transform: rotateX(0.5turn) translateY(-2px);
     }
+    .styled-select select::selection, .styled-select option:checked{
+      background-color: green;
+      color: lightgreen;
+    }
+    .styled-select option:hover{
+      background-color: green;
+      color:lightgreen;
+      cursor: pointer;
+    }
     .disabled{
       cursor: not-allowed;
       opacity: 0.5;
@@ -298,18 +306,21 @@
           margin: 0rem 0rem 0rem 0.93rem;
       }
       .labelInputArea input[type=text]{
-          width: 50%;
+          width: 48%;
           font-size: 0.9rem;
       }
       .labelInputArea input[type=radio]{
           font-size: 0.9rem;
       }
       .labelInputArea input[type="radio"]::before{
-          clip-path: circle(2px);
+          clip-path: circle(3px);
       }
       .styled-select{
-          padding: 0.5rem;
+          padding: 0.2rem;
           font-size: 0.9rem;
+      }
+      .labelInputArea select{
+          width: 50%;
       }
     }
 </style>
