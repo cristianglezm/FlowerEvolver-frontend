@@ -131,8 +131,11 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				return this.db.descendants.where("father").equals(fatherID).and(d => d.mother == motherID).count();
 			}
 		},
-		setLoadDemoFlowers(load){
+		async setLoadDemoFlowers(load){
 			this.settings.loadDemoFlowers = load;
+			this.saveSettings();
+		},
+		async saveSettings(){
 			localStorage.setItem(STORAGE_KEY, JSON.stringify(this.settings));
 		},
 		async addRemoteFlowerToLocal(flower){
