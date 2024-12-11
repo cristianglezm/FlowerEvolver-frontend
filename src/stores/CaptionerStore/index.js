@@ -123,6 +123,11 @@ export const useCaptionerStore = defineStore('CaptionerStore', {
             });
             this.isModelLoaded = true;
         },
+        async requestReset(){
+            this.wm.sendRequest('captioner', {
+                jobType: "reset",
+            });
+        },
         async saveModelOptions(){
             localStorage.setItem(STORAGE_KEY_CAPTIONER_MODEL_OPTIONS, JSON.stringify(this.modelOptions));
         }
