@@ -178,7 +178,7 @@ const deleteCacheHost = async (host) => {
             font-size: 0.9rem;
         }
     }
-    .styled-select {
+    .styled-select{
         background-color: lightgreen;
         color: green;
         border: solid green;
@@ -186,25 +186,45 @@ const deleteCacheHost = async (host) => {
         font-size: 1.0rem;
         width: 100%;
         overflow: auto;
+        border-radius: 2.5em;
     }
-    .styled-select option:checked {
-        background-color: green;
-        color: lightgreen;
+    .styled-select::selection{
+      background-color: green;
+      color:lightgreen;
+      cursor: pointer;
+    }
+    .styled-select:focus-within::selection{
+      background-color: lightgreen;
+      color: green;
+    }
+    .styled-select:hover{
+        background-color: lightgreen;
+        color: green;
+    }
+    .styled-select:focus{
+        outline: none;
+        background-color: lightgreen;
+        color: green;
+    }
+    .styled-select::after{
+        content: '▼';
+        position: absolute;
+        right: 0.625rem;
+        pointer-events: none;
+        transition: 0.2s ease;
+    }
+    .styled-select select::selection, .styled-select option:checked{
+      background-color: green;
+      color: lightgreen;
     }
     .styled-select option:hover{
       background-color: green;
       color:lightgreen;
       cursor: pointer;
     }
-    .styled-select:hover{
-        background-color: lightgreen;
-    }
-    .styled-select:focus{
-        outline: none;
-        background-color: lightgreen;
-        color: green;
-        cursor: pointer !important;
-        appearance: none !important;
+    .styled-select option::selection{
+      background-color: green;
+      color: lightgreen;
     }
   </style>
   

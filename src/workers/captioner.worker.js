@@ -1,4 +1,4 @@
-import { describe, Captioner } from '../stores/CaptionerStore/AI';
+import { describe, Captioner } from '../stores/CaptionerStore/Captioner';
 
 /**
  * @brief Processes an image URL/Data URL to generate a description of a flower, or loads model configurations as needed.
@@ -92,7 +92,7 @@ const loadModel = async (modelOptions) => {
           case "done":{
             self.postMessage({
                 jobType: "updateBtnTitle",
-                eventName: "ModelOptions#updateBtnTitle",
+                eventName: "CaptionerModelOptions#updateBtnTitle",
                 event: ""
             });
           }

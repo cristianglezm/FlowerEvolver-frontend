@@ -24,26 +24,32 @@
 
 * [x] rename ModelOptions to CaptionerModelOptions
 * [x] rename AIStore to CaptionerStore
-* [ ] rename AI.js for Chatbot and Captioner
-* [ ] add reset command to Captioner and chatbot workers
-    - [ ] add requestReset to stores for ChatBot and Captioner
-* [ ] make ChatBot pipeline
-    - [ ] ChatBot class
-    - [ ] ChatBot Worker
-    - [ ] ChatBotStore
-        - [ ] make command executor
-* [ ] make ChaBotModelOptions component
-* [ ] make ChatBotWidget component
-    - [ ] make it grabbable
-    - [ ] App.vue  - add a desplegable button on the left to show the chatbot and close it when open
-    - [ ] add message if user writes to chatbot when offline to click on the red dot?
-* [ ] add show chatbot checkbox to AppOptions?
-* [ ] test all models
-    - fp32 -
-    - fp16 -
-    - q4   -
-    - q4f16-
+* [x] rename AI.js for Chatbot and Captioner
+* [x] use a different cache for Captioner and ChatBot
+* [x] add reset command to Captioner and chatbot workers
+    - [x] add requestReset to stores for ChatBot and Captioner
+* [x] make ChatBot pipeline
+    - [x] ChatBot class
+    - [x] ChatBot Worker
+    - [x] ChatBotStore
+* [x] make command executor
+* [x] make ChaBotModelOptions component
+* [x] make ChatBotWidget component
+    - [x] add button to toggle full screen
+    - [x] add button to move the chat
+    - [x] add ChatBotModelOptions
+    - [x] add message if user writes to chatbot when offline to click on the red dot.
+    - [x] fix style for phones
+* [x] refactor AppMenu
+* [ ] document ChatBot-*
+* [ ] prepare dataset
 * [ ] finetune model
+* [ ] change model name
+* [ ] test all models
+    - fp32 - CPU working, GPU working
+    - fp16 - CPU not working, GPU?
+    - q4   - CPU working, GPU working
+    - q4f16- CPU not working, GPU?
 
 * [ ] refactor - split store into stores
     - [x] prepare store split

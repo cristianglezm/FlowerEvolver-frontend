@@ -165,7 +165,7 @@ const validateMutationRates = () => {
             font-size: 0.9rem;
         }
         .labelInputArea label{
-            width: 10.6rem;
+            width: 9.6rem;
             display: inline-block;
             margin: 0rem 0rem 0rem 0.93rem;
         }
