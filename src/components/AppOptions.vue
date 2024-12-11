@@ -11,10 +11,15 @@
       <label for="loadDemoFlowers">Load Demo Flowers: </label>
       <input id="loadDemoFlowers" v-model="FlowerStore.settings.loadDemoFlowers" type="checkbox" @change="saveSettings()">
     </div>
-    <div id="loadModel-option" class="option-box labelInputArea">
-      <ToolTip :info="'if checked the model will download / load when the website is loaded.'" />
-      <label for="loadModel">Load Model: </label>
-      <input id="loadModel" v-model="FlowerStore.settings.loadModel" type="checkbox" @change="saveSettings(); loadModel();">
+    <div id="loadCaptionerModel-option" class="option-box labelInputArea">
+      <ToolTip :info="'if checked the Captioner will be loaded when the website is loaded.'" />
+      <label for="loadCaptionerModel">Load Captioner: </label>
+      <input id="loadCaptionerModel" v-model="FlowerStore.settings.loadCaptionerModel" type="checkbox" @change="saveSettings(); loadCaptionerModel();">
+    </div>
+    <div id="loadModelChatBot-option" class="option-box labelInputArea">
+      <ToolTip :info="'if checked the ChatBot will be loaded when the website is loaded.'" />
+      <label for="loadChatBotModel">Load ChatBot: </label>
+      <input id="loadChatBotModel" v-model="FlowerStore.settings.loadChatBotModel" type="checkbox" @change="saveSettings(); loadChatBotModel();">
     </div>
     <div id="persists-option" class="option-box labelInputArea">
       <ToolTip :info="'it will keep data even when low on space'" />
@@ -50,12 +55,16 @@ const data = reactive({
     spaceQuota: 0.0
 });
 
-const loadModel = () => {
-    if(FlowerStore.settings.loadModel){
-        emitter.emit('App#loadModel');
+const loadCaptionerModel = () => {
+    if(FlowerStore.settings.loadCaptionerModel){
+        emitter.emit('App#loadCaptionerModel');
     }
 };
-
+const loadChatBotModel = () => {
+    if(FlowerStore.settings.loadChatBotModel){
+        emitter.emit('App#loadChatBotModel');
+    }
+};
 const persist = async () => {
     if(!navigator.storage && !navigator.storage.persist){
         return;
@@ -84,6 +93,7 @@ onMounted(() => {
     emitter.on('AppOptions#recalcSpace', () => {
         calcSpace();
     });
+    saveSettings();
 });
 onBeforeUnmount(() => {
     emitter.off('AppOptions#recalcSpace');
