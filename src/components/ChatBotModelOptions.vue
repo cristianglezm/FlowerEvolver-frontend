@@ -1,38 +1,29 @@
 <template>
   <div class="ModelOptions-container">
-    <h2> Captioner Model Options</h2>
-    <div id="captioner-host-option" class="option-box labelInputArea">
+    <h2> ChatBot Model Options</h2>
+    <div id="chatbot-host-option" class="option-box labelInputArea">
       <ToolTip :info="'Host from which to download the model'" />
-      <label for="captioner-host-select"> Host: </label>
-      <select id="captioner-host-select" v-model="data.modelOptions.host" class="styled-select" name="hosts" @change="onChange()">
+      <label for="chatbot-host-select"> Host: </label>
+      <select id="chatbot-host-select" v-model="data.modelOptions.host" class="styled-select" name="hosts" @change="onChange()">
         <option value="huggingface"> https://huggingface.co </option>
         <option value="localhost"> http://localhost </option>
       </select>
     </div>
-    <div id="captioner-model-option" class="option-box labelInputArea">
+    <div id="chatbot-model-option" class="option-box labelInputArea">
       <ToolTip :info="'model to download'" />
-      <label for="captioner-model-id"> Model: </label>
-      <input id="captioner-model-id" v-model="data.modelOptions.model" type="text" :class="{'disabled': !isLocalHost}" :disabled="isLocalHost === false" :placeholder="data.defaultModel" @change="onChange()">
+      <label for="chatbot-model-id"> Model: </label>
+      <input id="chatbot-model-id" v-model="data.modelOptions.model" type="text" :class="{'disabled': !isLocalHost}" :disabled="isLocalHost === false" :placeholder="data.defaultModel" @change="onChange()">
     </div>
-    <div id="captioner-device-option" class="option-box labelInputArea">
+    <div id="chatbot-device-option" class="option-box labelInputArea">
       <ToolTip :info="'where to run the model'" />
-      <label for="captioner-device"> Device: </label>
-      <input id="captioner-device-cpu" v-model="data.modelOptions.device" type="radio" name="captioner-device" value="CPU" @change="onChange()"> CPU
-      <input id="captioner-device-gpu" v-model="data.modelOptions.device" type="radio" name="captioner-device" :disabled="isGPUAvailable() === false" value="GPU" @change="onChange()"> GPU
+      <label for="chatbot-device"> Device: </label>
+      <input id="chatbot-device-cpu" v-model="data.modelOptions.device" type="radio" name="chatbot-device" value="CPU" @change="onChange()"> CPU
+      <input id="chatbot-device-gpu" v-model="data.modelOptions.device" type="radio" name="chatbot-device" :disabled="isGPUAvailable() === false" value="GPU" @change="onChange()"> GPU
     </div>
-    <div id="captioner-model-encoder-type" class="option-box labelInputArea">
-      <ToolTip :info="'select which quantification the encoder will have.'" />
-      <label for="captioner-quant-select-encoder"> Encoder: </label>
-      <select id="captioner-quant-select-encoder" v-model="data.modelOptions.encoder" class="styled-select" name="quants-encoder" @change="onChange()">
-        <option v-for="val in quants" :key="val" :value="val">
-          {{ val }}
-        </option>
-      </select>
-    </div>
-    <div id="captioner-model-decoder-type" class="option-box labelInputArea">
-      <ToolTip :info="'select which quantification the decoder will have.'" />
-      <label for="captioner-quant-select-decoder"> Decoder: </label>
-      <select id="captioner-quant-select-decoder" v-model="data.modelOptions.decoder" class="styled-select" name="quants-decoder" @change="onChange()">
+    <div id="chatbot-model-dtype" class="option-box labelInputArea">
+      <ToolTip :info="'select which quantification the model will have.'" />
+      <label for="chatbot-quant-select-dtype"> DType: </label>
+      <select id="chatbot-quant-select-dtype" v-model="data.modelOptions.dtype" class="styled-select" name="quants-dtype" @change="onChange()">
         <option v-for="val in quants" :key="val" :value="val">
           {{ val }}
         </option>
@@ -53,21 +44,21 @@
 
 <script setup>
   import { computed, inject, nextTick, onMounted, onUnmounted, reactive } from 'vue';
-  import { Captioner, isGPUAvailable, CACHE_KEY as CAPTIONER_CACHE_KEY } from '../stores/CaptionerStore/Captioner'
-  import { useCaptionerStore } from '../stores/CaptionerStore';
+  import { ChatBot, isGPUAvailable, CACHE_KEY as CHATBOT_CACHE_KEY } from '../stores/ChatBotStore/ChatBot'
+  import { useChatBotStore } from '../stores/ChatBotStore';
   import { CacheManager as CM } from '../stores/CacheManager';
   import CacheManager from './CacheManager.vue';
   import ToolTip from './ToolTip.vue';
 
   const emitter = inject('emitter');
-  const CaptionerStore = useCaptionerStore();
+  const ChatBotStore = useChatBotStore();
   
   let data = reactive({
-    modelOptions: CaptionerStore.modelOptions,
+    modelOptions: ChatBotStore.modelOptions,
     openCache: false,
-    cacheKey: CAPTIONER_CACHE_KEY,
+    cacheKey: CHATBOT_CACHE_KEY,
     forceReload: false,
-    defaultModel: Captioner.modelOptions.model,
+    defaultModel: ChatBot.modelOptions.model,
     btnTitle: "download / load model"
   });
   let cm = new CM(data.cacheKey);
@@ -80,14 +71,14 @@
     cm.reload();
   };
   const isModelLoaded = () => {
-    return CaptionerStore.hasModelLoaded() && !data.forceReload;
+    return ChatBotStore.hasModelLoaded() && !data.forceReload;
   };
   const isModelDownloaded = () => {
     return cm.size() > 0;
   };
   const isModelInCache = () => {
     let host = "https://huggingface.co";
-    if(CaptionerStore.modelOptions.host !== "huggingface"){
+    if(ChatBotStore.modelOptions.host !== "huggingface"){
       host = "http://localhost";
     }
     const getQuantName = (quantType) => {
@@ -98,21 +89,19 @@
         default: return "_" + quantType;
       }
     };
-    let encoder = "encoder_model" + getQuantName(CaptionerStore.modelOptions.encoder) + ".onnx";
-    let decoder = "decoder_model_merged" + getQuantName(CaptionerStore.modelOptions.decoder) + ".onnx";
+    let dtype = "model" + getQuantName(ChatBotStore.modelOptions.dtype) + ".onnx";
     return cm.hasFiles(host, ["config.json", "tokenizer_config.json", 
-                        "preprocessor_config.json", "tokenizer.json",
-                        "generation_config.json", encoder, decoder]);
+                        "tokenizer.json", "generation_config.json", dtype]);
   };
   const loadModel = async () => {
     if(isModelLoaded()){
       return;
     }
-    emitter.emit("App#loadCaptionerModel");
+    emitter.emit("App#loadChatBotModel");
     data.forceReload = false;
   }
   const hasModelOptionsChanged = () => {
-    return CaptionerStore.hasModelOptionsChanged();
+    return ChatBotStore.hasModelOptionsChanged();
   };
   const setCorrectBtnTitle = () => {
     if(isModelInCache()){
@@ -130,7 +119,7 @@
     }else{
       data.forceReload = false;
     }
-    CaptionerStore.saveModelOptions();
+    ChatBotStore.saveModelOptions();
     setCorrectBtnTitle();
   };
   const openCacheManager = () => {
@@ -139,7 +128,7 @@
     }
   }
   onMounted(() => {
-    CaptionerStore.saveModelOptions();
+    ChatBotStore.saveModelOptions();
     setTimeout(() => {
       if(isModelDownloaded()){
         data.btnTitle = "Load Model";
@@ -147,19 +136,19 @@
         data.btnTitle = "Download Model";
       }
     }, 500);
-    emitter.on('CaptionerModelOptions#updateBtnTitle', () => {
+    emitter.on('ChatBotModelOptions#updateBtnTitle', () => {
       nextTick(() => {
         reloadCache();
         setCorrectBtnTitle();
       });
     });
-    emitter.on('CaptionerModelOptions#forceReload', () => {
+    emitter.on('ChatBotModelOptions#forceReload', () => {
       data.forceReload = true;
     });
   });
   onUnmounted(() => {
-    emitter.off('CaptionerModelOptions#updateBtnTitle');
-    emitter.off('CaptionerModelOptions#forceReload');
+    emitter.off('ChatBotModelOptions#updateBtnTitle');
+    emitter.off('ChatBotModelOptions#forceReload');
   });
 </script>
 
