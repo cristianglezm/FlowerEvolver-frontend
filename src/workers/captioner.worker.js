@@ -10,7 +10,7 @@ import { describe, Captioner } from '../stores/CaptionerStore/AI';
  * Based on the message type, the worker either loads a new model configuration or processes the image to generate a description.
  * It then sends relevant updates or the generated description back to the main thread.
  *
- * @param {String} jobType - "loadModel" || "describe"
+ * @param {String} jobType - "loadModel" || "describe" || "reset"
  * @param {ModelOptions} modelOptions - options to load the model see example below
  * @param {String} urlOrDataURL - The URL or Data URL of the flower image to be described.
  * @param {Boolean} isLocal - A flag indicating whether the image is stored locally (true) or remotely (false).
@@ -28,7 +28,10 @@ import { describe, Captioner } from '../stores/CaptionerStore/AI';
  *         decoder: "q4"
  *     }
  * });
- *
+ * // reset model
+ * captionerWorker.postMessage({
+ *     jobType: "reset"
+ * });
  * // Main thread requests a description generation for a specific flower image
  * captionerWorker.postMessage({
  *     jobType: "describe",
@@ -103,6 +106,10 @@ self.onmessage = async (e) => {
     switch(jobType){
         case "loadModel":{
             loadModel(e.data.modelOptions);
+        }
+            break;
+        case "reset":{
+            Captioner.reset();
         }
             break;
         case "describe":{
