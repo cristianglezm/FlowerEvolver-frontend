@@ -8,7 +8,7 @@ export const URL = import.meta.env.VITE_APP_DOWNLOAD_URL;
 export const STORAGE_KEY = 'FlowerEvolverSettings';
 export const STORAGE_KEY_GARDEN = "FlowerEvolverGarden";
 
-export const useFlowersStore = defineStore('FlowersStore', {
+export const useFlowerStore = defineStore('FlowerStore', {
 	state: () => ({
 		fe: null,
 		canvas: document.getElementById("canvas"),
@@ -27,7 +27,9 @@ export const useFlowersStore = defineStore('FlowersStore', {
 			params: { radius:64, numLayers:3, P: 6.0, bias: 1.0 },
 			mutationRates: { addNodeRate: 0.2, addConnRate: 0.3, removeConnRate: 0.2, perturbWeightsRate: 0.6, enableRate: 0.35, disableRate: 0.3, actTypeRate: 0.4 },
 			loadDemoFlowers: true,
-			loadModel: false,
+			loadCaptionerModel: false,
+			loadChatBotModel: false,
+			showChatBot: false,
 			pagination: false,
 			limit: 100
 		})),
@@ -131,8 +133,11 @@ export const useFlowersStore = defineStore('FlowersStore', {
 				return this.db.descendants.where("father").equals(fatherID).and(d => d.mother == motherID).count();
 			}
 		},
-		setLoadDemoFlowers(load){
+		async setLoadDemoFlowers(load){
 			this.settings.loadDemoFlowers = load;
+			this.saveSettings();
+		},
+		async saveSettings(){
 			localStorage.setItem(STORAGE_KEY, JSON.stringify(this.settings));
 		},
 		async addRemoteFlowerToLocal(flower){
