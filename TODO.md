@@ -1,4 +1,6 @@
-## TODO
+# TODO
+
+## FlowerCaptioner
 
 * [x] cache manager (to delete models files)
 * [x] make model options component for settings
@@ -21,6 +23,8 @@
     - bnb4 - works on CPU (it takes ~24s)
 * [ ] fix not working on Chrome or Edge GPU
 * [ ] Firefox webGPU not supported yet. (wait for it)
+
+## ChatBot
 
 * [x] rename ModelOptions to CaptionerModelOptions
 * [x] rename AIStore to CaptionerStore
