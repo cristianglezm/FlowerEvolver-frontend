@@ -41,7 +41,7 @@
     - [x] add message if user writes to chatbot when offline to click on the red dot.
     - [x] fix style for phones
 * [x] refactor AppMenu
-* [ ] document ChatBot-*
+* [x] document ChatBot-*
 * [ ] prepare dataset
 * [ ] finetune model
 * [ ] change model name
