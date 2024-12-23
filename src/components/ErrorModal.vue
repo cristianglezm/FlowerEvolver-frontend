@@ -29,13 +29,13 @@
  *
  * @example
  * // usage in another component, view or store actions.
- * const store = useFlowerStore();
- * store.$state.errors.push({message: "error 1"});
- * store.$state.errors.push({message: "error 2"});
+ * const FlowerStore = useFlowerStore();
+ * FlowerStore.errors.push({message: "error 1"});
+ * FlowerStore.errors.push({message: "error 2"});
  */
-import { useFlowersStore } from '../store';
+import { useFlowerStore } from '../stores/FlowerStore';
 
-const store = useFlowersStore();
+const FlowerStore = useFlowerStore();
 const props = defineProps({
     errors:{
         type: Array,
@@ -43,10 +43,10 @@ const props = defineProps({
     }
 });
 const clearErrors = () => {
-    store.errors = [];
+    FlowerStore.errors = [];
 };
 const popError = () => {
-    store.errors.pop();
+    FlowerStore.errors.pop();
 };
 
 </script>
@@ -67,11 +67,16 @@ const popError = () => {
         border-radius: 0.31rem;
         box-shadow: 0rem 1rem 2rem 0rem black;
         overflow: auto;
-        z-index: 1;
+        z-index: 11;
     }
     p{
         font-size: 1.6rem;
         overflow: auto;
+    }
+    @media only screen and (max-width: 1280px){
+        p{
+            font-size: 0.9rem;
+        }
     }
     .ErrorModal-content{
         margin: 15% auto;
