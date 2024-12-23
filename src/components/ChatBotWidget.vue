@@ -158,7 +158,7 @@
  *     :system="'You are a helpful assistant.'" 
  *     :greetings="'Hello, user!'" 
  *     :tools="[{ name: 'fetchData', description: 'Fetch data from API', parameters: { id: 'number' } }]"
- *     :docKeys="["title1", "title2"]"
+ *     :docKeys="[\"title1\", \"title2\"]"
  *     :executor="customExecutor"
  * />
  */
