@@ -43,7 +43,7 @@
     </div>
     <div v-if="data.openCache && isModelDownloaded()" style="text-align: center;">
       <button class="safe-button" @click="data.openCache = false"> Close </button>
-      <CacheManager :cacheName="data.cacheKey" @on-delete="reloadCache" />
+      <CacheManager :cacheName="data.cacheKey" @on-delete-host="reloadCache(); forceReload();" @on-delete-files="reloadCache" />
     </div>
     <div v-else style="text-align: center;">
       <button class="safe-button" :class="{'disabled': !isModelDownloaded() }" :disabled="!isModelDownloaded()" @click="openCacheManager()"> Manage model cache </button>
@@ -78,6 +78,9 @@
   const reloadCache = () => {
     emitter.emit('AppOptions#recalcSpace');
     cm.reload();
+  };
+  const forceReload = () => {
+    data.forceReload = true;
   };
   const isModelLoaded = () => {
     return CaptionerStore.hasModelLoaded() && !data.forceReload;
@@ -153,13 +156,13 @@
         setCorrectBtnTitle();
       });
     });
-    emitter.on('CaptionerModelOptions#forceReload', () => {
+    emitter.on('modelOptions#forceReload', () => {
       data.forceReload = true;
     });
   });
   onUnmounted(() => {
     emitter.off('CaptionerModelOptions#updateBtnTitle');
-    emitter.off('CaptionerModelOptions#forceReload');
+    emitter.off('modelOptions#forceReload');
   });
 </script>
 

@@ -27,6 +27,7 @@
         Delete Selected Files
       </button>
     </div>
+    <ConfirmModal :id="'cache-manager-confirm-modal'" :channel="emitter" :on="'CacheManager#ConfirmModal'" />
   </div>
 </template>
   
@@ -37,20 +38,21 @@
    * 
    * @component CacheManager
    * @prop {String} cacheName - The name of the cache to manage.
-   * @event on-delete - Emitted when a cache host or files are deleted.
+   * @event on-delete-host - Emitted when a cache host or files are deleted.
+   * @event on-delete-files - Emitted when a cache files are deleted.
    * 
    * @example
    * // Usage in a parent component or view
    * <template>
-   *    <CacheManager :cacheName="'myCache'" @on-delete="handleDelete" />
+   *    <CacheManager :cacheName="'myCache'" @on-delete-host="handleDeleteHost" @on-delete-files="handleDeleteFiles"/>
    * </template>
    */
-  import { inject, onMounted, reactive } from 'vue';
+  import { onMounted, reactive } from 'vue';
   import { CacheManager as CM } from '../stores/CacheManager';
+  import ConfirmModal from './ConfirmModal.vue';
+  import mitt from 'mitt';
   
-  const emit = defineEmits({
-    'on-delete': null,
-  });
+  const emit = defineEmits(['on-delete-host', 'on-delete-files']);
 
   let props = defineProps({
       cacheName: {
@@ -60,7 +62,7 @@
   });
   
   const cm = new CM(props.cacheName);
-  const emitter = inject("emitter");
+  const emitter = new mitt();
 
   let data = reactive({
       hosts: [],
@@ -81,37 +83,33 @@
   
 const deleteCacheHost = async (host) => {
     if(!host) return;
-        emitter.emit('showYesNo', {
+        emitter.emit('CacheManager#ConfirmModal', {
             title: 'delete Host files',
             message: 'Are you sure you want to delete the selected host files?',
             btnNo: 'no',
             btnYes: 'delete Host from cache.',
-            onConfirm: async (dialog) => {
+            onConfirm: async () => {
                 await cm.deleteHost(host);
                 data.hosts = Array.from(cm.cacheHosts.keys());
                 data.selectedHost = "";
                 data.cacheItems = [];
                 data.selectedFiles = [];
-                emitter.emit('modelOptions#forceReload', {});
-                emit('on-delete');
-                dialog.close();
+                emit('on-delete-host');
             }
         });
   };
   
   const deleteCacheFiles = async (host, files) => {
       if(!host || !files.length) return;
-        emitter.emit('showYesNo', {
+        emitter.emit('CacheManager#ConfirmModal', {
             title: 'delete Host files',
             message: 'Are you sure you want to delete ' + data.selectedFiles + '?',
             btnNo: 'no',
             btnYes: 'delete selected files from cache.',
-            onConfirm: async (dialog) => {
+            onConfirm: async () => {
                 await cm.deleteFilesFrom(host, files);
                 loadHostFiles();
-                emitter.emit('modelOptions#forceReload', {});
-                emit('on-delete');
-                dialog.close();
+                emit('on-delete-files');
             }
         });
   };

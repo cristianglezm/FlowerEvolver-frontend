@@ -246,6 +246,7 @@ const isEdgeOrChrome = () => {
         pointer-events: all;
         padding-left: 30px;
         padding-right: 25px;
+        box-shadow: 2px 2px 10px 4px rgba(47, 50, 52, 0.8);
     }
     .fixed-button:hover{
         background-color: lightgreen;
