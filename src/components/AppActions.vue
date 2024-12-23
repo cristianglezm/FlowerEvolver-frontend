@@ -109,12 +109,8 @@ const deleteAllFlowers = () => {
         message: 'Are you sure you want to delete all flowers?',
         btnNo: 'no',
         btnYes: 'Delete all',
-        onConfirm: async (dialog) => {
-            dialog.close();
-            FlowerStore.localSelected.flowers = [];
-            FlowerStore.localSelected.index = 0;
-            await FlowerStore.db.delete();
-            FlowerStore.db.open();
+        onConfirm: async () => {
+            await FlowerStore.deleteAllFlowers();
             emitter.emit('AppOptions#recalcSpace');
         },
     });
@@ -125,28 +121,8 @@ const deleteNonFavourites = () => {
         message: 'Are you sure you want to delete all flowers but favourites?',
         btnNo: 'no',
         btnYes: 'Delete non favourites',
-        onConfirm: async (dialog) => {
-            let ids = await FlowerStore.db.favourites.toArray();
-            let flowers = await FlowerStore.db.flowers.bulkGet(ids);
-            let descs = await FlowerStore.db.descriptions.bulkGet(ids);
-            for(let id = 0;id < flowers.length; ++id){
-                ids[id] = id + 1;
-                flowers[id].id = id + 1;
-                if(descs[id] !== undefined){
-                    descs[id].id = id + 1;
-                }
-            }
-            descs = descs.filter((d) => {
-                return d !== undefined;
-            });
-            FlowerStore.localSelected.flowers = [];
-            FlowerStore.localSelected.index = 0;
-            FlowerStore.db.delete();
-            FlowerStore.db.open();
-            FlowerStore.db.flowers.bulkAdd(flowers);
-            dialog.close();
-            await FlowerStore.db.favourites.bulkAdd(ids, ids);
-            await FlowerStore.db.descriptions.bulkAdd(descs);
+        onConfirm: async () => {
+            await FlowerStore.deleteNonFavourites();
             emitter.emit('AppOptions#recalcSpace');
         }
     });
@@ -163,7 +139,7 @@ const showRedrawFlowers = () => {
         message: 'Are you sure you want to redraw local flowers? (this won\'t override their parameters but you will need to import them to restore to originals)',
         btnNo: 'no',
         btnYes: 'redraw local flowers',
-        onConfirm: (dialog) => {
+        onConfirm: () => {
             FlowerStore.db.flowers.count((totalFlowers) => {
                 if(totalFlowers != 0){
                     showProgressBar('re-drawing flowers', totalFlowers, redrawLocalFlowers);   
@@ -171,7 +147,6 @@ const showRedrawFlowers = () => {
                     FlowerStore.errors.push({message: "You have no local flowers to redraw."});
                 }
             });
-            dialog.close();
         },
     });
 };
@@ -182,7 +157,7 @@ const showExport = (type) => {
             message: 'Are you sure you want to export your favourite flowers?',
             btnNo: 'no',
             btnYes: 'Export favourite flowers',
-            onConfirm: (dialog) => {
+            onConfirm: () => {
                 FlowerStore.db.favourites.count((totalFlowers) => {
                     if(totalFlowers != 0){
                         showProgressBar('exporting favourite flowers', totalFlowers, 
@@ -193,7 +168,6 @@ const showExport = (type) => {
                         FlowerStore.errors.push({message: "You have no favourites to export"});
                     }
                 });
-                dialog.close();
             }
         });
     }else if(type == "all"){
@@ -202,7 +176,7 @@ const showExport = (type) => {
             message: 'Are you sure you want to export all local flowers?',
             btnNo: 'no',
             btnYes: 'Export all local flowers',
-            onConfirm: (dialog) => {
+            onConfirm: () => {
                 FlowerStore.db.flowers.count((totalFlowers) => {
                     if(totalFlowers != 0){
                         showProgressBar('exporting flowers', totalFlowers, 
@@ -213,7 +187,6 @@ const showExport = (type) => {
                         FlowerStore.errors.push({message: "You have no flowers to export"});
                     }
                 });
-                dialog.close();
             }
         });
     }else if(type == "garden"){
@@ -222,9 +195,8 @@ const showExport = (type) => {
             message: 'Are you sure you want to export all garden flowers?',
             btnNo: 'no',
             btnYes: 'Export all garden flowers',
-            onConfirm: (dialog) => {
+            onConfirm: () => {
                 exportFlowers(type);
-                dialog.close();
             }
         });
     }

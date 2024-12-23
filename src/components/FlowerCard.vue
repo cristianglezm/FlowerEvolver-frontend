@@ -168,9 +168,8 @@
             message: 'Do you wanna delete flower ' + props.id + '?',
             btnNo: 'No',
             btnYes: 'Delete Flower',
-            onConfirm: (dialog) => {
+            onConfirm: () => {
                 FlowerStore.deleteLocalFlower(props.id);
-                dialog.close();
             },
         });
     };

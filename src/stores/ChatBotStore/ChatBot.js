@@ -89,7 +89,7 @@ const formatOutput = (rawOutput) => {
     lines.forEach(line => {
         if(line.startsWith("system") || line.startsWith("user") || line.startsWith("assistant")){
             if(currentContent){
-                formattedOutput.push({ 
+                formattedOutput.push({
                     role: currentRole.trim(),
                     content: currentContent.trim(),
                 });
@@ -137,14 +137,14 @@ export const streamingChat = async (messages, callback, {tools = null, documents
                 documents: documents
             });
         const output = await chatbot(conversations, {
-            max_new_tokens: 64,
+            max_new_tokens: 256,
             do_sample: false,
             streamer
         });
         return formatOutput(output[0].generated_text);
     }
     const output = await chatbot(messages, {
-        max_new_tokens: 64,
+        max_new_tokens: 256,
         do_sample: false,
         streamer
     });
@@ -172,14 +172,14 @@ export const chat = async (messages, {tools = null, documents = null, chat_templ
                 documents: documents
             });
         const output = await chatbot(conversations, {
-            max_new_tokens: 64,
+            max_new_tokens: 256,
             do_sample: false
         });
         return formatOutput(output[0].generated_text);
     }
-    const output = await chatbot(messages, { 
-        max_new_tokens: 64, 
-        do_sample: false 
+    const output = await chatbot(messages, {
+        max_new_tokens: 256,
+        do_sample: false
     });
     return output;
 };
