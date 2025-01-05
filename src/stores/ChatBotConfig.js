@@ -118,90 +118,144 @@ export const execCommand = (text) => {
 };
 export const tools = [
     {
-        name: "makeFlower",
-        description: "makes a flower",
-        parameterSchema: {}
+        "name": "makeFlower",
+        "description": "Makes a flower",
+        "parameters": {}
     },
     {
-        name: "mutate",
-        description: "mutates a flower given an id",
-        parameterSchema: {
-            id: {
-                description: "flower id",
-                type: "int",
-                required: true
+        "name": "mutate",
+        "description": "Mutates a flower given the ID",
+        "parameters": {
+            "id": {
+                "description": "Flower ID",
+                "type": "int",
+                "required": true
             }
         }
     },
     {
-        name: "reproduce",
-        description: "reproduces a couple of flowers",
-        parameterSchema: {
-            father: {
-                description: "id for the father flower",
-                type: "int",
-                required: true
+        "name": "reproduce",
+        "description": "Reproduces a couple of flowers",
+        "parameters": {
+            "father": {
+                "description": "ID for the father flower",
+                "type": "int",
+                "required": true
             },
-            mother:{
-                description:"id for the mother flower",
-                type: "int",
-                required: true
+            "mother": {
+                "description": "ID for the mother flower",
+                "type": "int",
+                "required": true
             }
         }
     },
     {
-        name: "describe",
-        description: "describes the flower given by id",
-        parameterSchema: {
-            id:{
-                description:"id for the flower to describe",
-                type: "int",
-                required: true
+        "name": "addToFav",
+        "description": "adds the flower to favourites given the ID",
+        "parameters": {
+            "id": {
+                "description": "Flower ID",
+                "type": "int",
+                "required": true
             }
         }
     },
     {
-        name: "goto",
-        description: "it goes to the route given",
-        parameterSchema:{
-            path:{
-                description: "name of path to go",
-                values: "Local, LastAdded, Browse, Favourites, Downloads, Settings, Mutations, Ancestors",
-                type:"string",
-                required: true
+        "name": "deleteFromFav",
+        "description": "deletes a flower from favourites given the ID",
+        "parameters": {
+            "id": {
+                "description": "Flower ID",
+                "type": "int",
+                "required": true
+            }
+        }
+    },
+    {
+        "name": "deleteFlower",
+        "description": "deletes a flower given the ID",
+        "parameters": {
+            "id": {
+                "description": "Flower ID",
+                "type": "int",
+                "required": true
+            }
+        }
+    },
+    {
+        "name": "deleteAllFlowers",
+        "description": "deletes all flowers",
+        "parameters": {}
+    },
+    {
+        "name": "deleteNonFavourites",
+        "description": "deletes all flowers that are not marked as favourites",
+        "parameters": {}
+    },
+    {
+        "name": "describe",
+        "description": "Describes the flower given by ID",
+        "parameters": {
+            "id": {
+                "description": "ID for the flower to describe",
+                "type": "int",
+                "required": true
+            }
+        }
+    },
+    {
+        "name": "goto",
+        "description": "It goes to the route given",
+        "parameters": {
+            "path": {
+                "description": "Name of path to go",
+                "enum": [
+                    "Local",
+                    "LastAdded",
+                    "Browse",
+                    "Favourites",
+                    "Downloads",
+                    "Settings",
+                    "Mutations",
+                    "Descendants"
+                ],
+                "type": "string",
+                "required": true
             },
-            pathParameters:{
-                description: "required parameters for Mutations, Ancestors",
-                mutations:{
-                    id:{
-                        description: "flower id",
-                        type: "int",
-                        required: true
+            "pathParameters": {
+		"type": "object",
+		"required": true,
+                "description": "Required parameters for Mutations, Descendants",
+                "mutations": {
+                    "id": {
+                        "description": "Flower ID",
+                        "type": "int",
+                        "required": true
                     }
                 },
-                ancestors:{
-                        father:{
-                            description: "father id",
-                            type: "int",
-                            required: true
-                        },
-                        mother:{
-                            description: "mother id",
-                            type: "int",
-                            required: false
-                        }
+                "descendants": {
+                    "father": {
+                        "description": "Father ID",
+                        "type": "int",
+                        "required": true
+                    },
+                    "mother": {
+                        "description": "Mother ID",
+                        "type": "int",
+                        "required": false
+                    }
                 }
             }
         }
     },
     {
-        name:"getDocument",
-        description: "it request info for the user",
-        parameterSchema:{
-            title:{
-                description: "title of the document aka key",
-                type: "string",
-                required: true
+        "name": "getDocument",
+        "description": "It requests info for the user",
+        "parameters": {
+            "title": {
+                "description": "Title of the document (aka key)",
+                "type": "string",
+                "required": true
             }
         }
     }
