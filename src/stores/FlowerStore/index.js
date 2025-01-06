@@ -464,6 +464,38 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				this.errors.push({message: e});
 			}
 		},
+        async deleteAllFlowers(){
+            this.localSelected.flowers = [];
+            this.localSelected.index = 0;
+            await this.db.delete();
+            this.db.open();
+			this.localFlowers = []
+		},
+        async deleteNonFavourites(){
+            let ids = await this.db.favourites.toArray();
+            let flowers = await this.db.flowers.bulkGet(ids);
+			for(const f of flowers){
+				this.localFlowers.unshift(f);
+			}
+            let descs = await this.db.descriptions.bulkGet(ids);
+            for(let id = 0;id < flowers.length; ++id){
+                ids[id] = id + 1;
+                flowers[id].id = id + 1;
+                if(descs[id] !== undefined){
+                    descs[id].id = id + 1;
+                }
+            }
+            descs = descs.filter((d) => {
+                return d !== undefined;
+            });
+            this.localSelected.flowers = [];
+            this.localSelected.index = 0;
+            this.db.delete();
+            this.db.open();
+            this.db.flowers.bulkAdd(flowers);
+            await this.db.favourites.bulkAdd(ids, ids);
+            await this.db.descriptions.bulkAdd(descs);
+		},
 		async deleteLocalFlower(id){
 			this.localSelected.flowers = [];
 			this.localSelected.index = 0;
