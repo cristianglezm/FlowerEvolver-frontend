@@ -141,7 +141,16 @@
  * const executeFunction = (text) => {
  *  // parse text from llm and process, whatever is returned will be shown on the chat
  *   console.log('Executing function with:', text);
- *   return `Executed: ${text}`;
+ *   return {
+ *      textForUser: 'executed function with' + text,
+ *      commandsToConfirm: {
+ *          "title":"title for ConfirmModal",
+ *          "message":"message ...",
+ *          "btnNo": "text for button no",
+ *          "btnYes": "text for button yes",
+ *          "onConfirm": () => { console.log("fn to execute when user clicks btnYes") }
+ *      },
+ *   };
  * };
  * 
  * @props
