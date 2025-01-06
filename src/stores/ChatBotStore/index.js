@@ -64,8 +64,7 @@ export const useChatBotStore = defineStore('ChatBotStore', {
         })),
         oldModelOptions: null,
         chatHistory: [],
-        id: 0,
-        executor: () => {}
+        executor: (content) => { return {textForUser: [content], commandsToConfirm: []}; }
     }),
     getters: {
         getChatHistory: (state) => () => {
@@ -85,15 +84,13 @@ export const useChatBotStore = defineStore('ChatBotStore', {
     actions: {
         async addMessage(role, message){
             this.chatHistory.push({
-                "id": this.id,
+                "id": Date.now(),
                 "role": role,
                 "content": message
             });
-            ++this.id;
         },
         async clearMessages(){
             this.chatHistory = [];
-            this.id = 0;
         },
         async requestChat({chat_template = null, tools = null, documents = null}){
             this.wm.sendRequest('chatbot', {
@@ -114,8 +111,7 @@ export const useChatBotStore = defineStore('ChatBotStore', {
             });
         },
         async requestRegenerate(id, {chat_template = null, tools = null, documents = null}){
-            this.chatHistory.splice(id, this.chatHistory.length);
-            this.id = id;
+            this.chatHistory = this.chatHistory.filter(conv => conv.id  < id);
             this.wm.sendRequest('chatbot', {
                 jobType: "streaming",
                 messages: structuredClone(toRaw(this.chatHistory)),
