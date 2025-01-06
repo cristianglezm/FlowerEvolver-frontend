@@ -4,117 +4,248 @@ import { useRouter } from "vue-router";
 import { useDocumentStore } from "./documentStore";
 
 export const execCommand = (text) => {
+    let textForUser = new Array();
+    let commandsToConfirm = new Array();
+    const makeResult = (textForUser, commandsToConfirm) => {
+        return {
+            textForUser: textForUser,
+            commandsToConfirm: commandsToConfirm
+        };
+    };
     if(text === undefined || text === null){
-        return "";
+        textForUser.push("text was not valid.");
+        return makeResult(textForUser, commandsToConfirm);
     }
     let regex = /<tool_call>(.*?)<\/tool_call>/;
     let matches = text.match(regex);
     if(!matches){
-        return text
+        textForUser.push(text);
+        return makeResult(textForUser, commandsToConfirm);
     }
     let command;
     try{
         command = JSON.parse(matches[1]);
+        let cleanText = text.replace(regex, "").trim();
+        textForUser.push(cleanText);
     }catch(_){
-        return "I am sorry but I could not parse the command.";
+        textForUser.push("I am sorry but I could not parse the command.");
+        return makeResult(textForUser, commandsToConfirm);
     }
-    switch(command[0].name){
-        case "getDocument":{
-            let documentStore = useDocumentStore();
-            let title = command[0].parameters.title;
-            if(title){
-                return documentStore.hasDocument(title) ? documentStore.getDocument(title) : "sorry, I am afraid I don't know the information requested.";
-            }
-            return "getDocument command failed.";
-        }
-        case "describe":{
-            let CaptionerStore = useCaptionerStore();
-            let FlowerStore = useFlowerStore();
-            let flowerID = command[0].parameters.id;
-            FlowerStore.db.flowers.where("id").equals(flowerID).toArray()
-                .then((flowers) => {
-                    CaptionerStore.requestDescription({
-                        id: flowers[0].id,
-                        image: flowers[0].image,
-                        isLocal: true
-                    });
-                }).catch((_) => {
-                    FlowerStore.errors.push({message: "describe command not executed, Flower not found"});
-                });
-            return "describe command executed";
-        }
-        case "goto":{
-            let router = useRouter();
-            let path = command[0].parameters.path;
-            let fail = "sorry I could not execute command " + command[0].name;
-            let success = command[0].name + " command executed";
-            if(path){
-                switch(path){
-                    case "Mutation":{
-                        let original = command[0].parameters.pathParameters.mutations.id;
-                        if(original){
-                            router.push({name:'Mutations', params:{id: original, isLocal: true}});
-                            return success;
-                        }
-                        return fail;
+    for(let i=0;i<command.length;++i){
+        switch(command[i].name){
+            case "getDocument":{
+                let documentStore = useDocumentStore();
+                let title = command[i].parameters.title;
+                if(title){
+                    if(documentStore.hasDocument(title)){
+                        textForUser.push(`${title}:\n${documentStore.getDocument(title)}`)
+                    }else{
+                        textForUser.push("sorry, I am afraid I don't know the information requested.");
                     }
-                    case "Ancestors":{
-                        let father = command[0].parameters.pathParameters.ancestors.father;
-                        let mother = command[0].parameters.pathParameters.ancestors.mother;
-                        if(father && mother){
-                            router.push({name:'DescendantsFatherAndMother', params:{father: father, mother: mother, isLocal: "local"}});
-                            return success;
-                        }else if(father){
-                            router.push({name:'DescendantsFatherOrMother', params:{father:father, isLocal: "local"}});
-                            return success;
-                        }
-                        return fail;
-                    }
-                    default:{
-                        router.push({name: path });
-                        return success;
-                    }
+                }else{
+                    textForUser.push("title was not valid");
                 }
             }
-            return fail;
-        }
-        case "reproduce":{
-            let FlowerStore = useFlowerStore();
-            let father = command[0].parameters.father;
-            let mother = command[0].parameters.mother;
-            let fail = "reproduce command failed";
-            let success = "reproduce command executed";
-            if(father && mother){
-                FlowerStore.selectLocalFlower({ id: father});
-                FlowerStore.selectLocalFlower({ id: mother});
-                FlowerStore.localReproduce();
-                return success;
+                break;
+            case "describe":{
+                let CaptionerStore = useCaptionerStore();
+                let FlowerStore = useFlowerStore();
+                let flowerID = command[i].parameters.id;
+                FlowerStore.db.flowers.where("id").equals(flowerID).toArray()
+                    .then((flowers) => {
+                        if(CaptionerStore.isModelLoaded){
+                            CaptionerStore.requestDescription({
+                                id: flowers[0].id,
+                                image: flowers[0].image,
+                                isLocal: true
+                            });
+                            textForUser.push("describe command executed");
+                        }else{
+                            textForUser.push("please load the captioner model.");
+                        }
+                    }).catch((_) => {
+                        textForUser.push("I am sorry I couldn't describe the flower because it was not found");
+                    });
             }
-            return fail;
-        }
-        case "mutate":{
-            let FlowerStore = useFlowerStore();
-            let original = command[0].parameters.id;
-            let fail = "mutate command failed.";
-            let success = "mutate command executed.";
-            if(original){
-                FlowerStore.db.flowers.where("original").equals(original).toArray()
-                .then((flower) => {
-                    FlowerStore.makeLocalMutation(flower);
-                }).catch((_) => {
-                    FlowerStore.errors.push({message: "mutate command not executed, Flower not found"});
+                break;
+            case "goto":{
+                let router = useRouter();
+                let path = command[i].parameters.path;
+                let fail = "sorry I could not execute command " + command[i].name;
+                let success = command[i].name + " command executed";
+                if(path){
+                    switch(path){
+                        case "Mutations":{
+                            let original = command[i].parameters.pathParameters.mutations.id;
+                            if(original){
+                                router.push({name:'Mutations', params:{id: original, isLocal: true}});
+                                textForUser.push(success);
+                            }else{
+                                textForUser.push("goto Mutations: Flower id not given");
+                                textForUser.push(fail);
+                            }
+                        }
+                            break;
+                        case "Descendants":{
+                            let father = command[i].parameters.pathParameters.descendants.father;
+                            let mother = command[i].parameters.pathParameters.descendants.mother;
+                            if(father && mother){
+                                router.push({name:'DescendantsFatherAndMother', params:{father: father, mother: mother, isLocal: "local"}});
+                                textForUser.push(success);
+                            }else if(father){
+                                router.push({name:'DescendantsFatherOrMother', params:{father:father, isLocal: "local"}});
+                                textForUser.push(success);
+                            }else{
+                                textForUser.push("father or mother id not given");
+                                textForUser.push(fail);
+                            }
+                        }
+                            break;
+                        default:{
+                            router.push({name: path });
+                            textForUser.push(success);
+                        }
+                            break;
+                    }
+                }else{
+                    textForUser.push("goto: path was not found");
+                }
+            }
+                break;
+            case "reproduce":{
+                let FlowerStore = useFlowerStore();
+                let father = command[i].parameters.father;
+                let mother = command[i].parameters.mother;
+                let fail = "reproduce command failed";
+                let success = "reproduce command executed";
+                if(father && mother){
+                    FlowerStore.selectLocalFlower({ id: father});
+                    FlowerStore.selectLocalFlower({ id: mother});
+                    FlowerStore.localReproduce();
+                    textForUser.push(success);
+                }else{
+                    textForUser.push("reproduce: father or mother id not given, need both ids.");
+                    textForUser.push(fail);
+                }
+            }
+                break;
+            case "mutate":{
+                let FlowerStore = useFlowerStore();
+                let original = command[i].parameters.id;
+                let fail = "mutate command failed.";
+                let success = "mutate command executed.";
+                if(original){
+                    FlowerStore.db.flowers.where("original").equals(original).toArray()
+                    .then((flower) => {
+                        FlowerStore.makeLocalMutation(flower);
+                    }).catch((_) => {
+                        textForUser.push("mutate command not executed, Flower not found");
+                    });
+                    textForUser.push(success);
+                }else{
+                    textForUser.push("mutate: flower id not given");
+                    textForUser.push(fail);
+                }
+            }
+                break;
+            case "makeFlower":{
+                let FlowerStore = useFlowerStore();
+                FlowerStore.makeLocalFlower();
+                textForUser.push("makeFlower command executed");
+            }
+                break;
+            case "addToFavs":{
+                let FlowerStore = useFlowerStore();
+                let fail = "addToFavs command failed";
+                let success = "addToFavs command executed";
+                let id = command[i].parameters.id;
+                if(id){
+                    FlowerStore.addFlowerToFav(id);
+                    textForUser.push(success);
+                }else{
+                    textForUser.push("Flower id not found");
+                    textForUser.push(fail);
+                }
+            }
+                break;
+            case "delfromFavs":{
+                let FlowerStore = useFlowerStore();
+                let fail = "delFromFavs command failed";
+                let success = "delFromFavs command executed";
+                let id = command[i].parameters.id;
+                if(id){
+                    commandsToConfirm.push({
+                        title: `remove flower with id ${id} from favourites`,
+                        message: 'Are you sure you want to remove it from favourites?',
+                        btnNo: 'no',
+                        btnYes: 'remove flower from favourites',
+                        onConfirm: async () => {
+                            FlowerStore.removeFlowerFromFav(id);
+                        }
+                    });
+                    textForUser.push(success);
+                }else{
+                    textForUser.push("delFromFavs: id not given");
+                    textForUser.push(fail);
+                }
+            }
+                break;
+            case "deleteFlower":{
+                let FlowerStore = useFlowerStore();
+                let fail = "deleteFlower command failed";
+                let success = "deleteFlower requested confirmation";
+                let id = command[i].parameters.id;
+                if(id){
+                    commandsToConfirm.push({
+                        title: `delete flower with id ${id}`,
+                        message: `Are you sure you want to delete flower with id ${id}?`,
+                        btnNo: 'no',
+                        btnYes: 'Delete flower',
+                        onConfirm: async () => {
+                            FlowerStore.deleteLocalFlower(id);
+                        }
+                    });
+                    textForUser.push(success);
+                }else{
+                    textForUser.push("deleteFlower: id not given");
+                    textForUser.push(fail);
+                }
+            }
+                break;
+            case "deleteAllFlowers":{
+                let success = "deleteAllFlowers requested confirmation";
+                let FlowerStore = useFlowerStore();
+                commandsToConfirm.push({
+                        title: 'delete all flowers',
+                        message: 'Are you sure you want to delete all flowers?',
+                        btnNo: 'no',
+                        btnYes: 'Delete all',
+                        onConfirm: async () => {
+                            await FlowerStore.deleteAllFlowers();
+                        }
                 });
-                return success;
+                textForUser.push(success);
             }
-            return fail;
+                break;
+            case "deleteNonFavs":{
+                let success = "deleteNonFavs requested confirmation";
+                let FlowerStore = useFlowerStore();
+                commandsToConfirm.push({
+                    title: 'Delete non favourites',
+                    message: 'Are you sure you want to delete all flowers but favourites?',
+                    btnNo: 'no',
+                    btnYes: 'Delete non favourites',
+                    onConfirm: async () => {
+                        await FlowerStore.deleteNonFavourites();
+                    }
+                });
+                textForUser.push(success);
+            }
+                break;
+            default: textForUser.push("unknown command " + command[i].name);
         }
-        case "makeFlower":{
-            let FlowerStore = useFlowerStore();
-            FlowerStore.makeLocalFlower();
-            return "make flower command executed";
-        }
-        default: return "unknown command " + command[0].name;
     }
+    return makeResult(textForUser, commandsToConfirm);
 };
 export const tools = [
     {
