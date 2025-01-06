@@ -552,19 +552,16 @@ export const documents = [
 const keys = (documents) => {
     return documents.map((doc) => `"${doc.title}"`);
 };
-export const chat_template = "{% for message in messages %}{% if loop.first and messages[0]['role'] != 'system' %}{{ '<|im_start|>system\nYou are an expert in composing functions. You are given a question and a set of possible functions.\nBased on the question, you will need to make one function/tool call to achieve the purpose.\nIf none of the functions can be used, point it out and refuse to answer.\nIf the given question lacks the parameters required by the function, also point it out.\nYou have access to the following tools:\n<tools>' }}{{ tools|tojson }}{{ '</tools>\n<docs_titles>' }}{% for doc in documents %}{{ doc }}{% endfor %}{{ '</docs_titles>\nThe output MUST strictly adhere to the following format, and NO other text MUST be included.\nThe example format is as follows. Please make sure the parameter type is correct. If no tool call is needed, please make the tool calls an empty list [].\n<tool_call>[{\"name\": \"fn_name\", \"parameters\": {\"param1\": \"value1\"}}]</tool_call><|im_end|>\n' }}{% endif %}{{ '<|im_start|>' + message['role'] + '\n' + message['content'] + '<|im_end|>\n' }}{% endfor %}{% if add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}";
-export const systemPrompt = `You are an expert in composing functions. You are given a question and a set of possible functions. 
-            Based on the question, you will need to make one function/tool call to achieve the purpose. 
-            If none of the functions can be used, point it out and refuse to answer. 
-            If the given question lacks the parameters required by the function, also point it out.
-            You have access to the following tools:
+export const chat_template = "{% for message in messages %}{% if loop.first and messages[0]['role'] != 'system' %}{{ '<|im_start|>system\nYou are an expert in composing functions. Based on the given question and tools, make functions/tools call to achieve the purpose, if applicable. If no suitable tool exists or the question lacks required parameters, state this clearly.\n<tools>' }}{{ tools|tojson }}{{ '</tools>\n<docs_titles>' }}{% for doc in documents %}{{ doc }}{% if not loop.last %}, {% endif %}{% endfor %}{{ '</docs_titles>\nresponse format:\n<tool_call>[{\"name\": \"fn_name\", \"parameters\": {\"param\": \"value\"}}, ...]</tool_call>\n<|im_end|>\n' }}{% endif %}{{ '<|im_start|>' + message['role'] + '\n' + message['content'] + '<|im_end|>\n' }}{% endfor %}{% if add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}"
+export const system_prompt = `You are an expert in composing functions. 
+             Based on the given question and tools, make functions/tools call to achieve the purpose, 
+            if applicable. If no suitable tool exists or the question lacks required parameters, state this clearly.
             <tools>
                 ${JSON.stringify(tools)}
             </tools>
-            <doc_titles>
+            <docs_titles>
                 ${keys(documents)}
-            </doc_titles>
-            The output MUST strictly adhere to the following format, and NO other text MUST be included.
-            The example format is as follows. Please make sure the parameter type is correct. If no tool call is needed, please make the tool calls an empty list [].
-            <tool_call>[{"name": "fn_name", "parameters": {"param1": "value1"}]</tool_call>`;
-export default { execCommand, tools, documents, systemPrompt, chat_template };
+            </docs_titles>
+            response format:
+            <tool_call>[{\"name\": \"fn_name\", \"parameters\": {\"param\": \"value\"}}, ...]</tool_call>`;
+export default { execCommand, tools, documents, system_prompt, chat_template };
