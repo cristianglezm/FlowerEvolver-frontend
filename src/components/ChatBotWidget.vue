@@ -115,6 +115,7 @@
         </div>
       </dialog>
     </div>
+    <ConfirmModal :id="'chatbot-confirm-modal'" :channel="ChatBotStore.channel" :on="'ChatBotWidget#ConfirmModal'" />
   </div>
 </template>
 
@@ -150,14 +151,14 @@
  * - `tools` (Array<Object>, optional): Array of tool definitions for function prototypes. 
  *   Example: [{ name: 'tool1', description: 'description', parameters: { param1: 'string' } }]
  * - `docKeys` (Array<String>, optional): Array of document keys for additional context.
- * - `executor` (Function, optional): A custom function to execute tasks when the chatbot calls a tool.
+ * - `executor` (Function, optional): A custom function to execute tasks when the chatbot calls a tool. it should return {textForUser: [], commandsToConfirm: []}
  * 
  * @example
  * The component can be embedded in a parent component with optional props:
  * <ChatBotWidget 
  *     :system="'You are a helpful assistant.'" 
  *     :greetings="'Hello, user!'" 
- *     :tools="[{ name: 'fetchData', description: 'Fetch data from API', parameters: { id: 'number' } }]"
+ *     :tools="[{ name: 'fetchData', description: 'Fetch data from API', parameters: { id:{ type: 'string', required:true, description: 'id paarameter'} } }]"
  *     :docKeys="[\"title1\", \"title2\"]"
  *     :executor="customExecutor"
  * />
@@ -167,6 +168,7 @@ import { useChatBotStore } from '../stores/ChatBotStore';
 import { useFlowerStore } from '../stores/FlowerStore';
 import { useDraggable } from '../composables/useDraggable';
 import ChatBotModelOptions from './ChatBotModelOptions.vue';
+import ConfirmModal from './ConfirmModal.vue';
 
 const { position, onMouseDown, onTouchStart, isDragging, setPosition } = useDraggable();
 const FlowerStore = useFlowerStore();
@@ -233,7 +235,7 @@ const props = defineProps({
     executor:{
         type: Function,
         required: false,
-        default: (content) => { return content; }
+        default: (content) => { return {textForUser: [content], commandsToConfirm: []}; }
     }
 });
 const data = reactive({
