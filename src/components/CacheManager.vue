@@ -86,7 +86,7 @@ const deleteCacheHost = async (host) => {
             message: 'Are you sure you want to delete the selected host files?',
             btnNo: 'no',
             btnYes: 'delete Host from cache.',
-            onConfirm: async (dialog) => {
+            onConfirm: async () => {
                 await cm.deleteHost(host);
                 data.hosts = Array.from(cm.cacheHosts.keys());
                 data.selectedHost = "";
@@ -94,7 +94,7 @@ const deleteCacheHost = async (host) => {
                 data.selectedFiles = [];
                 emitter.emit('modelOptions#forceReload', {});
                 emit('on-delete');
-                dialog.close();
+                emit('on-delete-host');
             }
         });
   };
@@ -106,12 +106,12 @@ const deleteCacheHost = async (host) => {
             message: 'Are you sure you want to delete ' + data.selectedFiles + '?',
             btnNo: 'no',
             btnYes: 'delete selected files from cache.',
-            onConfirm: async (dialog) => {
+            onConfirm: async () => {
                 await cm.deleteFilesFrom(host, files);
                 loadHostFiles();
                 emitter.emit('modelOptions#forceReload', {});
                 emit('on-delete');
-                dialog.close();
+                emit('on-delete-files');
             }
         });
   };
