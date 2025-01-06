@@ -27,7 +27,15 @@ wm.onResponse('chatbot', (data) => {
         case "response":{
             let last = data.response[0].generated_text.length
             let message = data.response[0].generated_text[last - 1];
-            chatbotStore.addMessage(message.role, chatbotStore.executor(message.content));
+            let result = chatbotStore.executor(message.content);
+            for(const toConfirm of result.commandsToConfirm.values()){
+                channel.emit('ChatBotWidget#ConfirmModal', toConfirm);
+            }
+            let text = "";
+            for(const msg of result.textForUser.values()){
+                text += "\n" + msg;
+            }
+            chatbotStore.addMessage(message.role, text);
         }
             break;
         case "streaming":{
