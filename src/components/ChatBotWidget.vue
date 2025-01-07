@@ -45,18 +45,21 @@
       <div v-if="data.chatOpened" class="chat-box">
         <div class="chat-messages">
           <div v-for="message in chatHistory" :key="message.id" class="fill-content">
-            <div v-if="message.role !== 'system'" class="chat-message" @mouseover="message.hover = true" @mouseleave="message.hover = false">
-              <div class="chat-role">
-                <span>
-                  {{ message.role }}
-                </span>
+            <div v-if="message.role !== 'system'" class="" @mouseover="message.hover = true" @mouseleave="message.hover = false">
+              <div class="chat-message">
+                <div class="chat-role">
+                  <span>
+                    {{ message.role }}
+                  </span>
+                </div>
+                <div class="message-bubble">
+                  {{ message.content }}
+                </div>
               </div>
-              <div class="message-bubble">
-                {{ message.content }}
-              </div>
-              <div v-if="message.role === 'assistant' && message.hover">
+              <div v-show="message.role === 'assistant' && message.hover" class="reg-btn">
                 <button
-                  class="safe-button" :class="{'disabled': data.processingMessage}"
+                  v-scroll-into-view class="safe-button reg-btn"
+                  :class="{'disabled': data.processingMessage}"
                   :disabled="data.processingMessage"
                   @click="regenerate(message.id)"
                 >
@@ -65,13 +68,13 @@
               </div>
             </div>
           </div>
-          <div v-if="data.pendingMsg.length" v-scroll-into-view class="chat-message">
+          <div v-if="data.pendingMsg.length" class="chat-message">
             <div class="chat-role">
               <span>
                 assistant
               </span>
             </div>
-            <div class="message-bubble">
+            <div v-scroll-into-view class="message-bubble">
               {{ data.pendingMsg }}
             </div>
           </div>
@@ -743,6 +746,13 @@ onUnmounted(() => {
     .message-bubble::selection{
         background-color: lightgreen;
         color: green;
+    }
+    .reg-btn{
+        justify-content: flex-end;
+        display: flex;
+        flex-flow: row nowrap;
+        font-size: 0.9rem;
+        margin-top: 2px;
     }
     @keyframes pulse{
         0%, 100% {
