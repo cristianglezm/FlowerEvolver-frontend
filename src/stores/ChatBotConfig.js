@@ -563,5 +563,5 @@ export const system_prompt = `You are an expert in composing functions.
                 ${keys(documents)}
             </docs_titles>
             response format:
-            <tool_call>[{\"name\": \"fn_name\", \"parameters\": {\"param\": \"value\"}}, ...]</tool_call>`;
+            <tool_call>[{"name": "fn_name", "parameters": {"param": "value"}}, ...]</tool_call>`;
 export default { execCommand, tools, documents, system_prompt, chat_template };

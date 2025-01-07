@@ -108,7 +108,7 @@ const loadModel = async (modelOptions) => {
               };
               self.postMessage({
                 jobType: "updateProgressBar",
-                eventName: "requestMultiProgressBar",
+                eventName: "ChatBotWidget#requestMultiProgressBar",
                 event: event
               });
           }
@@ -121,12 +121,12 @@ const loadModel = async (modelOptions) => {
               };
               self.postMessage({
                 jobType: "updateProgressBar",
-                eventName: "requestMultiProgressBar",
+                eventName: "ChatBotWidget#requestMultiProgressBar",
                 event: event
               });
           }
             break;
-          case "done":{
+          case "ready":{
             self.postMessage({
                 jobType: "updateBtnTitle",
                 eventName: "ChatBotModelOptions#updateBtnTitle",

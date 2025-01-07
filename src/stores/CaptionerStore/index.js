@@ -18,6 +18,7 @@ wm.onResponse('captioner', (data) => {
     const jobType = data.jobType;
     switch(jobType){
         case "updateBtnTitle":{
+            CaptionerStore.isModelLoaded = true;
             channel.emit('App#ToEmitter', data);
         }
             break;
@@ -116,12 +117,10 @@ export const useCaptionerStore = defineStore('CaptionerStore', {
         },
         async requestModelLoad(){
             this.oldModelOptions = structuredClone(toRaw(this.modelOptions))
-            this.isModelLoaded = false;
             this.wm.sendRequest('captioner', {
                 jobType: "loadModel",
                 modelOptions: structuredClone(toRaw(this.modelOptions))
             });
-            this.isModelLoaded = true;
         },
         async requestReset(){
             this.wm.sendRequest('captioner', {
