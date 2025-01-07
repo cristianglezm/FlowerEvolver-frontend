@@ -1,6 +1,7 @@
 <template>
   <div
-    id="chatbot-grabbable" class="chatbot-widget-core" 
+    id="chatbot-grabbable"
+    ref="chatBox" class="chatbot-widget-core" 
     :class="{'chatbot-widget-expanded': data.expanded, 'chatbot-widget-unexpanded': !data.expanded, 'chatbot-widget-chat-opened': data.chatOpened, 'chatbot-widget-chat-closed': !data.chatOpened }"
     :style="{ left: `${position.x}px`, top: `${position.y}px` }"
   >
@@ -24,10 +25,10 @@
           </div>
         </div>
         <div class="v-inlined-menu">
-          <div class="led-button">
+          <div class="led-button" title="load chatbot model">
             <svg
               viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" 
-              class="pointer status-icon" title="load chatbot model" 
+              class="pointer status-icon"
               @click="loadChatBot()"
             >
               <circle
@@ -45,18 +46,21 @@
       <div v-if="data.chatOpened" class="chat-box">
         <div class="chat-messages">
           <div v-for="message in chatHistory" :key="message.id" class="fill-content">
-            <div v-if="message.role !== 'system'" class="chat-message" @mouseover="message.hover = true" @mouseleave="message.hover = false">
-              <div class="chat-role">
-                <span>
-                  {{ message.role }}
-                </span>
+            <div v-if="message.role !== 'system'" class="" @mouseover="message.hover = true" @mouseleave="message.hover = false">
+              <div class="chat-message">
+                <div class="chat-role">
+                  <span>
+                    {{ message.role }}
+                  </span>
+                </div>
+                <div class="message-bubble">
+                  {{ message.content }}
+                </div>
               </div>
-              <div class="message-bubble">
-                {{ message.content }}
-              </div>
-              <div v-if="message.role === 'assistant' && message.hover">
+              <div v-show="message.role === 'assistant' && message.hover" class="reg-btn">
                 <button
-                  class="safe-button" :class="{'disabled': data.processingMessage}"
+                  class="safe-button reg-btn"
+                  :class="{'disabled': data.processingMessage}"
                   :disabled="data.processingMessage"
                   @click="regenerate(message.id)"
                 >
@@ -65,13 +69,13 @@
               </div>
             </div>
           </div>
-          <div v-if="data.pendingMsg.length" v-scroll-into-view class="chat-message">
+          <div v-if="data.pendingMsg.length" class="chat-message">
             <div class="chat-role">
               <span>
                 assistant
               </span>
             </div>
-            <div class="message-bubble">
+            <div v-scroll-into-view class="message-bubble">
               {{ data.pendingMsg }}
             </div>
           </div>
@@ -116,6 +120,7 @@
       </dialog>
     </div>
     <ConfirmModal :id="'chatbot-confirm-modal'" :channel="ChatBotStore.channel" :on="'ChatBotWidget#ConfirmModal'" />
+    <MultiProgressNodal :id="'chatbot-multiProgressBar'" :channel="props.emitter" :on="'ChatBotWidget#requestMultiProgressBar'" />
   </div>
 </template>
 
@@ -125,11 +130,12 @@
  * @usage
  * <template>
  *   <ChatBotWidget
+ *     :emitter="emitter"
  *     :system="'You are a helpful assistant to help the user.'"
  *     :greetings="'Hello! How can I assist you today?'"
  *     :chatTemplate="'Your custom @huggingface/jinja template here...'"
  *     :tools="[
- *       { name: 'search', description: 'Search the database', parameters: { query: 'string' } },
+ *       { name: 'search', description: 'Search the database', parameters: { query: { description: 'query to look for', type: 'string', required: true } } },
  *       { name: 'translate', description: 'Translate text', parameters: { text: 'string', language: 'string' } }
  *     ]"
  *     :docKeys="['title1', 'title2']"
@@ -154,17 +160,20 @@
  * };
  * 
  * @props
+ * - `emitter` (String, required): event bus to be able to load the model from outside the ChatBotWidget.
+ *   Example: emitter.emit("ChatBotWidget#loadChatBotModel"); // this will load the model
  * - `system` (String, optional): Initial system message to set the chat context. (set this when not going to use tools)
  * - `greetings` (String, optional): Assistant's initial greeting message.
  * - `chatTemplate` (String, optional): Jinja template for formatting chat responses. (set this only when using tools, dockeys and executor)
  * - `tools` (Array<Object>, optional): Array of tool definitions for function prototypes. 
- *   Example: [{ name: 'tool1', description: 'description', parameters: { param1: 'string' } }]
+ *   Example: [{ name: 'tool1', description: 'description', parameters: { param1: 'string' }}]
  * - `docKeys` (Array<String>, optional): Array of document keys for additional context.
  * - `executor` (Function, optional): A custom function to execute tasks when the chatbot calls a tool. it should return {textForUser: [], commandsToConfirm: []}
  * 
  * @example
  * The component can be embedded in a parent component with optional props:
  * <ChatBotWidget 
+ *     :emitter="emitter" // this is a mit() event bus
  *     :system="'You are a helpful assistant.'" 
  *     :greetings="'Hello, user!'" 
  *     :tools="[{ name: 'fetchData', description: 'Fetch data from API', parameters: { id:{ type: 'string', required:true, description: 'id paarameter'} } }]"
@@ -172,17 +181,17 @@
  *     :executor="customExecutor"
  * />
  */
-import { reactive, computed, toRaw, inject, onMounted, onUnmounted, nextTick } from 'vue';
+import { reactive, ref, computed, toRaw, onMounted, onUnmounted, nextTick } from 'vue';
 import { useChatBotStore } from '../stores/ChatBotStore';
 import { useFlowerStore } from '../stores/FlowerStore';
 import { useDraggable } from '../composables/useDraggable';
 import ChatBotModelOptions from './ChatBotModelOptions.vue';
+import MultiProgressNodal from './MultiProgressModal.vue';
 import ConfirmModal from './ConfirmModal.vue';
 
 const { position, onMouseDown, onTouchStart, isDragging, setPosition } = useDraggable();
 const FlowerStore = useFlowerStore();
 const ChatBotStore = useChatBotStore();
-const emitter = inject("emitter");
 
 /**
  * @brief scroll the element into view when rendered or updated.
@@ -216,6 +225,11 @@ const vToggleDialog = {
     }
 };
 const props = defineProps({
+    emitter:{
+        type: Object,
+        required: true,
+        default: null
+    },
     system:{
         type: String,
         required: false,
@@ -247,6 +261,9 @@ const props = defineProps({
         default: (content) => { return {textForUser: [content], commandsToConfirm: []}; }
     }
 });
+const chatBox = ref(null);
+let parentElementDisplay = ref(null);
+let observer;
 const data = reactive({
     chatOpened: false,
     openOptions: false,
@@ -264,7 +281,7 @@ const isChatBotOnline = () => {
 };
 const loadChatBot = () => {
     if(!ChatBotStore.hasModelLoaded()){
-        emitter.emit("App#loadChatBotModel");
+        props.emitter.emit("ChatBotWidget#loadChatBotModel");
     }
 };
 const toggleMessageWindow = () => {
@@ -273,9 +290,8 @@ const toggleMessageWindow = () => {
 };
 const resetPosition = () => {
     const pos = { x: 0, y: 0 };
-    let chatbox = document.getElementById('chatbot-grabbable');
-    if(chatbox){
-        let rect = chatbox.getBoundingClientRect();
+    if(chatBox.value){
+        let rect = chatBox.value.getBoundingClientRect();
         pos.x = window.innerWidth - rect.width - 20;
         pos.y = window.innerHeight - rect.height - 20;
         setPosition(pos);
@@ -352,6 +368,20 @@ const resetChat = () => {
     ChatBotStore.addMessage("assistant", props.greetings);
 };
 onMounted(() => {
+    props.emitter.on('ChatBotWidget#loadChatBotModel', () => {
+        setTimeout(() => {
+            props.emitter.emit('ChatBotWidget#requestMultiProgressBar', {
+                status: "setup",
+                title: "downloading or loading chatbot model",
+                onLoad: async () => {
+                    ChatBotStore.requestModelLoad();
+                }
+            });
+        }, 2000);
+    });
+    ChatBotStore.channel.on('ChatBotWidget#ToEmitter', (e) => {
+        props.emitter.emit(e.eventName, e.event);
+    });
     ChatBotStore.channel.on('ChatBotWidget#done', () => {
         data.processingMessage = false;
         data.pendingMsg = "";
@@ -362,14 +392,35 @@ onMounted(() => {
         }
     });
     ChatBotStore.executor = props.executor;
-    resetChat();
-    nextTick(() => {
-        resetPosition();
+    setTimeout(() => {
+        resetChat();
+        nextTick(() => {
+            resetPosition();
+        });
+    }, 50);
+    const parentElement = chatBox.value.parentElement;
+    parentElementDisplay.value = getComputedStyle(parentElement).display;
+    observer = new MutationObserver(() => {
+        parentElementDisplay.value = getComputedStyle(parentElement).display;
+        if (parentElementDisplay.value !== 'none') {
+            setTimeout(() => {
+                resetChat();
+                nextTick(() => {
+                    resetPosition();
+                });
+            }, 50);
+        }
     });
+    observer.observe(parentElement, { attributes: true, attributeFilter: ['style'] });
 });
 onUnmounted(() => {
     ChatBotStore.channel.off('ChatBotWidget#done');
     ChatBotStore.channel.off('ChatBotWidget#stream');
+    ChatBotStore.channel.off('ChatBotWidget#ToEmitter');
+    props.emitter.off("ChatBotWidget#loadChatBotModel");
+    if(observer){
+        observer.disconnect();
+    }
 });
 </script>
 
@@ -743,6 +794,13 @@ onUnmounted(() => {
     .message-bubble::selection{
         background-color: lightgreen;
         color: green;
+    }
+    .reg-btn{
+        justify-content: flex-end;
+        display: flex;
+        flex-flow: row nowrap;
+        font-size: 0.9rem;
+        margin-top: 2px;
     }
     @keyframes pulse{
         0%, 100% {

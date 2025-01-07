@@ -17,11 +17,12 @@ wm.onResponse('chatbot', (data) => {
     const jobType = data.jobType;
     switch(jobType){
         case "updateBtnTitle":{
-            channel.emit('App#ToEmitter', data);
+            chatbotStore.isModelLoaded = true;
+            channel.emit('ChatBotWidget#ToEmitter', data);
         }
             break;
         case "updateProgressBar":{
-            channel.emit('App#ToEmitter', data);
+            channel.emit('ChatBotWidget#ToEmitter', data);
         }
             break;
         case "response":{
@@ -122,12 +123,10 @@ export const useChatBotStore = defineStore('ChatBotStore', {
         },
         async requestModelLoad(){
             this.oldModelOptions = structuredClone(toRaw(this.modelOptions));
-            this.isModelLoaded = false;
             this.wm.sendRequest('chatbot', {
                 jobType: "loadModel",
                 modelOptions: structuredClone(toRaw(this.modelOptions))
             });
-            this.isModelLoaded = true;
         },
         async requestReset(){
             this.wm.sendRequest('chatbot', {
