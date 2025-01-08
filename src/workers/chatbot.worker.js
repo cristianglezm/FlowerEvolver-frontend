@@ -108,7 +108,7 @@ const loadModel = async (modelOptions) => {
               };
               self.postMessage({
                 jobType: "updateProgressBar",
-                eventName: "requestMultiProgressBar",
+                eventName: "ChatBotWidget#requestMultiProgressBar",
                 event: event
               });
           }
@@ -121,7 +121,7 @@ const loadModel = async (modelOptions) => {
               };
               self.postMessage({
                 jobType: "updateProgressBar",
-                eventName: "requestMultiProgressBar",
+                eventName: "ChatBotWidget#requestMultiProgressBar",
                 event: event
               });
           }
