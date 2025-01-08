@@ -100,7 +100,7 @@
     if(isModelLoaded()){
       return;
     }
-    emitter.emit("App#loadChatBotModel");
+    emitter.emit("ChatBotWidget#loadChatBotModel");
     data.forceReload = false;
   }
   const hasModelOptionsChanged = () => {
