@@ -1,5 +1,6 @@
 <template>
   <div
+    ref="chatBox"
     id="chatbot-grabbable" class="chatbot-widget-core" 
     :class="{'chatbot-widget-expanded': data.expanded, 'chatbot-widget-unexpanded': !data.expanded, 'chatbot-widget-chat-opened': data.chatOpened, 'chatbot-widget-chat-closed': !data.chatOpened }"
     :style="{ left: `${position.x}px`, top: `${position.y}px` }"
@@ -24,10 +25,10 @@
           </div>
         </div>
         <div class="v-inlined-menu">
-          <div class="led-button">
+          <div class="led-button" title="load chatbot model" >
             <svg
               viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" 
-              class="pointer status-icon" title="load chatbot model" 
+              class="pointer status-icon"
               @click="loadChatBot()"
             >
               <circle
@@ -58,7 +59,7 @@
               </div>
               <div v-show="message.role === 'assistant' && message.hover" class="reg-btn">
                 <button
-                  v-scroll-into-view class="safe-button reg-btn"
+                  class="safe-button reg-btn"
                   :class="{'disabled': data.processingMessage}"
                   :disabled="data.processingMessage"
                   @click="regenerate(message.id)"
@@ -119,6 +120,7 @@
       </dialog>
     </div>
     <ConfirmModal :id="'chatbot-confirm-modal'" :channel="ChatBotStore.channel" :on="'ChatBotWidget#ConfirmModal'" />
+    <MultiProgressNodal :id="'chatbot-multiProgressBar'" :channel="emitter" :on="'ChatBotWidget#requestMultiProgressBar'" />
   </div>
 </template>
 
@@ -175,11 +177,12 @@
  *     :executor="customExecutor"
  * />
  */
-import { reactive, computed, toRaw, inject, onMounted, onUnmounted, nextTick } from 'vue';
+import { reactive, ref, computed, toRaw, inject, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useChatBotStore } from '../stores/ChatBotStore';
 import { useFlowerStore } from '../stores/FlowerStore';
 import { useDraggable } from '../composables/useDraggable';
 import ChatBotModelOptions from './ChatBotModelOptions.vue';
+import MultiProgressNodal from './MultiProgressModal.vue';
 import ConfirmModal from './ConfirmModal.vue';
 
 const { position, onMouseDown, onTouchStart, isDragging, setPosition } = useDraggable();
@@ -250,6 +253,9 @@ const props = defineProps({
         default: (content) => { return {textForUser: [content], commandsToConfirm: []}; }
     }
 });
+const chatBox = ref(null);
+let parentElementDisplay = ref(null);
+let observer;
 const data = reactive({
     chatOpened: false,
     openOptions: false,
@@ -267,7 +273,7 @@ const isChatBotOnline = () => {
 };
 const loadChatBot = () => {
     if(!ChatBotStore.hasModelLoaded()){
-        emitter.emit("App#loadChatBotModel");
+        emitter.emit("ChatBotWidget#loadChatBotModel");
     }
 };
 const toggleMessageWindow = () => {
@@ -276,9 +282,8 @@ const toggleMessageWindow = () => {
 };
 const resetPosition = () => {
     const pos = { x: 0, y: 0 };
-    let chatbox = document.getElementById('chatbot-grabbable');
-    if(chatbox){
-        let rect = chatbox.getBoundingClientRect();
+    if(chatBox){
+        let rect = chatBox.value.getBoundingClientRect();
         pos.x = window.innerWidth - rect.width - 20;
         pos.y = window.innerHeight - rect.height - 20;
         setPosition(pos);
@@ -355,6 +360,20 @@ const resetChat = () => {
     ChatBotStore.addMessage("assistant", props.greetings);
 };
 onMounted(() => {
+    emitter.on('ChatBotWidget#loadChatBotModel', () => {
+        setTimeout(() => {
+            emitter.emit('ChatBotWidget#requestMultiProgressBar', {
+                status: "setup",
+                title: "downloading or loading chatbot model",
+                onLoad: async () => {
+                    ChatBotStore.requestModelLoad();
+                }
+            });
+        }, 2000);
+    });
+    ChatBotStore.channel.on('ChatBotWidget#ToEmitter', (e) => {
+        emitter.emit(e.eventName, e.event);
+    });
     ChatBotStore.channel.on('ChatBotWidget#done', () => {
         data.processingMessage = false;
         data.pendingMsg = "";
@@ -365,14 +384,35 @@ onMounted(() => {
         }
     });
     ChatBotStore.executor = props.executor;
-    resetChat();
-    nextTick(() => {
-        resetPosition();
+    setTimeout(() => {
+        resetChat();
+        nextTick(() => {
+            resetPosition();
+        });
+    }, 50);
+    const parentElement = chatBox.value.parentElement;
+    parentElementDisplay.value = getComputedStyle(parentElement).display;
+    observer = new MutationObserver(() => {
+        parentElementDisplay.value = getComputedStyle(parentElement).display;
+        if (parentElementDisplay.value !== 'none') {
+            setTimeout(() => {
+                resetChat();
+                nextTick(() => {
+                    resetPosition();
+                });
+            }, 50);
+        }
     });
+    observer.observe(parentElement, { attributes: true, attributeFilter: ['style'] });
 });
 onUnmounted(() => {
     ChatBotStore.channel.off('ChatBotWidget#done');
     ChatBotStore.channel.off('ChatBotWidget#stream');
+    ChatBotStore.channel.off('ChatBotWidget#ToEmitter');
+    emitter.off("ChatBotWidget#loadChatBotModel");
+    if(observer){
+        observer.disconnect();
+    }
 });
 </script>
 
