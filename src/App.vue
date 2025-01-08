@@ -4,7 +4,7 @@
     <AppMenu :is-local="isLocal()" />
     <router-view :key="routes.fullPath" class="view" />
     <AppFooter />
-    <div v-if="isChatBotOpened">
+    <div v-show="isChatBotOpened">
       <ChatBotWidget :chat-template="chat_template" :tools="tools" :docKeys="documentStore.keys()" :executor="execCommand" />
     </div>
     <ProgressModal :id="'progressBar'" :channel="emitter" :on="'showProgress'" :update="'updateProgress'" />
@@ -25,7 +25,6 @@ import ChatBotWidget from './components/ChatBotWidget.vue';
 import { useRoute } from 'vue-router';
 import { useFlowerStore } from './stores/FlowerStore';
 import { useCaptionerStore } from './stores/CaptionerStore';
-import { useChatBotStore } from './stores/ChatBotStore';
 import { useDocumentStore } from './stores/documentStore';
 import { chat_template, tools, documents,  execCommand } from './stores/ChatBotConfig';
 
@@ -33,7 +32,6 @@ const routes = useRoute();
 const emitter = inject('emitter');
 const FlowerStore = useFlowerStore();
 const CaptionerStore = useCaptionerStore();
-const ChatBotStore = useChatBotStore();
 const documentStore = useDocumentStore();
 
 const isChatBotOpened = computed(() => {
@@ -58,35 +56,19 @@ onMounted(() => {
         });
       }, 2000);
   });
-  emitter.on('App#loadChatBotModel', () => {
-    setTimeout(() => {
-        emitter.emit('requestMultiProgressBar', {
-              status: "setup",
-              title: "downloading or loading chatbot model",
-              onLoad: async () => {
-                  ChatBotStore.requestModelLoad();
-              }
-        });
-      }, 2000);
-  });
   CaptionerStore.channel.on('App#ToEmitter', (e) => {
-    emitter.emit(e.eventName, e.event);
-  });
-  ChatBotStore.channel.on('App#ToEmitter', (e) => {
     emitter.emit(e.eventName, e.event);
   });
   if(FlowerStore.settings.loadCaptionerModel){
     emitter.emit('App#loadCaptionerModel');
   }
   if(FlowerStore.settings.loadChatBotModel){
-    emitter.emit('App#loadChatBotModel');
+    emitter.emit('ChatBotWidget#loadChatBotModel');
   }
 });
 onUnmounted(() => {
   CaptionerStore.channel.off('App#ToEmitter');
-  ChatBotStore.channel.off('App#ToEmitter');
   emitter.off("App#loadCaptionerModel");
-  emitter.off("App#loadChatBotModel");
 });
 
   /*!

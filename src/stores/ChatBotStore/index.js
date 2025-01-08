@@ -17,11 +17,11 @@ wm.onResponse('chatbot', (data) => {
     const jobType = data.jobType;
     switch(jobType){
         case "updateBtnTitle":{
-            channel.emit('App#ToEmitter', data);
+            channel.emit('ChatBotWidget#ToEmitter', data);
         }
             break;
         case "updateProgressBar":{
-            channel.emit('App#ToEmitter', data);
+            channel.emit('ChatBotWidget#ToEmitter', data);
         }
             break;
         case "response":{

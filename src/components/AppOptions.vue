@@ -62,7 +62,7 @@ const loadCaptionerModel = () => {
 };
 const loadChatBotModel = () => {
     if(FlowerStore.settings.loadChatBotModel){
-        emitter.emit('App#loadChatBotModel');
+        emitter.emit('ChatBotWidget#loadChatBotModel');
     }
 };
 const persist = async () => {
