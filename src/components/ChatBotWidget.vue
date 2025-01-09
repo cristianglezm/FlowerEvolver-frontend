@@ -120,7 +120,7 @@
       </dialog>
     </div>
     <ConfirmModal :id="'chatbot-confirm-modal'" :channel="ChatBotStore.channel" :on="'ChatBotWidget#ConfirmModal'" />
-    <MultiProgressNodal :id="'chatbot-multiProgressBar'" :channel="emitter" :on="'ChatBotWidget#requestMultiProgressBar'" />
+    <MultiProgressNodal :id="'chatbot-multiProgressBar'" :channel="props.emitter" :on="'ChatBotWidget#requestMultiProgressBar'" />
   </div>
 </template>
 
@@ -130,11 +130,12 @@
  * @usage
  * <template>
  *   <ChatBotWidget
+ *     :emitter="emitter"
  *     :system="'You are a helpful assistant to help the user.'"
  *     :greetings="'Hello! How can I assist you today?'"
  *     :chatTemplate="'Your custom @huggingface/jinja template here...'"
  *     :tools="[
- *       { name: 'search', description: 'Search the database', parameters: { query: 'string' } },
+ *       { name: 'search', description: 'Search the database', parameters: { query: { description: 'query to look for', type: 'string', required: true } } },
  *       { name: 'translate', description: 'Translate text', parameters: { text: 'string', language: 'string' } }
  *     ]"
  *     :docKeys="['title1', 'title2']"
@@ -159,17 +160,20 @@
  * };
  * 
  * @props
+ * - `emitter` (String, required): event bus to be able to load the model from outside the ChatBotWidget.
+ *   Example: emitter.emit("ChatBotWidget#loadChatBotModel"); // this will load the model
  * - `system` (String, optional): Initial system message to set the chat context. (set this when not going to use tools)
  * - `greetings` (String, optional): Assistant's initial greeting message.
  * - `chatTemplate` (String, optional): Jinja template for formatting chat responses. (set this only when using tools, dockeys and executor)
  * - `tools` (Array<Object>, optional): Array of tool definitions for function prototypes. 
- *   Example: [{ name: 'tool1', description: 'description', parameters: { param1: 'string' } }]
+ *   Example: [{ name: 'tool1', description: 'description', parameters: { param1: 'string' }}]
  * - `docKeys` (Array<String>, optional): Array of document keys for additional context.
  * - `executor` (Function, optional): A custom function to execute tasks when the chatbot calls a tool. it should return {textForUser: [], commandsToConfirm: []}
  * 
  * @example
  * The component can be embedded in a parent component with optional props:
  * <ChatBotWidget 
+ *     :emitter="emitter" // this is a mit() event bus
  *     :system="'You are a helpful assistant.'" 
  *     :greetings="'Hello, user!'" 
  *     :tools="[{ name: 'fetchData', description: 'Fetch data from API', parameters: { id:{ type: 'string', required:true, description: 'id paarameter'} } }]"
@@ -177,7 +181,7 @@
  *     :executor="customExecutor"
  * />
  */
-import { reactive, ref, computed, toRaw, inject, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { reactive, ref, computed, toRaw, onMounted, onUnmounted, nextTick } from 'vue';
 import { useChatBotStore } from '../stores/ChatBotStore';
 import { useFlowerStore } from '../stores/FlowerStore';
 import { useDraggable } from '../composables/useDraggable';
@@ -188,7 +192,6 @@ import ConfirmModal from './ConfirmModal.vue';
 const { position, onMouseDown, onTouchStart, isDragging, setPosition } = useDraggable();
 const FlowerStore = useFlowerStore();
 const ChatBotStore = useChatBotStore();
-const emitter = inject("emitter");
 
 /**
  * @brief scroll the element into view when rendered or updated.
@@ -222,6 +225,11 @@ const vToggleDialog = {
     }
 };
 const props = defineProps({
+    emitter:{
+        type: Object,
+        required: true,
+        default: null
+    },
     system:{
         type: String,
         required: false,
@@ -273,7 +281,7 @@ const isChatBotOnline = () => {
 };
 const loadChatBot = () => {
     if(!ChatBotStore.hasModelLoaded()){
-        emitter.emit("ChatBotWidget#loadChatBotModel");
+        props.emitter.emit("ChatBotWidget#loadChatBotModel");
     }
 };
 const toggleMessageWindow = () => {
@@ -360,9 +368,9 @@ const resetChat = () => {
     ChatBotStore.addMessage("assistant", props.greetings);
 };
 onMounted(() => {
-    emitter.on('ChatBotWidget#loadChatBotModel', () => {
+    props.emitter.on('ChatBotWidget#loadChatBotModel', () => {
         setTimeout(() => {
-            emitter.emit('ChatBotWidget#requestMultiProgressBar', {
+            props.emitter.emit('ChatBotWidget#requestMultiProgressBar', {
                 status: "setup",
                 title: "downloading or loading chatbot model",
                 onLoad: async () => {
@@ -372,7 +380,7 @@ onMounted(() => {
         }, 2000);
     });
     ChatBotStore.channel.on('ChatBotWidget#ToEmitter', (e) => {
-        emitter.emit(e.eventName, e.event);
+        props.emitter.emit(e.eventName, e.event);
     });
     ChatBotStore.channel.on('ChatBotWidget#done', () => {
         data.processingMessage = false;
@@ -409,7 +417,7 @@ onUnmounted(() => {
     ChatBotStore.channel.off('ChatBotWidget#done');
     ChatBotStore.channel.off('ChatBotWidget#stream');
     ChatBotStore.channel.off('ChatBotWidget#ToEmitter');
-    emitter.off("ChatBotWidget#loadChatBotModel");
+    props.emitter.off("ChatBotWidget#loadChatBotModel");
     if(observer){
         observer.disconnect();
     }
