@@ -5,7 +5,7 @@
     <router-view :key="routes.fullPath" class="view" />
     <AppFooter />
     <div v-show="isChatBotOpened">
-      <ChatBotWidget :chat-template="chat_template" :tools="tools" :docKeys="documentStore.keys()" :executor="execCommand" />
+      <ChatBotWidget :emitter="emitter" :chat-template="chat_template" :tools="tools" :docKeys="documentStore.keys()" :executor="execCommand" />
     </div>
     <ProgressModal :id="'progressBar'" :channel="emitter" :on="'showProgress'" :update="'updateProgress'" />
     <MultiProgressNodal :id="'multiProgressBar'" :channel="emitter" :on="'requestMultiProgressBar'" />
