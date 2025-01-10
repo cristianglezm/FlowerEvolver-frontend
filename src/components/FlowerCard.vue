@@ -21,7 +21,7 @@
           <a @click="FlowerStore.redrawFlower({genome: props.genome}); data.clicked = !data.clicked;">Redraw Flower</a>
         </div>
       </div>
-      <img :id="'FlImage' + props.id" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage">
+      <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="FlowerStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
       <p><strong>{{ props.id }}</strong></p>
     </div>
     <div v-else>
@@ -43,7 +43,7 @@
           <a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a>
         </div>
       </div>
-      <img :id="'FlImage' + props.id" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage">
+      <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="FlowerStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
       <p><strong>{{ props.id }}</strong></p>
     </div>
   </div>
@@ -56,6 +56,7 @@
     import { onMounted, reactive, inject, onUnmounted } from 'vue';
     import { useRouter } from 'vue-router';
     import ParamsInfo from './ParamsInfo.vue';
+    import ZoomableImage from './ZoomableImage.vue';
 
     const props = defineProps({
         id: {
@@ -125,6 +126,7 @@
                 P: 6.0,
                 bias: 1.0
                 },
+        lensSize: { x: 100, y: 100 },
     });
     const router = useRouter();
     const FlowerStore = useFlowerStore();
@@ -312,12 +314,13 @@
     };
 
 </script>
-
-<style scoped>
+<style>
     .FlowerImage{
         width: 100%;
         height: auto;
     }
+</style>
+<style scoped>
     .FlowerCard{
         margin: auto auto auto auto;
     }
