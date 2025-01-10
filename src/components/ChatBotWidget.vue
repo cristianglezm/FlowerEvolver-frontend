@@ -1,7 +1,7 @@
 <template>
   <div
-    ref="chatBox"
-    id="chatbot-grabbable" class="chatbot-widget-core" 
+    id="chatbot-grabbable"
+    ref="chatBox" class="chatbot-widget-core" 
     :class="{'chatbot-widget-expanded': data.expanded, 'chatbot-widget-unexpanded': !data.expanded, 'chatbot-widget-chat-opened': data.chatOpened, 'chatbot-widget-chat-closed': !data.chatOpened }"
     :style="{ left: `${position.x}px`, top: `${position.y}px` }"
   >
@@ -25,7 +25,7 @@
           </div>
         </div>
         <div class="v-inlined-menu">
-          <div class="led-button" title="load chatbot model" >
+          <div class="led-button" title="load chatbot model">
             <svg
               viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" 
               class="pointer status-icon"
@@ -290,7 +290,7 @@ const toggleMessageWindow = () => {
 };
 const resetPosition = () => {
     const pos = { x: 0, y: 0 };
-    if(chatBox){
+    if(chatBox.value){
         let rect = chatBox.value.getBoundingClientRect();
         pos.x = window.innerWidth - rect.width - 20;
         pos.y = window.innerHeight - rect.height - 20;

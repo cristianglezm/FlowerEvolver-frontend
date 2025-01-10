@@ -31,7 +31,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			loadChatBotModel: false,
 			showChatBot: false,
 			pagination: false,
-			limit: 100
+			limit: 100,
+			magnification: 4
 		})),
 	}),
 	getters: {
