@@ -21,6 +21,12 @@
       <label for="loadChatBotModel">Load ChatBot: </label>
       <input id="loadChatBotModel" v-model="FlowerStore.settings.loadChatBotModel" type="checkbox" @change="saveSettings(); loadChatBotModel();">
     </div>
+    <div id="magnification-option" class="option-box labelInputArea">
+      <ToolTip :info="'Adjust the zoom magnification to enhance the view.'" />
+      <label for="magnification-range">Magnification:</label>
+      <input id="magnification-range" v-model="FlowerStore.settings.magnification" type="range" min="4" max="16" step="2" @change="validateMagnification()">
+      <span>{{ FlowerStore.settings.magnification }}x</span>
+    </div>
     <div id="persists-option" class="option-box labelInputArea">
       <ToolTip :info="'it will keep data even when low on space'" />
       <label for="persist">Persistent storage: </label>
@@ -106,7 +112,11 @@ const validateLimit = () => {
     FlowerStore.settings.limit = validateInteger(FlowerStore.settings.limit, 100);
     saveSettings();
 };
-
+const validateMagnification = () => {
+    let magnification = FlowerStore.settings.magnification;
+    FlowerStore.settings.magnification = Math.min(16, Math.max(validateInteger(magnification, 4), 4));
+    saveSettings();
+};
 const validateInteger = (number, Default) => {
     if(Number.isNaN(parseInt(number))){
         return Default;
@@ -173,6 +183,69 @@ const validateInteger = (number, Default) => {
         margin: 0.125rem 0rem 0rem 0.125rem;
         width: 15%;
         text-align: center;
+    }
+    .labelInputArea input[type=range]{
+        background-color: transparent;
+        vertical-align: top;
+        width: 10%;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+    .labelInputArea input[type=range]::-webkit-slider-runnable-track{
+        background-color: lightgreen;
+        height: 4px;
+    }
+
+    .labelInputArea input[type=range]::-moz-range-track{
+        background-color: lightgreen;
+        height: 4px;
+    }
+    .labelInputArea input[type=range]::-ms-track{
+        background-color: transparent;
+        border-color: transparent;
+        color: transparent;
+        height: 4px;
+    }
+
+    .labelInputArea input[type=range]::-ms-fill-lower{
+        background-color: lightgreen;
+    }
+
+    .labelInputArea input[type=range]::-ms-fill-upper{
+        background-color: transparent;
+    }
+
+    .labelInputArea input[type=range]::-webkit-slider-thumb{
+        background-color: green;
+        border: 2px solid lightgreen;
+        cursor: pointer;
+        transform: scale(1.5);
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        -webkit-appearance: none;
+        margin-top: -6px;
+    }
+    .labelInputArea input[type=range]::-moz-range-thumb{
+        background-color: green;
+        border: 2px solid lightgreen;
+        cursor: pointer;
+        transform: scale(1.5);
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        -moz-appearance: none;
+    }
+    .labelInputArea input[type=range]::-ms-thumb{
+        background-color: green;
+        border: 2px solid lightgreen;
+        cursor: pointer;
+        transform: scale(1.5);
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        -ms-appearance: none;
     }
     .safe-button{
         position: relative;
