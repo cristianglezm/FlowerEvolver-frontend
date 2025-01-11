@@ -126,7 +126,7 @@ const loadModel = async (modelOptions) => {
               });
           }
             break;
-          case "done":{
+          case "ready":{
             self.postMessage({
                 jobType: "updateBtnTitle",
                 eventName: "ChatBotModelOptions#updateBtnTitle",
