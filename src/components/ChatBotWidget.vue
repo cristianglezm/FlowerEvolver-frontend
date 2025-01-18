@@ -116,11 +116,11 @@
         <span class="close" @click="toggleOptions()">&times;</span>
         <div>
           <SwitchPanel :mode="ChatBotStore.isLocal" :left="'Model Options'" :right="'Remote Options'" @on-change="togglePanel">
-            <template v-slot:left>
-                <ChatBotModelOptions/>
+            <template #left>
+              <ChatBotModelOptions />
             </template>
-            <template v-slot:right>
-                <RemoteOptions />
+            <template #right>
+              <RemoteOptions />
             </template>
           </SwitchPanel>
         </div>
