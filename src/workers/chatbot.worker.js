@@ -1,4 +1,4 @@
-import { chat, ChatBot, streamingChat } from '../stores/ChatBotStore/ChatBot';
+import { chat, rChat, ChatBot, rStreamingChat, streamingChat } from '../stores/ChatBotStore/ChatBot';
 /**
  * @brief Web Worker that manages tasks related to loading a chatbot model, resetting it, and processing chat interactions.
  * 
@@ -13,29 +13,48 @@ import { chat, ChatBot, streamingChat } from '../stores/ChatBotStore/ChatBot';
  * 
  * The worker uses the `ChatBot` class to manage model loading, resetting, and chatting. It also reports progress via `postMessage` to update the UI.
  * 
- * @param {Object} e - The event object containing the message data from the main thread.
  * @param {String} e.data.jobType - The type of job requested by the main thread. Possible values:
  *   - `"loadModel"`: Load the model with new configuration options.
  *   - `"reset"`: Reset the chatbot model and clear its state.
- *   - `"streaming"`: Handle a streaming chat request, process the response, and send progress updates.
+ *   - `"streaming"`: Handle a streaming chat request, process the response and sends the tokens.
+ *   - `"rStreaming"`: Handle server(llamacpp server, OpenAI, ...) streaming chat requests, process the response and sends the tokens.
  *   - `"chat"`: Handle a non-streaming chat request and send the response back.
+ *   - `"rChat"`: Handle server(llamacpp server, OpenAI, ...) non-streaming chat request and send the response back.
  * 
- * @param {Object} e.data.modelOptions - Configuration options for the model (only for `"loadModel"` job type).
- *   - `host`: The host for the model (e.g., `"huggingface"` or `"localhost"`).
- *   - `model`: The model identifier (e.g., `"HuggingFaceTB/SmolLM2-135M-Instruct"`).
- *   - `device`: The device for running the model (e.g., `"CPU"`).
- *   - `dtype`: The data type (e.g., `"q4"`).
+ * @param {Object} e.data.modelOptions - Configuration options for the model (only for the `"loadModel"` job type).
+ *   @property {String} host - The host for the model (e.g., `"huggingface"` or `"localhost"`).
+ *   @property {String} model - The model identifier (e.g., `"HuggingFaceTB/SmolLM2-135M-Instruct"`).
+ *   @property {String} device - The device for running the model (e.g., `"CPU"`).
+ *   @property {String} dtype - The data type for the model (e.g., `"q4"`).
  * 
- * @param {Array} e.data.messages - An array of chat messages, where each message is an object with `role` and `content` properties (only for `"chat"` and `"streaming"` job types).
- *   - `role`: The role of the sender (e.g., `"user"`, `"assistant"`, `"system"`).
- *   - `content`: The content of the message (e.g., the text of the message).
+ * @param {Object} e.data.remoteOptions - Configuration options for the rStreaming and rChat requests:
+ *   @property {String} url - The backend URL for the LLM server. Default: `"http://localhost:8080"`.
+ *   @property {String} api_key - API key for backend access, if required. Default: `"sk-no-key-required"`.
+ *   @property {String} model - The model to be used for generating responses. Default: `"HuggingFaceTB/SmolLM2-135M-Instruct"`.
+ *   @property {Number} max_tokens - Limits the maximum number of tokens generated in a single response. Default: `256`.
+ *   @property {Number} top_k - Considers the top K most probable choices when generating responses. Default: `40`.
+ *   @property {Number} top_p - Considers tokens until their cumulative probability exceeds P. Default: `0.95`.
+ *   @property {Number} min_p - Filters out tokens with probabilities below this threshold. Default: `0.05`.
+ *   @property {Number} temperature - Controls randomness in responses. Default: `0.8`.
  * 
- * @param {Array} e.data.tools - The list of tools to be used with the model, passed during chat processing (only for `"streaming"` and `"chat"` job types).
- * @param {Array} e.data.documents - A list of documents to provide context to the chat (only for `"streaming"` and `"chat"` job types).
- * @param {String} e.data.chat_template - A template for the chat context (only for `"streaming"` and `"chat"` job types).
+ * @param {Array<Object>} e.data.messages - An array of chat messages, where each message is an object with `role` and `content` properties 
+ *                                           (only for `"streaming"`, `"chat"`, `"rChat"` and `"rStreaming"` job types).
+ *   @property {String} role - The role of the sender (e.g., `"user"`, `"assistant"`, `"system"`).
+ *   @property {String} content - The content of the message (e.g., the text of the message).
+ * 
+ * @example
+ * e.data.messages = [
+ *   { role: "user", content: "Hello, how are you?" },
+ *   { role: "assistant", content: "I'm here to help you!" },
+ *   { role: "system", content: "Welcome to the chatbot." }
+ * ];
+ * 
+ * @param {Array} e.data.tools - The list of tools to be used with the model, passed during chat processing (only for `"streaming"`, `"chat"`, `"rChat"` and `"rStreaming"` job types).
+ * @param {Array} e.data.documents - A list of documents to provide context to the chat (only for `"streaming"`, `"chat"`, `"rChat"` and `"rStreaming"` job types).
+ * @param {String} e.data.chat_template - A template for the chat context (only for `"streaming"`, `"chat"`, `"rChat"` and `"rStreaming"` job types).
  *
  * @example
- * // Send a message to the worker to load a new model
+ * // Send a message to the worker to load a model
  * ChatBotWorker.postMessage({
  *   jobType: "loadModel",
  *   modelOptions: {
@@ -148,6 +167,27 @@ self.onmessage = async (e) => {
             await ChatBot.reset();
         }
             break;
+        case "rStreaming":{
+          const messages = e.data.messages;
+          const tools = e.data.tools;
+          const documents = e.data.documents;
+          const chat_template = e.data.chat_template;
+          const remoteOptions = e.data.remoteOptions;
+          let response = await rStreamingChat(messages, (text) => {
+              self.postMessage({
+                jobType:"streaming",
+                response: text
+              });
+          }, remoteOptions, {tools, documents, chat_template});
+          self.postMessage({
+              jobType: "response",
+              response: response
+          });
+          self.postMessage({
+            jobType:"done"
+          });
+        }
+            break;
         case "streaming":{
           const messages = e.data.messages;
           const tools = e.data.tools;
@@ -159,6 +199,22 @@ self.onmessage = async (e) => {
               response: text
             });
           }, {tools, documents, chat_template});
+          self.postMessage({
+              jobType: "response",
+              response: response
+          });
+          self.postMessage({
+            jobType:"done"
+          });
+        }
+            break;
+        case "rChat":{
+          const messages = e.data.messages;
+          const tools = e.data.tools;
+          const documents = e.data.documents;
+          const remoteOptions = e.data.remoteOptions;
+          const chat_template = e.data.chat_template;
+          let response = await rChat(messages, remoteOptions, {tools, documents, chat_template});
           self.postMessage({
               jobType: "response",
               response: response
