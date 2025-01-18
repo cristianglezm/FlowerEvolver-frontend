@@ -1,49 +1,49 @@
 <template>
   <div class="remote-options-container settings-box">
     <span>
-        <h1 style="text-align: center;">Remote Options</h1>
+      <h1 style="text-align: center;">Remote Options</h1>
     </span>
     <div class="labelInputArea">
       <ToolTip :info="'the backend url for the llm server'" />
       <label for="url">URL: </label>
-      <input id="url" v-model="data.remoteOptions.url" type="text" @change="saveRemoteOptions" />
+      <input id="url" v-model="data.remoteOptions.url" type="text" @change="saveRemoteOptions">
     </div>
     <div class="labelInputArea">
       <ToolTip :info="'api key to access the backend if needed'" />
       <label for="apiKey">API Key: </label>
-      <input id="apiKey" v-model="data.remoteOptions.api_key" :placeholder="data.remoteOptions.api_key" type="text" @change="saveRemoteOptions" />
+      <input id="apiKey" v-model="data.remoteOptions.api_key" :placeholder="data.remoteOptions.api_key" type="text" @change="saveRemoteOptions">
     </div>
     <div class="labelInputArea">
       <ToolTip :info="'model to use'" />
       <label for="model">Model: </label>
-      <input id="model" v-model="data.remoteOptions.model" type="text" @change="saveRemoteOptions" />
+      <input id="model" v-model="data.remoteOptions.model" type="text" @change="saveRemoteOptions">
     </div>
     <details style="margin: 10px;">
       <summary class="desplegable-btn">Advanced Options</summary>
       <div class="labelInputArea">
         <ToolTip :info="'Limits the maximum number of tokens generated in one response.'" />
         <label for="max-tokens">max tokens: </label>
-        <input id="max-tokens" v-model="data.remoteOptions.max_tokens" type="number" @change="saveRemoteOptions" />
+        <input id="max-tokens" v-model="data.remoteOptions.max_tokens" type="number" @change="saveRemoteOptions">
       </div>
       <div class="labelInputArea">
         <ToolTip :info="'Controls randomness. Higher values (e.g., 1.0) are more random; lower values (e.g., 0.2) are more deterministic.'" />
         <label for="temperature">temperature: </label>
-        <input id="temperature" v-model="data.remoteOptions.temperature" type="number" @change="saveRemoteOptions" />
+        <input id="temperature" v-model="data.remoteOptions.temperature" type="number" @change="saveRemoteOptions">
       </div>
       <div class="labelInputArea">
         <ToolTip :info="'Selects the next word from the top K most probable choices'" />
         <label for="top_k"> top k: </label>
-        <input id="top_k" v-model="data.remoteOptions.top_k" type="number" @change="saveRemoteOptions" />
+        <input id="top_k" v-model="data.remoteOptions.top_k" type="number" @change="saveRemoteOptions">
       </div>
       <div class="labelInputArea">
         <ToolTip :info="'Filters out tokens with probabilities below this threshold'" />
         <label for="min_p">min p: </label>
-        <input id="min_p" v-model="data.remoteOptions.min_p" type="number" @change="saveRemoteOptions" />
+        <input id="min_p" v-model="data.remoteOptions.min_p" type="number" @change="saveRemoteOptions">
       </div>
       <div class="labelInputArea">
         <ToolTip :info="'Considers tokens until their cumulative probability exceeds P.'" />
         <label for="top_p">top p: </label>
-        <input id="top_p" v-model="data.remoteOptions.top_p" type="number" @change="saveRemoteOptions" />
+        <input id="top_p" v-model="data.remoteOptions.top_p" type="number" @change="saveRemoteOptions">
       </div>
     </details>
   </div>

@@ -13,14 +13,14 @@
         {{ props.right }}
       </div>
     </div>
-      <transition name="fade" mode="out-in">
-        <div v-if="props.mode">
-          <slot name="left"></slot>
-        </div>
-        <div v-else>
-          <slot name="right"></slot>
-        </div>
-      </transition>
+    <transition name="fade" mode="out-in">
+      <div v-if="props.mode">
+        <slot name="left" />
+      </div>
+      <div v-else>
+        <slot name="right" />
+      </div>
+    </transition>
   </div>
 </template>
 
