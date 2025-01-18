@@ -13,7 +13,7 @@ export const execCommand = (text) => {
         };
     };
     if(text === undefined || text === null){
-        textForUser.push("text was not valid.");
+        textForUser.push("response was not valid.");
         return makeResult(textForUser, commandsToConfirm);
     }
     let regex = /<tool_call>(.*?)<\/tool_call>/;
@@ -26,7 +26,9 @@ export const execCommand = (text) => {
     try{
         command = JSON.parse(matches[1]);
         let cleanText = text.replace(regex, "").trim();
-        textForUser.push(cleanText);
+        if(cleanText){
+            textForUser.push(cleanText);
+        }
     }catch(_){
         textForUser.push("I am sorry but I could not parse the command.");
         return makeResult(textForUser, commandsToConfirm);
@@ -51,12 +53,12 @@ export const execCommand = (text) => {
                 let CaptionerStore = useCaptionerStore();
                 let FlowerStore = useFlowerStore();
                 let flowerID = command[i].parameters.id;
-                FlowerStore.db.flowers.where("id").equals(flowerID).toArray()
-                    .then((flowers) => {
+                FlowerStore.db.flowers.get(flowerID)
+                    .then((flower) => {
                         if(CaptionerStore.isModelLoaded){
                             CaptionerStore.requestDescription({
-                                id: flowers[0].id,
-                                image: flowers[0].image,
+                                id: flower.id,
+                                image: flower.image,
                                 isLocal: true
                             });
                             textForUser.push("describe command executed");
@@ -135,7 +137,7 @@ export const execCommand = (text) => {
                 let fail = "mutate command failed.";
                 let success = "mutate command executed.";
                 if(original){
-                    FlowerStore.db.flowers.where("original").equals(original).toArray()
+                    FlowerStore.db.flowers.get(original)
                     .then((flower) => {
                         FlowerStore.makeLocalMutation(flower);
                     }).catch((_) => {
