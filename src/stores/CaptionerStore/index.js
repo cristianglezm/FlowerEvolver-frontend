@@ -4,13 +4,14 @@ import { useFlowerStore } from '../FlowerStore/index';
 import WorkerManager from '../WorkerManager';
 import captioner from '../../workers/captioner.worker?worker';
 import { toRaw } from 'vue';
+import { useErrorStore } from '../ErrorStore';
 
 let channel = new mitt();
 const wm = new WorkerManager(channel);
 wm.addWorker('captioner', captioner());
 wm.onError('captioner', (e) => {
-    const FlowerStore = useFlowerStore();
-    FlowerStore.errors.push({message: e });
+    const ErrorStore = useErrorStore();
+    ErrorStore.push(e);
 });
 wm.onResponse('captioner', (data) => {
     const FlowerStore = useFlowerStore();
@@ -20,6 +21,11 @@ wm.onResponse('captioner', (data) => {
         case "updateBtnTitle":{
             CaptionerStore.isModelLoaded = true;
             channel.emit('App#ToEmitter', data);
+        }
+            break;
+        case "error":{
+            const ErrorStore = useErrorStore();
+            ErrorStore.push(data.error);
         }
             break;
         case "updateProgressBar":{
@@ -67,10 +73,10 @@ export const useCaptionerStore = defineStore('CaptionerStore', {
         getRemoteDescription: (state) => (id) => {
             return state.remoteDescriptions.get(id);
         },
-        hasModelLoaded: (state) => () => {
+        hasModelLoaded: (state) => {
             return state.isModelLoaded;
         },
-        hasModelOptionsChanged: (state) => () => {
+        hasModelOptionsChanged: (state) => {
             if(state.oldModelOptions === null) return true;
             return ((state.oldModelOptions.host !== state.modelOptions.host) ||
                     (state.oldModelOptions.model !== state.modelOptions.model) ||
@@ -90,7 +96,8 @@ export const useCaptionerStore = defineStore('CaptionerStore', {
                 });
             })
             .catch((e) => {
-                FlowerStore.errors.push({ message: e });
+                const ErrorStore = useErrorStore();
+                ErrorStore.push(e);
             });
         },
         async loadAndConcatLocalDescriptions(offset, limit){
@@ -104,7 +111,8 @@ export const useCaptionerStore = defineStore('CaptionerStore', {
                 this.localDescriptions = new Map([this.localDescriptions, newMap]);
             })
             .catch((e) => {
-                FlowerStore.errors.push({ message: e });
+                const ErrorStore = useErrorStore();
+                ErrorStore.push({ message: e });
             });
         },
         async requestDescription(Flower){
