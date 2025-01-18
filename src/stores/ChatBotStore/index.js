@@ -1,16 +1,16 @@
 import mitt from 'mitt';
 import { defineStore } from 'pinia';
-import { useFlowerStore } from '../FlowerStore';
 import WorkerManager from '../WorkerManager';
 import chatbot from '../../workers/chatbot.worker?worker';
 import { toRaw } from 'vue';
+import { useErrorStore } from '../ErrorStore';
 
 let channel = new mitt();
 const wm = new WorkerManager(channel);
 wm.addWorker('chatbot', chatbot());
 wm.onError('chatbot', (e) => {
-    const FlowerStore = useFlowerStore();
-    FlowerStore.errors.push({message: e });
+    const ErrorStore = useErrorStore();
+    ErrorStore.push(e);
 });
 wm.onResponse('chatbot', (data) => {
     const chatbotStore = useChatBotStore();
@@ -19,6 +19,13 @@ wm.onResponse('chatbot', (data) => {
         case "updateBtnTitle":{
             chatbotStore.isModelLoaded = true;
             channel.emit('ChatBotWidget#ToEmitter', data);
+        }
+            break;
+        case "error":{
+            const ErrorStore = useErrorStore();
+            ErrorStore.push(data.error);
+            /// pending message done
+            channel.emit('ChatBotWidget#done');
         }
             break;
         case "updateProgressBar":{
@@ -87,13 +94,13 @@ export const useChatBotStore = defineStore('ChatBotStore', {
         executor: (content) => { return {textForUser: [content], commandsToConfirm: []}; }
     }),
     getters: {
-        getChatHistory: (state) => () => {
+        getChatHistory: (state) => {
             return state.chatHistory;
         },
-        hasModelLoaded: (state) => () => {
+        hasModelLoaded: (state) => {
             return state.isModelLoaded;
         },
-        hasModelOptionsChanged: (state) => () => {
+        hasModelOptionsChanged: (state) => {
             if(state.oldModelOptions === null) return true;
             return ((state.oldModelOptions.host !== state.modelOptions.host) ||
                     (state.oldModelOptions.model !== state.modelOptions.model) ||
