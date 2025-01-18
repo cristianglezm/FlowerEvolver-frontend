@@ -1,5 +1,7 @@
 import { pipeline, env, TextStreamer } from '@huggingface/transformers';
 import { ModelCache, isGPUAvailable } from '../AIUtils';
+import { HfInference } from '@huggingface/inference';
+import { Template } from "@huggingface/jinja";
 
 export const CACHE_KEY = 'fe-chatbot-cache';
 export { isGPUAvailable };
@@ -77,43 +79,124 @@ export class ChatBot{
 	}
 };
 /**
- * @brief Formats the raw output of the chatbot into structured JSON.
- * @param {String} rawOutput - The raw text output from the chatbot.
+ * @brief Formats the raw output of the chatbot into structured JSON for both standard and server-specific formats.
+ * @param {String} rawInput - The raw text output from the chatbot.
  * @returns {Array<Object>} - A formatted output array containing role-based content.
  */
-const formatOutput = (rawOutput) => {
-    const lines = rawOutput.split("\n");
+const formatToChatML = (rawInput) => {
+    const lines = rawInput.split("\n");
     const formattedOutput = [];
     let currentRole = null;
     let currentContent = '';
+    const isServerFormat = rawInput.includes("<|im_start|>");
+
+    const extractRole = (line) => {
+        if(isServerFormat){
+            return line.replace("<|im_start|>", "").trim();
+        }
+        return line.trim();
+    };
+
+    const isRoleLine = (line) => {
+        if(isServerFormat){
+            return line.startsWith("<|im_start|>");
+        }
+        return line.startsWith("system") || line.startsWith("user") || line.startsWith("assistant");
+    };
+
     lines.forEach(line => {
-        if(line.startsWith("system") || line.startsWith("user") || line.startsWith("assistant")){
+        if(isRoleLine(line)){
             if(currentContent){
                 formattedOutput.push({
                     role: currentRole.trim(),
-                    content: currentContent.trim(),
+                    content: currentContent.replace("<|im_end|>", "").trim(),
                 });
             }
-            currentRole = line.trim();
+            currentRole = extractRole(line);
             currentContent = '';
         }else{
             currentContent += ' ' + line.trim();
         }
     });
-    if(currentContent){
-      formattedOutput.push({ role: currentRole.trim() || 'user', content: currentContent.trim() });
+    if (currentContent) {
+        formattedOutput.push({
+            role: currentRole.trim() || 'user',
+            content: currentContent.replace("<|im_end|>", "").trim(),
+        });
     }
-    let finalOutput = new Array();
-    finalOutput.push({
-        generated_text: formattedOutput
-    });
-    return finalOutput;
+    return formattedOutput;
 };
 
 /**
+ * @brief Injects the system message with tools and documents into chat history and formats them with chatML.
+ * @param {Array<Object>} messages - The original chat history to process.
+ * @param {Object} tools - The tools to include in the system message.
+ * @param {Object} documents - The documents to include in the system message.
+ * @param {String} chat_template - The chatML template string for formatting.
+ * @returns {Array<Object>|String} - The processed chat history or rendered chatML template.
+ */
+const injectSystemMessageWithToolsAndDocuments  = (messages, chat_template, tools, documents) => {
+    let conversations = messages;
+    if (tools && documents && chat_template) {
+        const template = new Template(chat_template);
+        conversations = formatToChatML(template.render({
+            messages: messages,
+            tools: tools,
+            documents: documents,
+            add_generation_prompt: true
+        }));
+    }
+    return conversations;
+};
+/**
+ * @brief Handles server side streaming chat requests with optional tools, documents, and templates.
+ * @param {Array<Object>} messages 
+ * @param {Object} remoteOptions - options for remote server.
+ * @param {String} remoteOptions.url - url for backend
+ * @param {String} remoteOptions.api_key - api key for backend access
+ * @param {Number} remoteOptions.max_tokens - max tokens to generate
+ * @param {Number} remoteOptions.temperature - temperature higher (1.0) for more randomness and lower(0.1) for less
+ * @param {Number} remoteOptions.min_p - Filters out tokens with probabilities below this threshold. Range: 0.0 to 1.0.
+ * @param {Number} remoteOptions.top_p - Uses nucleus sampling to consider tokens until cumulative probability exceeds this value. Range: 0.0 to 1.0.
+ * @param {Number} remoteOptions.top_k - Limits token selection to the top K most probable tokens.
+ * @param {String} remoteOptions.model - model to use if supported.
+ * @param {Object} options - Additional options.
+ * @param {Array<Object>} [options.tools=null] - JSON schema of tools for the model.
+ * @param {Array<String>} [options.documents=null] - Documents to reference during chat. (Array of documents titles)
+ * @param {String} [options.chat_template=null] - Template string to format the chat. (@huggingface/jinja)
+ * @returns {String} - response of llm
+ */
+export const rStreamingChat = async (messages, callback, 
+                                    { url= "http://localhost:8080", api_key = "sk-no-key-required", 
+                                    max_tokens = 256, temperature = 0.4, min_p = 0.05, top_p=0.95, top_k = 1, 
+                                    model="HuggingFaceTB/SmolLM2-135M-Instruct" }, 
+                                    {tools = null, documents = null, chat_template = null }) => {
+    const hf = new HfInference(api_key).endpoint(url);
+    let out = "";
+    let conversations = injectSystemMessageWithToolsAndDocuments(messages, chat_template, tools, documents);
+    for await(const chunk of hf.chatCompletionStream(
+        {
+            model: model,
+            messages: conversations,
+            max_tokens: max_tokens,
+            temperature: temperature,
+            min_p: min_p,
+            top_p: top_p,
+            top_k: top_k
+        })){
+            if(chunk.choices && chunk.choices.length > 0){
+                if(chunk.choices[0].delta.content){
+                    out += chunk.choices[0].delta.content;
+                    callback(chunk.choices[0].delta.content);
+                }
+            }
+    }
+    return out;
+};
+/**
  * @brief Handles streaming chat requests with optional tools, documents, and templates.
  * @param {Array<Object>} messages - Chat history or input messages. (with role and content)
- * @param {Function} callback - Callback to process streamed chunks of text.
+ * @param {Function} callback - Callback to process streamed chunks of text. (text) => { console.log(text) }
  * @param {Object} options - Additional options.
  * @param {Array<Object>} [options.tools=null] - JSON schema of tools for the model.
  * @param {Array<String>} [options.documents=null] - Documents to reference during chat. (titles of documents)
@@ -126,29 +209,70 @@ export const streamingChat = async (messages, callback, {tools = null, documents
         skip_prompt: true,
         callback_function: callback
     });
+    let conversations = messages;
     if(tools && documents && chat_template){
-        const conversations = await chatbot.tokenizer.apply_chat_template(
+        conversations = await chatbot.tokenizer.apply_chat_template(
             messages,
             {
                 chat_template: chat_template,
                 tokenize: false,
-                add_generation_prompt: true,
                 tools: tools,
-                documents: documents
+                documents: documents,
+                add_generation_prompt: true
             });
         const output = await chatbot(conversations, {
             max_new_tokens: 256,
             do_sample: false,
             streamer
         });
-        return formatOutput(output[0].generated_text);
+        let finalOutput = new Array();
+        finalOutput.push({
+            generated_text: formatToChatML(output[0].generated_text)
+        });
+        return finalOutput;
     }
-    const output = await chatbot(messages, {
+    const output = await chatbot(conversations, {
         max_new_tokens: 256,
         do_sample: false,
         streamer
     });
     return output;
+};
+
+/**
+ * @brief Handles server side chat requests with optional tools, documents, and templates.
+ * @param {Array<Object>} messages 
+ * @param {Object} remoteOptions - options for remote server.
+ * @param {String} remoteOptions.url - url for backend
+ * @param {String} remoteOptions.api_key - api key for backend access
+ * @param {Number} remoteOptions.max_tokens - max tokens to generate
+ * @param {Number} remoteOptions.temperature - temperature higher (1.0) for more randomness and lower(0.1) for less
+ * @param {Number} remoteOptions.min_p - Filters out tokens with probabilities below this threshold. Range: 0.0 to 1.0.
+ * @param {Number} remoteOptions.top_p - Uses nucleus sampling to consider tokens until cumulative probability exceeds this value. Range: 0.0 to 1.0.
+ * @param {Number} remoteOptions.top_k - Limits token selection to the top K most probable tokens.
+ * @param {String} remoteOptions.model - model to use if supported.
+ * @param {Object} options - Additional options.
+ * @param {Array<Object>} [options.tools=null] - JSON schema of tools for the model.
+ * @param {Array<String>} [options.documents=null] - Documents to reference during chat. (Array of documents titles)
+ * @param {String} [options.chat_template=null] - Template string to format the chat. (@huggingface/jinja)
+ * @returns {String} - response of llm
+ */
+export const rChat = async (messages, { url= "http://localhost:8080", api_key = "sk-no-key-required", 
+                            max_tokens = 256, temperature = 0.4, min_p = 0.05, top_p=0.95, top_k = 1, 
+                            model="HuggingFaceTB/SmolLM2-135M-Instruct" }, 
+                            {tools = null, documents = null, chat_template = null }) => {
+        const hf = new HfInference(api_key).endpoint(url);
+        let conversations = injectSystemMessageWithToolsAndDocuments(messages, chat_template, tools, documents);
+        let message = (await hf.chatCompletion({
+            model: model,
+            messages: conversations,
+            max_tokens: max_tokens,
+            temperature: temperature,
+            min_p: min_p,
+            top_p: top_p,
+            top_k: top_k
+        })).choices[0].message;
+        return message.content;
 };
 /**
  * @brief Handles regular (non-streaming) chat requests with optional tools, documents, and templates.
@@ -175,7 +299,11 @@ export const chat = async (messages, {tools = null, documents = null, chat_templ
             max_new_tokens: 256,
             do_sample: false
         });
-        return formatOutput(output[0].generated_text);
+        let finalOutput = new Array();
+        finalOutput.push({
+            generated_text: formatToChatML(output[0].generated_text)
+        });
+        return finalOutput;
     }
     const output = await chatbot(messages, {
         max_new_tokens: 256,
@@ -184,4 +312,4 @@ export const chat = async (messages, {tools = null, documents = null, chat_templ
     return output;
 };
 
-export default { CACHE_KEY, ChatBot, chat, streamingChat, isGPUAvailable };
+export default { CACHE_KEY, ChatBot, chat, rChat, streamingChat, rStreamingChat, isGPUAvailable };
