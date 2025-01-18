@@ -21,6 +21,13 @@ wm.onResponse('chatbot', (data) => {
             channel.emit('ChatBotWidget#ToEmitter', data);
         }
             break;
+        case "error":{
+            const FlowerStore = useFlowerStore();
+            FlowerStore.errors.push({message: data.error });
+            /// pending message done
+            channel.emit('ChatBotWidget#done');
+        }
+            break;
         case "updateProgressBar":{
             channel.emit('ChatBotWidget#ToEmitter', data);
         }
