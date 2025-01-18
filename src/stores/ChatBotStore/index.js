@@ -26,8 +26,14 @@ wm.onResponse('chatbot', (data) => {
         }
             break;
         case "response":{
-            let last = data.response[0].generated_text.length
-            let message = data.response[0].generated_text[last - 1];
+            let message = {};
+            if(chatbotStore.isLocal){
+                let last = data.response[0].generated_text.length;
+                message = data.response[0].generated_text[last - 1];
+            }else{
+                message.role = "assistant";
+                message.content = data.response;
+            }
             let result = chatbotStore.executor(message.content);
             for(const toConfirm of result.commandsToConfirm.values()){
                 channel.emit('ChatBotWidget#ConfirmModal', toConfirm);
@@ -51,12 +57,15 @@ wm.onResponse('chatbot', (data) => {
 });
 
 export const STORAGE_KEY_CHATBOT_MODEL_OPTIONS = "FlowerEvolverChatBotModelOptions";
+export const STORAGE_KEY_CHATBOT_REMOTE_OPTIONS = "FlowerEvolverChatBotRemoteOptions";
+export const STORAGE_KEY_CHATBOT_IS_LOCAL = "FlowerEvolverChatBotIsLocal";
 
 export const useChatBotStore = defineStore('ChatBotStore', {
     state: () => ({
         wm,
         channel,
         isModelLoaded: false,
+        isLocal: JSON.parse(localStorage.getItem(STORAGE_KEY_CHATBOT_IS_LOCAL) || JSON.stringify(true)),
         modelOptions: JSON.parse(localStorage.getItem(STORAGE_KEY_CHATBOT_MODEL_OPTIONS) || JSON.stringify({
             host: "huggingface",
             model: "HuggingFaceTB/SmolLM2-135M-Instruct",
@@ -64,6 +73,16 @@ export const useChatBotStore = defineStore('ChatBotStore', {
             dtype: "q4"
         })),
         oldModelOptions: null,
+        remoteOptions: JSON.parse(localStorage.getItem(STORAGE_KEY_CHATBOT_REMOTE_OPTIONS) || JSON.stringify({
+            url: "http://localhost:8080",
+            api_key: "sk-no-key-required",
+            model: "HuggingFaceTB/SmolLM2-135M-Instruct",
+            max_tokens: 256,
+            top_k: 40,
+            top_p: 0.95,
+            min_p: 0.05,
+            temperature: 0.8
+        })),
         chatHistory: [],
         executor: (content) => { return {textForUser: [content], commandsToConfirm: []}; }
     }),
@@ -85,7 +104,7 @@ export const useChatBotStore = defineStore('ChatBotStore', {
     actions: {
         async addMessage(role, message){
             this.chatHistory.push({
-                "id": Date.now(),
+                "id": Date.now() + 1,
                 "role": role,
                 "content": message
             });
@@ -94,47 +113,105 @@ export const useChatBotStore = defineStore('ChatBotStore', {
             this.chatHistory = [];
         },
         async requestChat({chat_template = null, tools = null, documents = null}){
-            this.wm.sendRequest('chatbot', {
-                jobType: "chat",
-                messages: structuredClone(toRaw(this.chatHistory)),
-                chat_template,
-                tools,
-                documents
-            });
+            if(this.isLocal){
+                this.wm.sendRequest('chatbot', {
+                    jobType: "chat",
+                    messages: structuredClone(toRaw(this.chatHistory)),
+                    chat_template,
+                    tools,
+                    documents
+                });
+            }else{
+                this.wm.sendRequest('chatbot', {
+                    jobType: "rChat",
+                    messages: structuredClone(toRaw(this.chatHistory)),
+                    remoteOptions: structuredClone(toRaw(this.remoteOptions)),
+                    chat_template,
+                    tools,
+                    documents
+                });
+            }
         },
         async requestStreamingChat({chat_template = null, tools = null, documents = null}){
-            this.wm.sendRequest('chatbot', {
-                jobType: "streaming",
-                messages: structuredClone(toRaw(this.chatHistory)),
-                chat_template,
-                tools,
-                documents
-            });
+            if(this.isLocal){
+                this.wm.sendRequest('chatbot', {
+                    jobType: "streaming",
+                    messages: structuredClone(toRaw(this.chatHistory)),
+                    chat_template,
+                    tools,
+                    documents
+                });
+            }else{
+                this.wm.sendRequest('chatbot', {
+                    jobType: "rStreaming",
+                    messages: structuredClone(toRaw(this.chatHistory)),
+                    remoteOptions: structuredClone(toRaw(this.remoteOptions)),
+                    chat_template,
+                    tools,
+                    documents
+                });
+            }
         },
         async requestRegenerate(id, {chat_template = null, tools = null, documents = null}){
-            this.chatHistory = this.chatHistory.filter(conv => conv.id  < id);
-            this.wm.sendRequest('chatbot', {
-                jobType: "streaming",
-                messages: structuredClone(toRaw(this.chatHistory)),
-                chat_template,
-                tools,
-                documents
-            });
+            let filteredChat = toRaw(this.chatHistory).filter(conv => conv.id  < id);
+            this.chatHistory = filteredChat
+            if(this.isLocal){
+                this.wm.sendRequest('chatbot', {
+                    jobType: "streaming",
+                    messages: structuredClone(filteredChat),
+                    chat_template,
+                    tools,
+                    documents
+                });
+            }else{
+                this.wm.sendRequest('chatbot', {
+                    jobType: "rStreaming",
+                    messages: structuredClone(filteredChat),
+                    remoteOptions: structuredClone(toRaw(this.remoteOptions)),
+                    chat_template,
+                    tools,
+                    documents
+                });
+            }
         },
         async requestModelLoad(){
-            this.oldModelOptions = structuredClone(toRaw(this.modelOptions));
-            this.wm.sendRequest('chatbot', {
-                jobType: "loadModel",
-                modelOptions: structuredClone(toRaw(this.modelOptions))
-            });
+            if(this.isLocal){
+                this.oldModelOptions = structuredClone(toRaw(this.modelOptions));
+                this.wm.sendRequest('chatbot', {
+                    jobType: "loadModel",
+                    modelOptions: structuredClone(toRaw(this.modelOptions))
+                });
+            }else{
+                fetch(this.remoteOptions.url + "/health")
+                .then(response => {
+                    if(!response.ok){
+                        throw Error("health endpoint not available.");
+                    }
+                    response.json();
+                })
+                .then((server) => {
+                    this.isModelLoaded = server.status === "ok";
+                }) // it doesn't support /health, assume is ok (openAI, hf, etc)
+                .catch((_) => this.isModelLoaded = true)
+            }
         },
         async requestReset(){
+            if(!this.isLocal){
+                return;
+            }
+            this.isModelLoaded = false;
             this.wm.sendRequest('chatbot', {
                 jobType: "reset",
             });
         },
         async saveModelOptions(){
             localStorage.setItem(STORAGE_KEY_CHATBOT_MODEL_OPTIONS, JSON.stringify(this.modelOptions));
+        },
+        async saveRemoteOptions(){
+            localStorage.setItem(STORAGE_KEY_CHATBOT_REMOTE_OPTIONS, JSON.stringify(this.remoteOptions));
+        },
+        async saveIsLocal(){
+            localStorage.setItem(STORAGE_KEY_CHATBOT_IS_LOCAL, this.isLocal);
         }
     }
 });
