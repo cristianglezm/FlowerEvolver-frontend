@@ -75,7 +75,7 @@ import { chat, rChat, ChatBot, rStreamingChat, streamingChat } from '../stores/C
  *   documents: null,
  *   chat_template: null
  * });
- * // the model will respond with a jobType of "streaming" for each token and "response" for a completed message.
+ * // the worker will respond with a jobType of "streaming" for each token and "response" for a completed message.
  *          self.postMessage({
  *            jobType:"streaming",
  *            response: text
@@ -84,6 +84,11 @@ import { chat, rChat, ChatBot, rStreamingChat, streamingChat } from '../stores/C
  *          self.postMessage({
  *            jobType:"response",
  *            response: text
+ *          });
+ * // in case of error it will respond with this
+ *          self.postMessage({
+ *            jobType:"error",
+ *            error: error
  *          });
  */
 
@@ -156,87 +161,141 @@ const loadModel = async (modelOptions) => {
         }
     });
 }
+const rStreaming = async (e) => {
+  const messages = e.data.messages;
+  const tools = e.data.tools;
+  const documents = e.data.documents;
+  const chat_template = e.data.chat_template;
+  const remoteOptions = e.data.remoteOptions;
+  let response = await rStreamingChat(messages, (text) => {
+      self.postMessage({
+        jobType:"streaming",
+        response: text
+      });
+  }, remoteOptions, {tools, documents, chat_template});
+  self.postMessage({
+      jobType: "response",
+      response: response
+  });
+  self.postMessage({
+    jobType:"done"
+  });
+};
+const streaming = async (e) => {
+  const messages = e.data.messages;
+  const tools = e.data.tools;
+  const documents = e.data.documents;
+  const chat_template = e.data.chat_template;
+  let response = await streamingChat(messages, (text) => {
+    self.postMessage({
+      jobType:"streaming",
+      response: text
+    });
+  }, {tools, documents, chat_template});
+  self.postMessage({
+      jobType: "response",
+      response: response
+  });
+  self.postMessage({
+    jobType:"done"
+  });
+};
+const _rChat = async (e) => {
+  const messages = e.data.messages;
+  const tools = e.data.tools;
+  const documents = e.data.documents;
+  const remoteOptions = e.data.remoteOptions;
+  const chat_template = e.data.chat_template;
+  let response = await rChat(messages, remoteOptions, {tools, documents, chat_template});
+  self.postMessage({
+      jobType: "response",
+      response: response
+  });
+  self.postMessage({
+    jobType:"done"
+  });
+};
+const _chat = async (e) => {
+  const messages = e.data.messages;
+  const tools = e.data.tools;
+  const documents = e.data.documents;
+  const chat_template = e.data.chat_template;
+  let response = await chat(messages, {tools, documents, chat_template});
+  self.postMessage({
+      jobType: "response",
+      response: response
+  });
+  self.postMessage({
+    jobType:"done"
+  });
+};
 self.onmessage = async (e) => {
     const jobType = e.data.jobType;
     switch(jobType){
         case "loadModel":{
+          try{
             loadModel(e.data.modelOptions);
+          }catch(e){
+            self.postMessage({
+              jobType: "error",
+              error: e
+            });
+          }
         }
             break;
         case "reset":{
-            await ChatBot.reset();
+            try{
+              await ChatBot.reset();
+            }catch(e){
+              self.postMessage({
+                jobType: "error",
+                error: e
+              });
+            }
         }
             break;
         case "rStreaming":{
-          const messages = e.data.messages;
-          const tools = e.data.tools;
-          const documents = e.data.documents;
-          const chat_template = e.data.chat_template;
-          const remoteOptions = e.data.remoteOptions;
-          let response = await rStreamingChat(messages, (text) => {
+            try{
+              await rStreaming(e);
+            }catch(e){
               self.postMessage({
-                jobType:"streaming",
-                response: text
+                jobType: "error",
+                error: e
               });
-          }, remoteOptions, {tools, documents, chat_template});
-          self.postMessage({
-              jobType: "response",
-              response: response
-          });
-          self.postMessage({
-            jobType:"done"
-          });
+            }
         }
             break;
         case "streaming":{
-          const messages = e.data.messages;
-          const tools = e.data.tools;
-          const documents = e.data.documents;
-          const chat_template = e.data.chat_template;
-          let response = await streamingChat(messages, (text) => {
-            self.postMessage({
-              jobType:"streaming",
-              response: text
-            });
-          }, {tools, documents, chat_template});
-          self.postMessage({
-              jobType: "response",
-              response: response
-          });
-          self.postMessage({
-            jobType:"done"
-          });
+            try{
+              await streaming(e);
+            }catch(e){
+              self.postMessage({
+                jobType: "error",
+                error: e
+              });
+            }
         }
             break;
         case "rChat":{
-          const messages = e.data.messages;
-          const tools = e.data.tools;
-          const documents = e.data.documents;
-          const remoteOptions = e.data.remoteOptions;
-          const chat_template = e.data.chat_template;
-          let response = await rChat(messages, remoteOptions, {tools, documents, chat_template});
-          self.postMessage({
-              jobType: "response",
-              response: response
-          });
-          self.postMessage({
-            jobType:"done"
-          });
+            try{
+              await _rChat(e);
+            }catch(e){
+              self.postMessage({
+                jobType: "error",
+                error: e
+              });
+            }
         }
             break;
         case "chat":{
-            const messages = e.data.messages;
-            const tools = e.data.tools;
-            const documents = e.data.documents;
-            const chat_template = e.data.chat_template;
-            let response = await chat(messages, {tools, documents, chat_template});
+          try{
+            await _chat(e);
+          }catch(e){
             self.postMessage({
-                jobType: "response",
-                response: response
+              jobType: "error",
+              error: e
             });
-            self.postMessage({
-              jobType:"done"
-            });
+          }
         }
             break;
     }
