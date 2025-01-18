@@ -32,7 +32,7 @@
               @click="loadChatBot()"
             >
               <circle
-                :class="{'status-icon-online': isChatBotOnline(), 'status-icon-offline': !isChatBotOnline()}"
+                :class="{'status-icon-online': isChatBotOnline, 'status-icon-offline': !isChatBotOnline}"
                 cx="50" cy="50" r="50"
               />
             </svg>
@@ -115,7 +115,14 @@
       <dialog id="ChatBot-dialog-options" v-toggle-dialog="data.openOptions" class="chatbot-Options">
         <span class="close" @click="toggleOptions()">&times;</span>
         <div>
-          <ChatBotModelOptions />
+          <SwitchPanel :mode="ChatBotStore.isLocal" :left="'Model Options'" :right="'Remote Options'" @on-change="togglePanel">
+            <template v-slot:left>
+                <ChatBotModelOptions/>
+            </template>
+            <template v-slot:right>
+                <RemoteOptions />
+            </template>
+          </SwitchPanel>
         </div>
       </dialog>
     </div>
@@ -185,7 +192,9 @@ import { reactive, ref, computed, toRaw, onMounted, onUnmounted, nextTick } from
 import { useChatBotStore } from '../stores/ChatBotStore';
 import { useFlowerStore } from '../stores/FlowerStore';
 import { useDraggable } from '../composables/useDraggable';
+import SwitchPanel from './SwitchPanel.vue';
 import ChatBotModelOptions from './ChatBotModelOptions.vue';
+import RemoteOptions from './RemoteOptions.vue';
 import MultiProgressNodal from './MultiProgressModal.vue';
 import ConfirmModal from './ConfirmModal.vue';
 
@@ -276,12 +285,32 @@ const data = reactive({
 const chatHistory = computed(() => {
     return ChatBotStore.getChatHistory();
 });
-const isChatBotOnline = () => {
-    return ChatBotStore.hasModelLoaded();
+const togglePanel = () => {
+    let wasLocal = ChatBotStore.isLocal;
+    ChatBotStore.isLocal = !ChatBotStore.isLocal;
+    ChatBotStore.saveIsLocal();
+    if(wasLocal){
+        if(ChatBotStore.hasModelLoaded()){
+            // reset local model when user changes to remote
+            ChatBotStore.requestReset();
+        }
+    }else{
+        if(ChatBotStore.hasModelLoaded()){
+            // reload local model when user changes to local
+            props.emitter.emit("ChatBotWidget#loadChatBotModel");
+        }
+    }
 };
+const isChatBotOnline = computed(() => {
+    return ChatBotStore.hasModelLoaded();
+});
 const loadChatBot = () => {
-    if(!ChatBotStore.hasModelLoaded()){
-        props.emitter.emit("ChatBotWidget#loadChatBotModel");
+    if(ChatBotStore.isLocal){
+        if(!ChatBotStore.hasModelLoaded()){
+            props.emitter.emit("ChatBotWidget#loadChatBotModel");
+        }
+    }else{
+        ChatBotStore.requestModelLoad();
     }
 };
 const toggleMessageWindow = () => {
