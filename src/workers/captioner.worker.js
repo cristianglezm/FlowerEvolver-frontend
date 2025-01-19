@@ -47,6 +47,11 @@ import { describe, Captioner } from '../stores/CaptionerStore/Captioner';
  *     description: 'A flower with 6 petals that are wide and have a slight wave to their edges...',
  *     isLocal: false
  * });
+ *  // if an error happens it will send
+ *  self.postMessage({
+ *     jobType: "error",
+ *     error: e
+ *  });
  */
 const hasModelOptionsChanged = (modelOptions) => {
     return ((Captioner.modelOptions.host !== modelOptions.host) ||
@@ -100,28 +105,51 @@ const loadModel = async (modelOptions) => {
         }
     });
 }
-
+const _describe = async (e) => {
+  const urlOrDataURL = e.data.urlOrDataURL;
+  const isLocal = e.data.isLocal;
+  const output = await describe(urlOrDataURL);
+  self.postMessage({
+      jobType: "descResult",
+      FlowerID: e.data.FlowerID,
+      description: output,
+      isLocal: isLocal
+  });
+};
 self.onmessage = async (e) => {
     const jobType = e.data.jobType;
     switch(jobType){
         case "loadModel":{
-            loadModel(e.data.modelOptions);
+            try{
+              loadModel(e.data.modelOptions);
+            }catch(e){
+              self.postMessage({
+                jobType: "error",
+                error: e
+              });
+            }
         }
             break;
         case "reset":{
+          try{
             Captioner.reset();
+          }catch(e){
+            self.postMessage({
+              jobType: "error",
+              error: e
+            });
+          }
         }
             break;
         case "describe":{
-            const urlOrDataURL = e.data.urlOrDataURL;
-            const isLocal = e.data.isLocal;
-            const output = await describe(urlOrDataURL);
+          try{
+            await _describe(e);
+          }catch(e){
             self.postMessage({
-                jobType: "descResult",
-                FlowerID: e.data.FlowerID,
-                description: output,
-                isLocal: isLocal
+              jobType: "error",
+              error: e
             });
+          }
         }
             break;
     }
