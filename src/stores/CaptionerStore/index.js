@@ -22,6 +22,11 @@ wm.onResponse('captioner', (data) => {
             channel.emit('App#ToEmitter', data);
         }
             break;
+        case "error":{
+            const FlowerStore = useFlowerStore();
+            FlowerStore.errors.push({message: data.error });
+        }
+            break;
         case "updateProgressBar":{
             channel.emit('App#ToEmitter', data);
         }
