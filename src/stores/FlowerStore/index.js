@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { db as ddb } from './db';
 import axios from 'axios';
 import fe from '@cristianglezm/flower-evolver-wasm';
+import { useErrorStore } from '../ErrorStore';
 
 export const API = import.meta.env.VITE_APP_API_URL;
 export const URL = import.meta.env.VITE_APP_DOWNLOAD_URL;
@@ -18,7 +19,6 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		lastAdded: [],
 		mutations: [],
 		ancestors: [],
-		errors: [],
 		remoteSelected: { index: 0, flowers: [] },
 		localSelected: { index: 0, flowers: [] },
 		timer: 0,
@@ -83,7 +83,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				const response = await axios.get(API + 'flowers?count=1');
 				return response.data.count;
 			}catch(e){
-				this.errors.push({message: e});
+				const ErrorStore = useErrorStore();
+				ErrorStore.push(e);
 			}
 			return 0;
 		},
@@ -103,7 +104,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					return response.data.count;
 				}
 			}catch(e){
-				this.errors.push({message: e});
+				const ErrorStore = useErrorStore();
+				ErrorStore.push(e);
 			}
 			return 0;
 		},
@@ -124,7 +126,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					return response.data.count;
 				}
 			}catch(e){
-				this.errors.push({message: e});
+				const ErrorStore = useErrorStore();
+				ErrorStore.push(e);
 			}
 		},
 		async getLocalAncestorsCount(fatherID, motherID){
@@ -158,7 +161,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 							this.fe.drawFlower(genome, this.settings.params.radius, this.settings.params.numLayers, 
 												this.settings.params.P, this.settings.params.bias);
 						}catch(e){
-							this.errors.push({message: e});
+							const ErrorStore = useErrorStore();
+							ErrorStore.push(e);
 							return;
 						}
 						let f = {
@@ -169,21 +173,29 @@ export const useFlowerStore = defineStore('FlowerStore', {
 						.then((id) => {
 							f.id = id;
 							this.localFlowers.unshift(f);
-						}).catch(e => this.errors.push({message: e}));
+						}).catch(e => {
+							const ErrorStore = useErrorStore();
+							ErrorStore.push(e);
+						});
 					}else{
-						this.errors.push({message: "wasm module for flowers is not loaded.(try again)"});
+						const ErrorStore = useErrorStore();
+						ErrorStore.push("wasm Module for Flowers is not loaded. (try again)");
 						this.loadFE();
 					}
 				});
 			}catch(e){
-				this.errors.push({message: e});
+				const ErrorStore = useErrorStore();
+				ErrorStore.push(e);
 			}
 		},
 		async isFavourited(id){
 			return this.db.favourites.where(":id").equals(id).toArray()
 						.then((flowers) => {
 							return flowers.length > 0;
-						}).catch(e => this.errors.push({message: e}));
+						}).catch(e => {
+							const ErrorStore = useErrorStore();
+							ErrorStore.push(e);
+						});
 		},
 		async addFlowerToFav(id){
 			this.db.favourites.add(id, id)
@@ -192,9 +204,15 @@ export const useFlowerStore = defineStore('FlowerStore', {
 						.then((f) => {
 							this.favourites.unshift(f);
 						})
-						.catch(e => this.errors.push({message: e}));
+						.catch(e => {
+							const ErrorStore = useErrorStore();
+							ErrorStore.push(e);
+						});
 				})
-				.catch(e => this.errors.push({message: e}));
+				.catch(e => {
+					const ErrorStore = useErrorStore();
+					ErrorStore.push(e);
+				});
 		},
 		removeFlowerFromFav(id){
 			this.db.favourites.where(":id").equals(id).delete();
@@ -219,7 +237,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				const response = await axios.get(API + 'flowers?limit=' + limit + '&offset=' + offset)
 				this.remoteFlowers = response.data.flowers;
 			}catch(_){
-				//this.errors.push({message: _});
+				//const ErrorStore = useErrorStore();
+				//ErrorStore.push(_);
 			}
 		},
 		async updateLocalFlowers({limit, offset}){
@@ -227,7 +246,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				const flowers = await this.db.flowers.reverse().offset(offset).limit(limit).toArray();
 				this.localFlowers = flowers;
 			}catch(e){
-				this.errors.push({message:e});
+				const ErrorStore = useErrorStore();
+				ErrorStore.push(e);
 			}
 		},
 		async updateAndConcatRemoteFlowers({limit, offset}){
@@ -235,7 +255,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				const response = await axios.get(API + 'flowers?limit=' + limit + '&offset=' + offset)
 				this.remoteFlowers = this.remoteFlowers.concat(response.data.flowers);
 			}catch(_){
-				//this.errors.push({message:_});
+				//const ErrorStore = useErrorStore();
+				//ErrorStore.push(e);
 			}
 		},
 		async updateAndConcatLocalFlowers({limit, offset}){
@@ -243,7 +264,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				const flowers = await this.db.flowers.reverse().offset(offset).limit(limit).toArray();
 				this.localFlowers = this.localFlowers.concat(flowers);
 			}catch(e){
-				this.errors.push({message:e});
+				const ErrorStore = useErrorStore();
+				ErrorStore.push(e);
 			}
 		},
 		async updateLastAdded({limit, offset}){
@@ -251,7 +273,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				const response = await axios.get(API + 'flowers?limit=' + limit + '&offset=' + offset)
 				this.lastAdded = response.data.flowers;
 			}catch(_){
-				//this.errors.push({message:_});
+				//const ErrorStore = useErrorStore();
+				//ErrorStore.push(e);
 			}
 		},
 		async updateRemoteMutations({flower, limit, offset}){
@@ -259,7 +282,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				const response = await axios.get(API + 'mutations/' + flower.id + '?limit=' + limit + '&offset=' + offset)
 				this.mutations = response.data;
 			}catch(_){
-				//this.errors.push({message:_});
+				//const ErrorStore = useErrorStore();
+				//ErrorStore.push(_);
 			}
 		},
 		async updateLocalMutations({flower, limit, offset}){
@@ -273,7 +297,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					});
 				}
 			}catch(e){
-				this.errors.push({message:e});
+				const ErrorStore = useErrorStore();
+				ErrorStore.push(e);
 			}
 		},
 		async updateAndConcatRemoteMutations({flower, limit, offset}){
@@ -281,7 +306,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				const response = await axios.get(API + 'mutations/' + flower.id +'?limit=' + limit + '&offset=' + offset)
 				this.mutations = this.mutations.concat(response.data);
 			}catch(_){
-				//this.errors.push({message:_});
+				//const ErrorStore = useErrorStore();
+				//ErrorStore.push(_);
 			}
 		},
 		async updateAndConcatLocalMutations({flower, limit, offset}){
@@ -295,7 +321,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					});
 				}
 			}catch(e){
-				this.errors.push({message:e});
+				const ErrorStore = useErrorStore();
+				ErrorStore.push(e);
 			}
 		},
 		async updateRemoteAncestors({flower1, flower2, limit, offset}){
@@ -308,7 +335,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					this.ancestors = response.data;
 				}
 			}catch(_){
-				//this.errors.push({message:_});
+				//const ErrorStore = useErrorStore();
+				//ErrorStore.push(_);
 			}
 		},
 		async updateLocalAncestors({flower1, flower2, limit, offset}){
@@ -335,7 +363,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					}
 				}
 			}catch(e){
-				this.errors.push({message:e});
+				const ErrorStore = useErrorStore();
+				ErrorStore.push(e);
 			}
 		},
 		async updateAndConcatRemoteAncestors({flower1, flower2, limit, offset}){
@@ -348,7 +377,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					this.ancestors = this.ancestors.concat(response.data);
 				}
 			}catch(_){
-				//this.errors.push({message:_});
+				//const ErrorStore = useErrorStore();
+				//ErrorStore.push(_);
 			}
 		},
 		async updateAndConcatLocalAncestors({flower1, flower2, limit, offset}){
@@ -373,7 +403,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					}
 				}
 			}catch(e){
-				this.errors.push({message:e});
+				const ErrorStore = useErrorStore();
+				ErrorStore.push(e);
 			}
 		},
 		async shareFlower(genome){
@@ -381,11 +412,12 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				headers: {
 					'Content-Type': 'application/json'
 				}
-			}).catch(_ => {
-				if(_.response === undefined){
-					this.errors.push({message: "cannot share flower, server offline"});
+			}).catch(e => {
+				const ErrorStore = useErrorStore();
+				if(e.response === undefined){
+					ErrorStore.push("cannot share flower, server offline");
 				}else{
-					this.errors.push({message: _.response.data});
+					ErrorStore.push(e.response.data);
 				}
 		    });
 		},
@@ -398,11 +430,12 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				let flower = response.data;
 				this.remoteFlowers.unshift(flower);
 				this.lastAdded.unshift(flower);
-			}).catch(_ => {
-				if(_.response === undefined){
-					this.errors.push({message: "cannot make a remote flower, server offline."});
+			}).catch(e => {
+				const ErrorStore = useErrorStore();
+				if(e.response === undefined){
+					ErrorStore.push("cannot make a remote flower, server offline");
 				}else{
-					this.errors.push({message: _.response.data});
+					ErrorStore.push(e.response.data);
 				}
 			});
 		},
@@ -419,8 +452,9 @@ export const useFlowerStore = defineStore('FlowerStore', {
 						genome = this.fe.makeFlower(this.settings.params.radius, this.settings.params.numLayers, 
                                                         this.settings.params.P, this.settings.params.bias);
 					}catch(_){
-						//this.errors.push({message: this.fe.getExceptionMessage(_)});
-						this.errors.push({message: "couldn't make a local flower."});
+						const ErrorStore = useErrorStore();
+						//ErrorStore.push(this.fe.getExceptionMessage(e));
+						ErrorStore.push("couldn't make a local flower");
 						return;
 					}
 					let id = await this.db.flowers.add({
@@ -430,11 +464,13 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					let f = await this.db.flowers.get(id);
 					this.localFlowers.unshift(f);
 				}else{
-					this.errors.push({message:"FlowerEvolver WASM module not loaded, try again"});
+					const ErrorStore = useErrorStore();
+					ErrorStore.push("FlowerEvolver WASM module not loaded, try again.");
 					this.loadFE();
 				}
 			}catch(e){
-				this.errors.push({message: e});
+				const ErrorStore = useErrorStore();
+				ErrorStore.push(e);
 			}
 		},
 		async redrawFlower(flower){
@@ -449,20 +485,27 @@ export const useFlowerStore = defineStore('FlowerStore', {
 						this.fe.drawFlower(flower.genome, this.settings.params.radius, this.settings.params.numLayers, 
                                                 this.settings.params.P, this.settings.params.bias);
 					}catch(_){
-						//this.errors.push({message: this.fe.getExceptionMessage(_)});
-						this.errors.push({message: "couldn't redraw a local flower."});
+						//ErrorStore.push(this.fe.getExceptionMessage(_));
+						const ErrorStore = useErrorStore();
+						ErrorStore.push("couldn't redraw a local flower.");
 						return;
 					}
 					flower.image = this.getDataURL();
 					delete flower.id;
-					flower.id = await this.db.flowers.add(flower).catch(e => this.errors.push({message: e}));
+					flower.id = await this.db.flowers.add(flower)
+					.catch(e => {
+						const ErrorStore = useErrorStore();
+						ErrorStore.push(e);
+					});
 					this.localFlowers.unshift(flower);
 				}else{
-					this.errors.push({message:"FlowerEvolver WASM module not loaded, try again"});
+					const ErrorStore = useErrorStore();
+					ErrorStore.push("FlowerEvolver WASM module not loaded, try again.");
 					this.loadFE();
 				}
 			}catch(e){
-				this.errors.push({message: e});
+				const ErrorStore = useErrorStore();
+				ErrorStore.push(e);
 			}
 		},
         async deleteAllFlowers(){
@@ -500,7 +543,10 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		async deleteLocalFlower(id){
 			this.localSelected.flowers = [];
 			this.localSelected.index = 0;
-			const handleError = (e) => this.errors.push({ message: e });
+			const handleError = (e) => {
+				const ErrorStore = useErrorStore();
+				ErrorStore.push(e);
+			};
 			await this.db.favourites.delete(id).catch(handleError);
 			await this.db.descriptions.delete(id).catch(handleError);
 			await this.db.descendants.delete(id).catch(handleError);
@@ -525,14 +571,16 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					this.ancestors.unshift(response.data);
 				})
 				.catch(_ => {
+					const ErrorStore = useErrorStore();
 					if(_.response === undefined){
-						this.errors.push({message:"cannot reproduce remote flowers, server offline."});
+						ErrorStore.push("cannot reproduce remote flowers, server offline.");
 					}else{
-						this.errors.push({message: _.response.data});
+						ErrorStore.push(_.response.data);
 					}
 				});
 			}else{
-				this.errors.push({message:"There are no Flowers Selected"});
+				const ErrorStore = useErrorStore();
+				ErrorStore.push("There are no flowers selected");
 			}
 		},
 		async localReproduce(){
@@ -551,8 +599,9 @@ export const useFlowerStore = defineStore('FlowerStore', {
                                                         this.settings.params.radius, this.settings.params.numLayers, 
                                                         this.settings.params.P, this.settings.params.bias);
 					}catch(_){
-						//this.errors.push({message: this.fe.getExceptionMessage(_)});
-						this.errors.push({message: "couldn't reproduce some local flowers."});
+						const ErrorStore = useErrorStore();
+						//ErrorStore.push(this.fe.getExceptionMessage(_));
+						ErrorStore.push("couldn't reproduce some local flowers");
 						return;
 					}
 					let id = await this.db.flowers.add({
@@ -564,16 +613,19 @@ export const useFlowerStore = defineStore('FlowerStore', {
 						father: f1.id, 
 						mother: f2.id
 						}).catch(e => {
-							this.errors.push({message: e});
+							const ErrorStore = useErrorStore();
+							ErrorStore.push(e);
 						});
 					let f = await this.db.flowers.get(id);
 					this.localFlowers.unshift(f);
 					this.ancestors.unshift(f);
 				}else{
-					this.errors.push({message:"There are no Flowers Selected"});
+					const ErrorStore = useErrorStore();
+					ErrorStore.push("There are no flowers selected.");
 				}
 			}else{
-				this.errors.push({message: "WASM module not loaded, try again."});
+				const ErrorStore = useErrorStore();
+				ErrorStore.push("FlowerEvolver WASM module not laoded, try again.");
 				this.loadFE();
 			}
 		},
@@ -585,10 +637,11 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				this.mutations.unshift(response.data);
 			})
 			.catch(_ => {
+				const ErrorStore = useErrorStore();
 				if(_.response === undefined){
-					this.errors.push({message:"cannot mutate a remote flower, server offline."});
+					ErrorStore.push("cannot mutate a remote flower, server offline.");
 				}else{
-					this.errors.push({message: _.response.data});
+					ErrorStore.push(_.response.data);
 				}
 			});
 		},
@@ -614,8 +667,9 @@ export const useFlowerStore = defineStore('FlowerStore', {
                                                     this.settings.mutationRates.actTypeRate
                                                 );
 					}catch(_){
-						//this.errors.push({message: this.fe.getExceptionMessage(_)});
-						this.errors.push({message: "couldn't mutate a local flower."});
+						const ErrorStore = useErrorStore();
+						//ErrorStore.push(this.fe.getExceptionMessage(_));
+						ErrorStore.push("couldn't mutate a local flower.");
 						return;
 					}
 					let id = await this.db.flowers.add({
@@ -625,15 +679,20 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					this.db.mutations.add({
 						id: id, 
 						original: flower.id
-					}).catch(e => this.errors.push({message: e}));
+					}).catch(e => {
+						const ErrorStore = useErrorStore();
+						ErrorStore.push(e);
+					});
 					let f = await this.db.flowers.get(id);
 					this.localFlowers.unshift(f);
 					this.mutations.unshift(f);
 				}catch(e){
-					this.errors.push({message: e});
+					const ErrorStore = useErrorStore();
+					ErrorStore.push(e);
 				}
 			}else{
-				this.errors.push({message: "WASM module not loaded, try again."});
+				const ErrorStore = useErrorStore();
+				ErrorStore.push("FlowerEvolver WASM module not loaded, try again.");
 				this.loadFE();
 			}
 		},

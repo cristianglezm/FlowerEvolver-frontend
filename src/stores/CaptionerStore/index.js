@@ -4,13 +4,14 @@ import { useFlowerStore } from '../FlowerStore/index';
 import WorkerManager from '../WorkerManager';
 import captioner from '../../workers/captioner.worker?worker';
 import { toRaw } from 'vue';
+import { useErrorStore } from '../ErrorStore';
 
 let channel = new mitt();
 const wm = new WorkerManager(channel);
 wm.addWorker('captioner', captioner());
 wm.onError('captioner', (e) => {
-    const FlowerStore = useFlowerStore();
-    FlowerStore.errors.push({message: e });
+    const ErrorStore = useErrorStore();
+    ErrorStore.push(e);
 });
 wm.onResponse('captioner', (data) => {
     const FlowerStore = useFlowerStore();
@@ -23,8 +24,8 @@ wm.onResponse('captioner', (data) => {
         }
             break;
         case "error":{
-            const FlowerStore = useFlowerStore();
-            FlowerStore.errors.push({message: data.error });
+            const ErrorStore = useErrorStore();
+            ErrorStore.push(data.error);
         }
             break;
         case "updateProgressBar":{
@@ -95,7 +96,8 @@ export const useCaptionerStore = defineStore('CaptionerStore', {
                 });
             })
             .catch((e) => {
-                FlowerStore.errors.push({ message: e });
+                const ErrorStore = useErrorStore();
+                ErrorStore.push(e);
             });
         },
         async loadAndConcatLocalDescriptions(offset, limit){
@@ -109,7 +111,8 @@ export const useCaptionerStore = defineStore('CaptionerStore', {
                 this.localDescriptions = new Map([this.localDescriptions, newMap]);
             })
             .catch((e) => {
-                FlowerStore.errors.push({ message: e });
+                const ErrorStore = useErrorStore();
+                ErrorStore.push({ message: e });
             });
         },
         async requestDescription(Flower){

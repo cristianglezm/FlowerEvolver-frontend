@@ -70,7 +70,7 @@
         <button class="fixed-button right-fixed-button" :class="{'disabled': data.blocked}" @click="block(showAncestors)"> Show Remote Selected Descendants</button>
       </div>
     </div>
-    <ErrorModal :errors="FlowerStore.errors" />
+    <ErrorModal />
     <ConfirmModal :id="'globalConfirm'" :channel="emitter" :on="'showYesNo'" />
   </div>
 </template>
@@ -82,6 +82,7 @@ import { useRouter } from 'vue-router';
 import ErrorModal from './ErrorModal.vue';
 import ConfirmModal from './ConfirmModal.vue';
 import { useFlowerStore } from '../stores/FlowerStore';
+import { useErrorStore } from '../stores/ErrorStore';
 
 const props = defineProps({
     isLocal: {
@@ -96,6 +97,7 @@ let data = reactive({
 });
 const emitter = inject('emitter');
 const FlowerStore = useFlowerStore();
+const ErrorStore = useErrorStore();
 const router = useRouter();
 const toggleButtonMessage = ref(FlowerStore.settings.showChatBot ? "Close ChatBot":"Open ChatBot");
 
@@ -112,14 +114,14 @@ const showAncestors = () => {
     if(props.isLocal){
         let selected = FlowerStore.getLocalSelected;
         if(selected.length < 1){
-            FlowerStore.errors.push({message:'You need to select two flowers'});
+            ErrorStore.push('You need to select two flowers');
         }else{
             router.push({name:'DescendantsFatherAndMother', params:{father:selected[0], mother:selected[1], isLocal: "local"}});
         }
     }else{
         let selected = FlowerStore.getRemoteSelected;
         if(selected.length < 1){
-            FlowerStore.errors.push({message:'You need to select two flowers'});
+            ErrorStore.push('You need to select two flowers');
         }else{
             router.push({name:'DescendantsFatherAndMother', params:{father:selected[0], mother:selected[1], isLocal: "remote"}});
         }
