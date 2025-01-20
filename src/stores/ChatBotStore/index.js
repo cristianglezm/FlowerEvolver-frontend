@@ -94,13 +94,13 @@ export const useChatBotStore = defineStore('ChatBotStore', {
         executor: (content) => { return {textForUser: [content], commandsToConfirm: []}; }
     }),
     getters: {
-        getChatHistory: (state) => () => {
+        getChatHistory: (state) => {
             return state.chatHistory;
         },
-        hasModelLoaded: (state) => () => {
+        hasModelLoaded: (state) => {
             return state.isModelLoaded;
         },
-        hasModelOptionsChanged: (state) => () => {
+        hasModelOptionsChanged: (state) => {
             if(state.oldModelOptions === null) return true;
             return ((state.oldModelOptions.host !== state.modelOptions.host) ||
                     (state.oldModelOptions.model !== state.modelOptions.model) ||
