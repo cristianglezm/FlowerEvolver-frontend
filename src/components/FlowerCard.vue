@@ -196,7 +196,6 @@
         FlowerStore.shareFlower(props.genome);
     };
     const describe = () => {
-        if(!CaptionerStore.hasModelLoaded()){
         if(!CaptionerStore.hasModelLoaded){
             ErrorStore.push("check load model option or click download / load Model in Settings to use this.");
             return;
