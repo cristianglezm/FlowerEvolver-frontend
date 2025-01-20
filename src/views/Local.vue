@@ -16,6 +16,7 @@ import { nextTick, onMounted, reactive, computed, inject, watch } from 'vue';
 import FlowersTable from '../components/FlowersTable.vue';
 import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
 import { useFlowerStore } from '../stores/FlowerStore';
+import { useErrorStore } from '../stores/ErrorStore';
 import { useCaptionerStore } from '../stores/CaptionerStore';
 import { useRoute, useRouter } from 'vue-router';
 import importWorker from '../workers/import.worker?worker';
@@ -25,6 +26,7 @@ import mitt from 'mitt';
 const routes = useRoute();
 const router = useRouter();
 const FlowerStore = useFlowerStore();
+const ErrorStore = useErrorStore();
 const CaptionerStore = useCaptionerStore();
 const emitter = inject('emitter');
 let channel = mitt();
@@ -65,7 +67,7 @@ const nextBatch = () => {
     updateFlowers(FlowerStore.settings.limit, data.offset);
 };
 const onError = (e) => {
-    FlowerStore.errors.push({ message: e});
+    ErrorStore.push(e);
 };
 wm.onError('importer', onError);
 wm.onResponse('importer', (e) => {

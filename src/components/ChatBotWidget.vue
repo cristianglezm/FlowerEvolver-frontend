@@ -190,7 +190,7 @@
  */
 import { reactive, ref, computed, toRaw, onMounted, onUnmounted, nextTick } from 'vue';
 import { useChatBotStore } from '../stores/ChatBotStore';
-import { useFlowerStore } from '../stores/FlowerStore';
+import { useErrorStore } from '../stores/ErrorStore';
 import { useDraggable } from '../composables/useDraggable';
 import SwitchPanel from './SwitchPanel.vue';
 import ChatBotModelOptions from './ChatBotModelOptions.vue';
@@ -199,7 +199,7 @@ import MultiProgressNodal from './MultiProgressModal.vue';
 import ConfirmModal from './ConfirmModal.vue';
 
 const { position, onMouseDown, onTouchStart, isDragging, setPosition } = useDraggable();
-const FlowerStore = useFlowerStore();
+const ErrorStore = useErrorStore();
 const ChatBotStore = useChatBotStore();
 
 /**
@@ -358,7 +358,7 @@ const handleEnter = (event) => {
 };
 const sendMessage = () => {
     if(!ChatBotStore.isModelLoaded){
-        FlowerStore.errors.push({message: "ChatBot not loaded, please load it by clicking the red dot."});
+        ErrorStore.push("ChatBot not loaded, please load it by clicking the red dot.");
         return;
     }
     if(data.message.length === 0 || data.processingMessage){
@@ -375,7 +375,7 @@ const sendMessage = () => {
 };
 const regenerate = (id) => {
     if(!ChatBotStore.isModelLoaded){
-        FlowerStore.errors.push({message: "ChatBot not loaded, please load it by clicking the red dot."});
+        ErrorStore.push("ChatBot not loaded, please load it by clicking the red dot.");
         return;
     }
     if(data.processingMessage){
