@@ -52,16 +52,16 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				return (flower.id === state.remoteSelected.flowers[0] || flower.id === state.remoteSelected.flowers[1]);
 			return false;
 		},
-		getRemoteFlowers: (state) => () => {
+		getRemoteFlowers: (state) => {
 			return state.remoteFlowers;
 		},
-		getLocalFlowers: (state) => () => {
+		getLocalFlowers: (state) => {
 			return state.localFlowers;
 		},
-		getMutations: (state) => () => {
+		getMutations: (state) => {
 			return state.mutations;
 		},
-		getAncestors: (state) => () => {
+		getAncestors: (state) => {
 			return state.ancestors;
 		},
 		getDataURL: (state) => () => {

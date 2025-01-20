@@ -74,7 +74,7 @@
     data.forceReload = true;
   };
   const isModelLoaded = () => {
-    return ChatBotStore.hasModelLoaded() && !data.forceReload;
+    return ChatBotStore.hasModelLoaded && !data.forceReload;
   };
   const isModelDownloaded = () => {
     return cm.size() > 0;
@@ -104,7 +104,7 @@
     data.forceReload = false;
   }
   const hasModelOptionsChanged = () => {
-    return ChatBotStore.hasModelOptionsChanged();
+    return ChatBotStore.hasModelOptionsChanged;
   };
   const setCorrectBtnTitle = () => {
     if(isModelInCache()){

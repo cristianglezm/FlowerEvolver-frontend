@@ -83,7 +83,7 @@
     data.forceReload = true;
   };
   const isModelLoaded = () => {
-    return CaptionerStore.hasModelLoaded() && !data.forceReload;
+    return CaptionerStore.hasModelLoaded && !data.forceReload;
   };
   const isModelDownloaded = () => {
     return cm.size() > 0;
@@ -115,7 +115,7 @@
     data.forceReload = false;
   }
   const hasModelOptionsChanged = () => {
-    return CaptionerStore.hasModelOptionsChanged();
+    return CaptionerStore.hasModelOptionsChanged;
   };
   const setCorrectBtnTitle = () => {
     if(isModelInCache()){
