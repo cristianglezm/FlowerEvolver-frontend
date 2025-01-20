@@ -47,7 +47,7 @@ watch(data, () => {
     }
 });
 const flowers = computed(() => {
-    return FlowerStore.getLocalFlowers();
+    return FlowerStore.getLocalFlowers;
 });
 onMounted(() => {
     data.offset = 0;
