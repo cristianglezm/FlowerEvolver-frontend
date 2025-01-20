@@ -73,10 +73,10 @@ export const useCaptionerStore = defineStore('CaptionerStore', {
         getRemoteDescription: (state) => (id) => {
             return state.remoteDescriptions.get(id);
         },
-        hasModelLoaded: (state) => () => {
+        hasModelLoaded: (state) => {
             return state.isModelLoaded;
         },
-        hasModelOptionsChanged: (state) => () => {
+        hasModelOptionsChanged: (state) => {
             if(state.oldModelOptions === null) return true;
             return ((state.oldModelOptions.host !== state.modelOptions.host) ||
                     (state.oldModelOptions.model !== state.modelOptions.model) ||

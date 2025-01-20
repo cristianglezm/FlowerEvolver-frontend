@@ -36,7 +36,7 @@
         }
     });
     let flowers = computed(() => {
-        return FlowerStore.getRemoteFlowers();
+        return FlowerStore.getRemoteFlowers;
     });
     const nextBatch = () => {
         updateFlowers(FlowerStore.settings.limit, data.offset);
