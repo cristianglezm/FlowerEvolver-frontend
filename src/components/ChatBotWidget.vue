@@ -283,26 +283,26 @@ const data = reactive({
 });
 
 const chatHistory = computed(() => {
-    return ChatBotStore.getChatHistory();
+    return ChatBotStore.getChatHistory;
 });
 const togglePanel = () => {
     let wasLocal = ChatBotStore.isLocal;
     ChatBotStore.isLocal = !ChatBotStore.isLocal;
     ChatBotStore.saveIsLocal();
     if(wasLocal){
-        if(ChatBotStore.hasModelLoaded()){
+        if(ChatBotStore.hasModelLoaded){
             // reset local model when user changes to remote
             ChatBotStore.requestReset();
         }
     }else{
-        if(ChatBotStore.hasModelLoaded()){
+        if(ChatBotStore.hasModelLoaded){
             // reload local model when user changes to local
             props.emitter.emit("ChatBotWidget#loadChatBotModel");
         }
     }
 };
 const isChatBotOnline = computed(() => {
-    return ChatBotStore.hasModelLoaded();
+    return ChatBotStore.hasModelLoaded;
 });
 const loadChatBot = () => {
     if(ChatBotStore.isLocal){

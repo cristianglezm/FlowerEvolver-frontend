@@ -36,7 +36,7 @@
         Init();
     });
     let mutations = computed(() => {
-        return FlowerStore.getMutations();
+        return FlowerStore.getMutations;
     });
 
     const Init = async () => {

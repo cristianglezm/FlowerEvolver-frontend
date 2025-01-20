@@ -21,7 +21,7 @@ export const useDocumentStore = defineStore('documentStore', {
          * @param {Object} state - The store's state.
          * @returns {Array<Object>} An array of document objects with `title` and `content`.
          */
-        getDocuments: (state) => () => {
+        getDocuments: (state) => {
             return Object.keys(state.documents).map(title => ({ title: title, content: state.documents.get(title) }));
         }
     },

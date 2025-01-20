@@ -52,7 +52,7 @@
         Init();
     });
     const ancestors = computed(() => {
-        return FlowerStore.getAncestors();
+        return FlowerStore.getAncestors;
     });
     const hasFatherOnly = () => {
         return routes.params.mother === undefined;
