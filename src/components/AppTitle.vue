@@ -19,17 +19,19 @@ import { STORAGE_KEY_GARDEN, useFlowerStore } from '../stores/FlowerStore';
 import gardenWorker from '../workers/garden.worker?worker';
 import WorkerManager from '../stores/WorkerManager';
 import mitt from 'mitt';
+import { useErrorStore } from '../stores/ErrorStore';
 
 const gardenRadius = 8;
 const STORAGE_KEY_WARNING = "FlowerEvolverShowWarning";
 
 let FlowerStore = useFlowerStore();
+const ErrorStore = useErrorStore();
 const emitter = mitt();
 let wm = new WorkerManager(emitter);
 
 wm.addWorker('garden', gardenWorker());
 wm.onError('garden', (e) => {
-    FlowerStore.errors.push({ message: e});
+    ErrorStore.push(e);
 });
 wm.onResponse('garden', (e) => {
     let position = {
