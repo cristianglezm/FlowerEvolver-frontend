@@ -34,8 +34,11 @@ import exportWorker from '../workers/export.worker?worker';
 import importWorker from '../workers/import.worker?worker';
 import WorkerManager from '../stores/WorkerManager';
 import mitt from 'mitt';
+import { useErrorStore } from '../stores/ErrorStore';
 
 const FlowerStore = useFlowerStore();
+const ErrorStore = useErrorStore();
+
 let emitter = inject('emitter');
 let channel = mitt();
 let wm = new WorkerManager(channel);
@@ -45,7 +48,7 @@ wm.addWorker('exporter', exportWorker());
 wm.addWorker('importer', importWorker());
 
 const onError = (e) => {
-    FlowerStore.errors.push({ message: e});
+    ErrorStore.push(e);
 };
 wm.onError('redraw', onError);
 wm.onResponse('redraw', (e) => {
@@ -144,7 +147,7 @@ const showRedrawFlowers = () => {
                 if(totalFlowers != 0){
                     showProgressBar('re-drawing flowers', totalFlowers, redrawLocalFlowers);   
                 }else{
-                    FlowerStore.errors.push({message: "You have no local flowers to redraw."});
+                    ErrorStore.push("You have no local flowers to redraw.");
                 }
             });
         },
@@ -165,7 +168,7 @@ const showExport = (type) => {
                                 exportFlowers(type);
                             });
                     }else{
-                        FlowerStore.errors.push({message: "You have no favourites to export"});
+                        ErrorStore.push("You have no favourites to export");
                     }
                 });
             }
@@ -184,7 +187,7 @@ const showExport = (type) => {
                                 exportFlowers(type);
                             });
                     }else{
-                        FlowerStore.errors.push({message: "You have no flowers to export"});
+                        ErrorStore.push("You have no flowers to export");
                     }
                 });
             }
@@ -203,7 +206,7 @@ const showExport = (type) => {
 };
 const importFiles = async (files, toFavs) => {
     if(!files.length){
-        FlowerStore.errors.push({message: "You must upload at least one json file."});
+        ErrorStore.push("You must upload at least one json file.");
         return;
     }
     wm.sendRequest('importer', {

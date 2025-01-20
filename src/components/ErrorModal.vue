@@ -1,12 +1,12 @@
 <template>
-  <div v-if="props.errors.length" class="ErrorModal center">
+  <div v-if="ErrorStore.getLength" class="ErrorModal center">
     <span class="close" @click="clearErrors()">&times;</span>
-    <div v-for="(error, id) in props.errors" :key="id">
-      <div v-if="id === (props.errors.length - 1)" class="ErrorModal-content">
+    <div v-for="(error, id) in errors" :key="id">
+      <div v-if="id === (ErrorStore.getLength - 1)" class="ErrorModal-content">
         <p>
-          {{ error.message }}
+          {{ error }}
           <span style="border-radius: 128px; background-color: red; padding: 2px;">
-            {{ props.errors.length }}
+            {{ ErrorStore.getLength }}
           </span>
         </p>
         <button @click="popError()">Ok.</button>
@@ -19,34 +19,31 @@
 /**
  * ErrorModal Component
  * 
- * @prop {Array} errors - The array of error objects to be displayed in the modal.
- *
  * @example
  * // usage in a parent component:
  * <template>
- *   <ErrorModal :errors="errorList" />
+ *   <ErrorModal />
  * </template>
  *
  * @example
  * // usage in another component, view or store actions.
- * const FlowerStore = useFlowerStore();
- * FlowerStore.errors.push({message: "error 1"});
- * FlowerStore.errors.push({message: "error 2"});
+ * const ErrorStore = useErrorStore();
+ * ErrorStore.push("error 1");
+ * ErrorStore.push("error 2");
  */
-import { useFlowerStore } from '../stores/FlowerStore';
+import { computed } from 'vue';
+import { useErrorStore } from '../stores/ErrorStore';
 
-const FlowerStore = useFlowerStore();
-const props = defineProps({
-    errors:{
-        type: Array,
-        required: true,
-    }
-});
+const ErrorStore = useErrorStore();
+
+const errors = computed(() => {
+    return ErrorStore.getErrors;
+})
 const clearErrors = () => {
-    FlowerStore.errors = [];
+    ErrorStore.clear();
 };
 const popError = () => {
-    FlowerStore.errors.pop();
+    ErrorStore.pop();
 };
 
 </script>

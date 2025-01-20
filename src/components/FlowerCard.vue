@@ -57,6 +57,7 @@
     import { useRouter } from 'vue-router';
     import ParamsInfo from './ParamsInfo.vue';
     import ZoomableImage from './ZoomableImage.vue';
+    import { useErrorStore } from '../stores/ErrorStore';
 
     const props = defineProps({
         id: {
@@ -130,6 +131,7 @@
     });
     const router = useRouter();
     const FlowerStore = useFlowerStore();
+    const ErrorStore = useErrorStore();
     const CaptionerStore = useCaptionerStore();
     const emitter = inject('emitter');
     onMounted(() => {
@@ -195,7 +197,8 @@
     };
     const describe = () => {
         if(!CaptionerStore.hasModelLoaded()){
-            FlowerStore.errors.push({message: "check load model option or click download / load Model in Settings to use this."});
+        if(!CaptionerStore.hasModelLoaded){
+            ErrorStore.push("check load model option or click download / load Model in Settings to use this.");
             return;
         }
         if(props.isLocal){
@@ -265,14 +268,14 @@
                 await FlowerStore.addFlowerToFav(id);
             }
         }else{
-            FlowerStore.errors.push({message: "Add the flower to local first to add it to favourites."});
+            ErrorStore.push("Add the flower to local first to add it to favourites.");
         }
     };
     const addToLocal = () => {
         if(!props.isLocal){
             FlowerStore.addRemoteFlowerToLocal({id: props.id, genome: props.genome, image: props.image});
         }else{
-            FlowerStore.errors.push({message: "This flower is a local flower already."});
+            ErrorStore.push("This flower is a local flower already.");
         }
     };
     const changeHeartIcon = (desc) => {
