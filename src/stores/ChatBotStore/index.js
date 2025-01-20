@@ -1,16 +1,16 @@
 import mitt from 'mitt';
 import { defineStore } from 'pinia';
-import { useFlowerStore } from '../FlowerStore';
 import WorkerManager from '../WorkerManager';
 import chatbot from '../../workers/chatbot.worker?worker';
 import { toRaw } from 'vue';
+import { useErrorStore } from '../ErrorStore';
 
 let channel = new mitt();
 const wm = new WorkerManager(channel);
 wm.addWorker('chatbot', chatbot());
 wm.onError('chatbot', (e) => {
-    const FlowerStore = useFlowerStore();
-    FlowerStore.errors.push({message: e });
+    const ErrorStore = useErrorStore();
+    ErrorStore.push(e);
 });
 wm.onResponse('chatbot', (data) => {
     const chatbotStore = useChatBotStore();
@@ -22,8 +22,8 @@ wm.onResponse('chatbot', (data) => {
         }
             break;
         case "error":{
-            const FlowerStore = useFlowerStore();
-            FlowerStore.errors.push({message: data.error });
+            const ErrorStore = useErrorStore();
+            ErrorStore.push(data.error);
             /// pending message done
             channel.emit('ChatBotWidget#done');
         }
