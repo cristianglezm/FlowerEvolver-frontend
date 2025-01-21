@@ -8,8 +8,8 @@
     <div class="fill-content">
       <div class="inlined-menu">
         <div class="v-inlined-menu">
-          <div class="gear-button" @click="toggleOptions()">
-            <svg version="1.1" viewBox="0 0 24 24" class="svg-icon pointer animate-rotation" style="width: 36px;" stroke-width="2px" aria-label="Settings"><circle pid="0" cx="12" cy="12" r="3" /><path pid="1" d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+          <div class="gear-button pointer" @click="toggleOptions()" :class="{'disabled': !props.editable }">
+            <svg version="1.1" viewBox="0 0 24 24" class="svg-icon animate-rotation" style="width: 36px;" stroke-width="2px" aria-label="Settings"><circle pid="0" cx="12" cy="12" r="3" /><path pid="1" d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
           </div>
           <div v-if="!data.expanded" class="expand-button" @click="FullScreenMode(true)">
             <svg height="100%" version="1.1" class="svg-icon pointer animate-expand" viewBox="0 0 36 36" width="60px" aria-label="expand-button"><g><path d="m 10,16 2,0 0,-4 4,0 0,-2 L 10,10 l 0,6 0,0 z" /></g><g><path d="m 20,10 0,2 4,0 0,4 2,0 L 26,10 l -6,0 0,0 z" /></g><g><path d="m 24,24 -4,0 0,2 L 26,26 l 0,-6 -2,0 0,4 0,0 z" /></g><g><path d="M 12,20 10,20 10,26 l 6,0 0,-2 -4,0 0,-4 0,0 z" /></g></svg>
@@ -143,10 +143,33 @@
  *     :chatTemplate="'Your custom @huggingface/jinja template here...'"
  *     :tools="[
  *       { name: 'search', description: 'Search the database', parameters: { query: { description: 'query to look for', type: 'string', required: true } } },
- *       { name: 'translate', description: 'Translate text', parameters: { text: 'string', language: 'string' } }
+ *       { name: 'translate', description: 'Translate text', parameters: {
+ *          text: { description: 'text to translate', require: true, type:'string'}, 
+ *          language: { description:'lang to translate to', require: true, type:'string'}
+ *       }}
  *     ]"
  *     :docKeys="['title1', 'title2']"
  *     :executor="parseAndExecCommand"
+ *     :editable="false",
+ *     :config="{
+ *          isLocal: true, 
+ *          modelOptions: {
+ *               host: "huggingface",
+ *               model: "HuggingFaceTB/SmolLM2-135M-Instruct",
+ *               device: "CPU",
+ *               dtype: "q4"
+ *          },
+ *          remoteOptions:{
+ *              url: "http://localhost:8080",
+ *              api_key: "sk-no-key-required",
+ *              model: "HuggingFaceTB/SmolLM2-135M-Instruct",
+ *              max_tokens: 256,
+ *              top_k: 40,
+ *              top_p: 0.95,
+ *              min_p: 0.05,
+ *              temperature: 0.8
+ *          }
+ *     }"
  *   />
  * </template>
  * 
@@ -173,9 +196,11 @@
  * - `greetings` (String, optional): Assistant's initial greeting message.
  * - `chatTemplate` (String, optional): Jinja template for formatting chat responses. (set this only when using tools, dockeys and executor)
  * - `tools` (Array<Object>, optional): Array of tool definitions for function prototypes. 
- *   Example: [{ name: 'tool1', description: 'description', parameters: { param1: 'string' }}]
+ *   Example: [{ name: 'tool1', description: 'description', parameters: { param1: {description:'param1 desc', require: true, type:'string'} }}]
  * - `docKeys` (Array<String>, optional): Array of document keys for additional context.
  * - `executor` (Function, optional): A custom function to execute tasks when the chatbot calls a tool. it should return {textForUser: [], commandsToConfirm: []}
+ * - `editable` (Boolean, optional): controls if settings can be edited or not if not you must give config prop.
+ * - `config` (Object, optional): config object for ChatBotStore, more info on @usage
  * 
  * @example
  * The component can be embedded in a parent component with optional props:
@@ -268,6 +293,15 @@ const props = defineProps({
         type: Function,
         required: false,
         default: (content) => { return {textForUser: [content], commandsToConfirm: []}; }
+    },
+    editable:{
+        type: Boolean,
+        required: false,
+        default: true
+    },
+    config:{
+        type: Object,
+        required: false,
     }
 });
 const chatBox = ref(null);
@@ -345,6 +379,9 @@ const FullScreenMode = (expanded) => {
     }
 };
 const toggleOptions = () => {
+    if(!props.editable){
+        return;
+    }
     data.openOptions = !data.openOptions;
 };
 const handleEnter = (event) => {
@@ -421,6 +458,26 @@ onMounted(() => {
         }
     });
     ChatBotStore.executor = props.executor;
+    if(!props.editable){
+        const applyConfig = (config, store) => {
+            for(const key in config){
+                if(config.hasOwnProperty(key) && 
+                    config[key] !== undefined){
+                    if(typeof config[key] === 'object' && 
+                        !Array.isArray(config[key])){
+                            if(store[key] !== undefined){
+                                applyConfig(config[key], store[key]);
+                            }
+                    }else{
+                        if(store[key] !== undefined){
+                            store[key] = config[key];
+                        }
+                    }
+                }
+            }
+        }
+        applyConfig(props.config, ChatBotStore);
+    }
     setTimeout(() => {
         resetChat();
         nextTick(() => {
