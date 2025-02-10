@@ -29,6 +29,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			loadDemoFlowers: true,
 			loadCaptionerModel: false,
 			loadChatBotModel: false,
+			loadKokoroModel: false,
 			showChatBot: false,
 			pagination: false,
 			limit: 100,

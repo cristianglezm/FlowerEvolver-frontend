@@ -8,7 +8,7 @@
     <div class="fill-content">
       <div class="inlined-menu">
         <div class="v-inlined-menu">
-          <div class="gear-button pointer" @click="toggleOptions()" :class="{'disabled': !props.editable }">
+          <div class="gear-button pointer" :class="{'disabled': !props.editable }" @click="toggleOptions()">
             <svg version="1.1" viewBox="0 0 24 24" class="svg-icon animate-rotation" style="width: 36px;" stroke-width="2px" aria-label="Settings"><circle pid="0" cx="12" cy="12" r="3" /><path pid="1" d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
           </div>
           <div v-if="!data.expanded" class="expand-button" @click="FullScreenMode(true)">
@@ -58,6 +58,16 @@
                 </div>
               </div>
               <div v-show="message.role === 'assistant' && message.hover" class="reg-btn">
+                <button
+                  class="safe-button reg-btn"
+                  :class="{'disabled': data.processingAudio}"
+                  :disabled="data.processingAudio"
+                  @click="playMessage(message.content)"
+                >
+                  <span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="svg-icon svg-icon-fill" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M7 7.638v8.724c0 1.294 1.464 2.075 2.577 1.376l6.94-4.363a1.615 1.615 0 0 0 0-2.75l-6.94-4.363C8.464 5.562 7 6.344 7 7.638Z" clip-rule="evenodd" /></svg>
+                  </span>
+                </button>
                 <button
                   class="safe-button reg-btn"
                   :class="{'disabled': data.processingMessage}"
@@ -115,6 +125,12 @@
       <dialog id="ChatBot-dialog-options" v-toggle-dialog="data.openOptions" class="chatbot-Options">
         <span class="close" @click="toggleOptions()">&times;</span>
         <div>
+          <div class="option-box labelInputArea">
+            <ToolTip :info="'if checked it will automatically generate text-to-speech for each message generated.'" />
+            <label for="generateSpeech">Generate Speech: </label>
+            <input id="generateSpeech" v-model="data.generateSpeech" type="checkbox" @change="onChange">
+          </div>
+          <KokoroModelOptions />
           <SwitchPanel :mode="ChatBotStore.isLocal" :left="'Model Options'" :right="'Remote Options'" @on-change="togglePanel">
             <template #left>
               <ChatBotModelOptions />
@@ -128,6 +144,7 @@
     </div>
     <ConfirmModal :id="'chatbot-confirm-modal'" :channel="ChatBotStore.channel" :on="'ChatBotWidget#ConfirmModal'" />
     <MultiProgressNodal :id="'chatbot-multiProgressBar'" :channel="props.emitter" :on="'ChatBotWidget#requestMultiProgressBar'" />
+    <audio ref="audioPlayer" hidden controls />
   </div>
 </template>
 
@@ -152,27 +169,41 @@
  *     :executor="parseAndExecCommand"
  *     :editable="false",
  *     :config="{
- *          isLocal: true, 
- *          modelOptions: {
- *               host: "huggingface",
- *               model: "HuggingFaceTB/SmolLM2-135M-Instruct",
- *               device: "CPU",
- *               dtype: "q4"
+ *          generateSpeech: true,
+ *          llm:{
+ *              isLocal: true, 
+ *              modelOptions: {
+ *                  host: "huggingface",
+ *                  model: "HuggingFaceTB/SmolLM2-135M-Instruct",
+ *                  device: "CPU",
+ *                  dtype: "q4"
+ *              },
+ *              remoteOptions:{
+ *                  url: "http://localhost:8080",
+ *                  api_key: "sk-no-key-required",
+ *                  model: "HuggingFaceTB/SmolLM2-135M-Instruct",
+ *                  max_tokens: 256,
+ *                  top_k: 40,
+ *                  top_p: 0.95,
+ *                  min_p: 0.05,
+ *                  temperature: 0.8
+ *              }
  *          },
- *          remoteOptions:{
- *              url: "http://localhost:8080",
- *              api_key: "sk-no-key-required",
- *              model: "HuggingFaceTB/SmolLM2-135M-Instruct",
- *              max_tokens: 256,
- *              top_k: 40,
- *              top_p: 0.95,
- *              min_p: 0.05,
- *              temperature: 0.8
+ *          tts:{
+ *              modelOptions:{
+ *                  host: "huggingface",
+ *                  model: "onnx-community/Kokoro-82M-v1.0-ONNX",
+ *                  device: "CPU",
+ *                  dtype: "q8",
+ *                  voice: "af_bella"
+ *              },
  *          }
  *     }"
  *   />
  * </template>
- * 
+ * // Example of loading the model from outside the ChatBotWidget
+ *  emitter.emit('ChatBotWidget#loadChatBotModel'); // load the llm
+ *  emitter.emit('ChatBotWidget#loadKokoroModel'); // load the tts
  * // Example of a custom executor function
  * const executeFunction = (text) => {
  *  // parse text from llm and process, whatever is returned will be shown on the chat
@@ -196,7 +227,7 @@
  * - `greetings` (String, optional): Assistant's initial greeting message.
  * - `chatTemplate` (String, optional): Jinja template for formatting chat responses. (set this only when using tools, dockeys and executor)
  * - `tools` (Array<Object>, optional): Array of tool definitions for function prototypes. 
- *   Example: [{ name: 'tool1', description: 'description', parameters: { param1: {description:'param1 desc', require: true, type:'string'} }}]
+ *   Example: [{ "name": 'tool1', "description": 'description', "parameters": { "param1": {"description":'param1 desc', "require": true, "type":'string'} }}]
  * - `docKeys` (Array<String>, optional): Array of document keys for additional context.
  * - `executor` (Function, optional): A custom function to execute tasks when the chatbot calls a tool. it should return {textForUser: [], commandsToConfirm: []}
  * - `editable` (Boolean, optional): controls if settings can be edited or not if not you must give config prop.
@@ -215,17 +246,21 @@
  */
 import { reactive, ref, computed, toRaw, onMounted, onUnmounted, nextTick } from 'vue';
 import { useChatBotStore } from '../stores/ChatBotStore';
+import { useKokoroStore } from '../stores/KokoroStore';
 import { useErrorStore } from '../stores/ErrorStore';
 import { useDraggable } from '../composables/useDraggable';
 import SwitchPanel from './SwitchPanel.vue';
+import ToolTip from './ToolTip.vue';
 import ChatBotModelOptions from './ChatBotModelOptions.vue';
 import RemoteOptions from './RemoteOptions.vue';
 import MultiProgressNodal from './MultiProgressModal.vue';
 import ConfirmModal from './ConfirmModal.vue';
+import KokoroModelOptions from './KokoroModelOptions.vue';
 
 const { position, onMouseDown, onTouchStart, isDragging, setPosition } = useDraggable();
 const ErrorStore = useErrorStore();
 const ChatBotStore = useChatBotStore();
+const KokoroStore = useKokoroStore();
 
 /**
  * @brief scroll the element into view when rendered or updated.
@@ -302,16 +337,20 @@ const props = defineProps({
     config:{
         type: Object,
         required: false,
+        default: null
     }
 });
 const chatBox = ref(null);
 let parentElementDisplay = ref(null);
 let observer;
+const CHATBOT_SETTINGS_KEY = 'chatbotWidget#generateSpeech';
 const data = reactive({
     chatOpened: false,
     openOptions: false,
     expanded: false,
     processingMessage: false,
+    processingAudio: false,
+    generateSpeech: JSON.parse(localStorage.getItem(CHATBOT_SETTINGS_KEY) || JSON.stringify(false)),
     message: "",
     pendingMsg: ""
 });
@@ -319,6 +358,9 @@ const data = reactive({
 const chatHistory = computed(() => {
     return ChatBotStore.getChatHistory;
 });
+const onChange = () => {
+    localStorage.setItem(CHATBOT_SETTINGS_KEY, data.generateSpeech);
+}
 const togglePanel = () => {
     let wasLocal = ChatBotStore.isLocal;
     ChatBotStore.isLocal = !ChatBotStore.isLocal;
@@ -340,11 +382,14 @@ const isChatBotOnline = computed(() => {
 });
 const loadChatBot = () => {
     if(ChatBotStore.isLocal){
-        if(!ChatBotStore.hasModelLoaded()){
+        if(!ChatBotStore.hasModelLoaded){
             props.emitter.emit("ChatBotWidget#loadChatBotModel");
         }
     }else{
         ChatBotStore.requestModelLoad();
+    }
+    if(!KokoroStore.hasModelLoaded && data.generateSpeech){
+        KokoroStore.requestModelLoad();
     }
 };
 const toggleMessageWindow = () => {
@@ -433,6 +478,26 @@ const resetChat = () => {
     }
     ChatBotStore.addMessage("assistant", props.greetings);
 };
+const playMessage = async (text) => {
+    let audio = await KokoroStore.getAudio(text);
+    if(audio){
+        playAudio(audio);
+    }else{
+        if(KokoroStore.hasModelLoaded && !data.processingAudio){
+            data.processingAudio = true;
+            KokoroStore.requestAudioGen(text);
+        }else{
+            ErrorStore.push("The Speech generation model is not loaded, please load it first.");
+        }
+    }
+};
+const audioPlayer = ref(null);
+const playAudio = (audio) => {
+    if(audioPlayer.value){
+        audioPlayer.value.src = audio;
+        audioPlayer.value.play();
+    }
+};
 onMounted(() => {
     props.emitter.on('ChatBotWidget#loadChatBotModel', () => {
         setTimeout(() => {
@@ -445,12 +510,41 @@ onMounted(() => {
             });
         }, 2000);
     });
+    props.emitter.on('ChatBotWidget#loadKokoroModel', () => {
+        setTimeout(() => {
+            props.emitter.emit('ChatBotWidget#requestMultiProgressBar', {
+                status: "setup",
+                title: "downloading or loading Kokoro model",
+                onLoad: async () => {
+                    KokoroStore.requestModelLoad();
+                }
+            });
+        }, 2000);
+    });
+    KokoroStore.channel.on('ChatBotWidget#audioResp', (e) => {
+        data.processingAudio = false;
+        playAudio(e.audio);
+    });
+    KokoroStore.channel.on('ChatBotWidget#ToEmitter', (e) => {
+        props.emitter.emit(e.eventName, e.event);
+    });
     ChatBotStore.channel.on('ChatBotWidget#ToEmitter', (e) => {
         props.emitter.emit(e.eventName, e.event);
     });
-    ChatBotStore.channel.on('ChatBotWidget#done', () => {
+    ChatBotStore.channel.on('ChatBotWidget#done', async () => {
         data.processingMessage = false;
         data.pendingMsg = "";
+        if(KokoroStore.hasModelLoaded && data.generateSpeech && !data.processingAudio){
+            data.processingAudio = true;
+            let text = ChatBotStore.getLastMessage().content;
+            let audio = await KokoroStore.getAudio(text);
+            if(audio){
+                playAudio(audio);
+                data.processingAudio = false;
+            }else{
+                KokoroStore.requestAudioGen(text);
+            }
+        }
     });
     ChatBotStore.channel.on('ChatBotWidget#stream', (e) => {
         if(data.processingMessage){
@@ -461,7 +555,7 @@ onMounted(() => {
     if(!props.editable){
         const applyConfig = (config, store) => {
             for(const key in config){
-                if(config.hasOwnProperty(key) && 
+                if(Object.prototype.hasOwnProperty.call(config, key) && 
                     config[key] !== undefined){
                     if(typeof config[key] === 'object' && 
                         !Array.isArray(config[key])){
@@ -475,8 +569,15 @@ onMounted(() => {
                     }
                 }
             }
+        };
+        if(props.config === null){
+            throw Error("if props.editable is false, you need to provide a valid props.config, props.config is null");
         }
-        applyConfig(props.config, ChatBotStore);
+        if(props.config.generateSpeech){
+            data.generateSpeech = props.config.generateSpeech;
+        }
+        applyConfig(props.config.llm, ChatBotStore);
+        applyConfig(props.config.tts, KokoroStore);
     }
     setTimeout(() => {
         resetChat();
@@ -503,7 +604,10 @@ onUnmounted(() => {
     ChatBotStore.channel.off('ChatBotWidget#done');
     ChatBotStore.channel.off('ChatBotWidget#stream');
     ChatBotStore.channel.off('ChatBotWidget#ToEmitter');
+    KokoroStore.channel.off('ChatBotWidget#ToEmitter');
+    KokoroStore.channel.off('ChatBotWidget#audioResp');
     props.emitter.off("ChatBotWidget#loadChatBotModel");
+    props.emitter.off('ChatBotWidget#loadKokoroModel');
     if(observer){
         observer.disconnect();
     }
@@ -887,6 +991,54 @@ onUnmounted(() => {
         flex-flow: row nowrap;
         font-size: 0.9rem;
         margin-top: 2px;
+    }
+    .labelInputArea {
+        display: block;
+        padding-top: 0.31rem;
+    }
+    .labelInputArea label{
+        width: 10.3rem;
+        display: inline-block;
+        margin: 0rem 0rem 0rem 0.93rem;
+    }
+    .labelInputArea input[type=checkbox]{
+        background-color: green;
+        color:lightgreen;
+        border: solid lightgreen;
+        cursor: pointer;
+        display: inline-grid;
+        place-content: center;
+        grid-template-columns: 0.5em auto;
+        gap: 0.1em;
+        font-size: 2rem;
+        font-weight: bold;
+        -webkit-appearance: none;
+        appearance: none;
+        box-shadow: inset 0rem 0rem 0.2rem 0.125rem black;
+    }
+    .labelInputArea input[type="checkbox"]::before {
+        content: "";
+        width: 0.65em;
+        height: 0.65em;
+        transform: scale(0);
+        transition: 120ms transform cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: inset 2em 2em lightgreen;
+        transform-origin: top left;
+        clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    }
+    .labelInputArea input[type="checkbox"]:checked::before {
+        transform: scale(1);
+    }
+    .option-box {
+        text-align: center;
+        margin-bottom: 0.6rem;
+    }
+    @media only screen and (max-width: 1280px){
+        .labelInputArea label{
+            width: 10.6rem;
+            display: inline-block;
+            margin: 0rem 0rem 0rem 0.93rem;
+        }
     }
     @keyframes pulse{
         0%, 100% {

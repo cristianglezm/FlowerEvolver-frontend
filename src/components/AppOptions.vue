@@ -21,6 +21,11 @@
       <label for="loadChatBotModel">Load ChatBot: </label>
       <input id="loadChatBotModel" v-model="FlowerStore.settings.loadChatBotModel" type="checkbox" @change="saveSettings(); loadChatBotModel();">
     </div>
+    <div id="loadModelKokoro-option" class="option-box labelInputArea">
+      <ToolTip :info="'if checked the speech generation (Kokoro) model will be loaded when the website is loaded.'" />
+      <label for="loadKokoroModel">Load Kokoro: </label>
+      <input id="loadKokoroModel" v-model="FlowerStore.settings.loadKokoroModel" type="checkbox" @change="saveSettings(); loadKokoroModel();">
+    </div>
     <div id="magnification-option" class="option-box labelInputArea">
       <ToolTip :info="'Adjust the zoom magnification to enhance the view.'" />
       <label for="magnification-range">Magnification:</label>
@@ -69,6 +74,11 @@ const loadCaptionerModel = () => {
 const loadChatBotModel = () => {
     if(FlowerStore.settings.loadChatBotModel){
         emitter.emit('ChatBotWidget#loadChatBotModel');
+    }
+};
+const loadKokoroModel = () => {
+    if(FlowerStore.settings.loadKokoroModel){
+        emitter.emit('ChatBotWidget#loadKokoroModel');
     }
 };
 const persist = async () => {

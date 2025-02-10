@@ -97,6 +97,10 @@ export const useChatBotStore = defineStore('ChatBotStore', {
         getChatHistory: (state) => {
             return state.chatHistory;
         },
+        getLastMessage: (state) => () => {
+            let size = state.chatHistory.length;
+            return state.chatHistory[size - 1];
+        },
         hasModelLoaded: (state) => {
             return state.isModelLoaded;
         },
