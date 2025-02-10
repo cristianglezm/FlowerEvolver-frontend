@@ -65,6 +65,9 @@ onMounted(() => {
   if(FlowerStore.settings.loadChatBotModel){
     emitter.emit('ChatBotWidget#loadChatBotModel');
   }
+  if(FlowerStore.settings.loadKokoroModel){
+    emitter.emit('ChatBotWidget#loadKokoroModel');
+  }
 });
 onUnmounted(() => {
   CaptionerStore.channel.off('App#ToEmitter');
