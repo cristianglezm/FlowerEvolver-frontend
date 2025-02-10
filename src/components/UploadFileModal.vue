@@ -47,7 +47,6 @@
  * });
  */
 import { reactive, onMounted, onBeforeUnmount } from 'vue';
-import { useFlowerStore } from '../stores/FlowerStore';
 import { useErrorStore } from '../stores/ErrorStore';
 
 const props = defineProps({
@@ -66,7 +65,6 @@ const props = defineProps({
 });
 const data = reactive({});
 
-let FlowerStore = useFlowerStore();
 const ErrorStore = useErrorStore();
 
 const openModal = () => {

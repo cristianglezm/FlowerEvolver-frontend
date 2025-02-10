@@ -15,7 +15,7 @@
 <script setup>
 
 import { onMounted, reactive } from 'vue';
-import { STORAGE_KEY_GARDEN, useFlowerStore } from '../stores/FlowerStore';
+import { STORAGE_KEY_GARDEN } from '../stores/FlowerStore';
 import gardenWorker from '../workers/garden.worker?worker';
 import WorkerManager from '../stores/WorkerManager';
 import mitt from 'mitt';
@@ -24,7 +24,6 @@ import { useErrorStore } from '../stores/ErrorStore';
 const gardenRadius = 8;
 const STORAGE_KEY_WARNING = "FlowerEvolverShowWarning";
 
-let FlowerStore = useFlowerStore();
 const ErrorStore = useErrorStore();
 const emitter = mitt();
 let wm = new WorkerManager(emitter);
