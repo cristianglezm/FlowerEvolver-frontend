@@ -130,15 +130,21 @@
             <label for="generateSpeech">Generate Speech: </label>
             <input id="generateSpeech" v-model="data.generateSpeech" type="checkbox" @change="onChange">
           </div>
-          <KokoroModelOptions />
-          <SwitchPanel :mode="ChatBotStore.isLocal" :left="'Model Options'" :right="'Remote Options'" @on-change="togglePanel">
-            <template #left>
-              <ChatBotModelOptions />
-            </template>
-            <template #right>
-              <LLMRemoteOptions />
-            </template>
-          </SwitchPanel>
+          <details style="margin: 10px;">
+            <summary class="desplegable-btn">LLM Options</summary>
+            <SwitchPanel :mode="ChatBotStore.isLocal" :left="'Model Options'" :right="'Remote Options'" @on-change="togglePanel">
+              <template #left>
+                <ChatBotModelOptions />
+              </template>
+              <template #right>
+                <LLMRemoteOptions />
+              </template>
+            </SwitchPanel>
+          </details>
+          <details style="margin: 10px;">
+            <summary class="desplegable-btn">TTS Options</summary>
+            <KokoroModelOptions />
+          </details>
         </div>
       </dialog>
     </div>
@@ -881,6 +887,26 @@ onUnmounted(() => {
         color: green;
     }
     .safe-button:disabled{
+        opacity: 0.5;
+        cursor: not-allowed !important;
+    }
+    .desplegable-btn{
+        font-size: x-large;
+        border: solid 1px lightgreen;
+        border-radius: 25px;
+        padding: 2px 5px 2px 5px;
+        box-shadow: inset 1px 1px 10px 2px lightgreen;
+        cursor: pointer;
+        margin-bottom: 20px;
+        margin-top: 20px;
+    }
+    .desplegable-btn:hover{
+        background-color: lightgreen;
+        color: green;
+        border: solid 1px green;
+        box-shadow: inset 1px 1px 10px 2px black;
+    }
+    .desplegable-btn:disabled{
         opacity: 0.5;
         cursor: not-allowed !important;
     }
