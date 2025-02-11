@@ -136,7 +136,7 @@
               <ChatBotModelOptions />
             </template>
             <template #right>
-              <RemoteOptions />
+              <LLMRemoteOptions />
             </template>
           </SwitchPanel>
         </div>
@@ -252,7 +252,7 @@ import { useDraggable } from '../composables/useDraggable';
 import SwitchPanel from './SwitchPanel.vue';
 import ToolTip from './ToolTip.vue';
 import ChatBotModelOptions from './ChatBotModelOptions.vue';
-import RemoteOptions from './RemoteOptions.vue';
+import LLMRemoteOptions from './LLMRemoteOptions.vue';
 import MultiProgressNodal from './MultiProgressModal.vue';
 import ConfirmModal from './ConfirmModal.vue';
 import KokoroModelOptions from './KokoroModelOptions.vue';
