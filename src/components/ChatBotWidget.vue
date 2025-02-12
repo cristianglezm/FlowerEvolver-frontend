@@ -105,7 +105,7 @@
           </div>
         </div>
         <div class="chat-textarea inlined-menu">
-          <textarea
+          <textarea v-focus="!data.processingMessage"
             v-model="data.message" type="textarea" :class="{'disabled': data.processingMessage}" 
             :disabled="data.processingMessage"
             placeholder="Type a message..."
@@ -278,6 +278,16 @@ const vScrollIntoView = {
     },
     updated: (el) => {
         el.scrollIntoView();
+/** 
+ * @brief Custom directive to set focus on an element based on a Boolean value. 
+ * @param {Boolean} - The Boolean value to control the element's focus. 
+ * @example <input v-focus="shouldFocus" />
+ */
+const vFocus = {
+    updated: (el, binding) => {
+        if(binding.value){
+            el.focus();
+        }
     }
 };
 /** 
@@ -577,7 +587,7 @@ onMounted(() => {
             }
         };
         if(props.config === null){
-            throw Error("if props.editable is false, you need to provide a valid props.config, props.config is null");
+            throw Error("props.config is null, if props.editable is false, you need to provide a valid props.config");
         }
         if(props.config.generateSpeech){
             data.generateSpeech = props.config.generateSpeech;
