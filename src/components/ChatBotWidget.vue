@@ -271,13 +271,22 @@ const KokoroStore = useKokoroStore();
 /**
  * @brief scroll the element into view when rendered or updated.
  * @param {None} No parameters expected.
+ * @example <div v-scroll-into-view >...</div>
  */
 const vScrollIntoView = {
     mounted: (el) => { 
-        el.scrollIntoView(); 
+        el.scrollIntoView({
+            block: "end",
+            behavior: "smooth"
+        });
     },
     updated: (el) => {
-        el.scrollIntoView();
+        el.scrollIntoView({
+            block: "end",
+            behavior: "smooth"
+        });
+    }
+};
 /** 
  * @brief Custom directive to set focus on an element based on a Boolean value. 
  * @param {Boolean} - The Boolean value to control the element's focus. 
