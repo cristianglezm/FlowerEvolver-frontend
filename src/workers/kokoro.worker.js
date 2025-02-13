@@ -1,4 +1,5 @@
-import { Kokoro, audioGen } from '../stores/KokoroStore/Kokoro';
+import { Kokoro, audioGen, rAudioGen } from '../stores/KokoroStore/Kokoro';
+
 /**
  * @brief Web Worker that manages tasks related to loading a Kokoro model, resetting it, and processing text to audio.
  * 
@@ -17,6 +18,7 @@ import { Kokoro, audioGen } from '../stores/KokoroStore/Kokoro';
  *   - `"loadModel"`: Load the model with new configuration options.
  *   - `"reset"`: Reset the chatbot model and clear its state.
  *   - `"audioGen"`: generate audio for 'text'
+ *   - `"rAudioGen"': generate audio for 'text' in the configured remote server.
  * 
  * @param {Object} e.data.modelOptions - Configuration options for the model (only for the `"loadModel"` job type).
  *   @property {String} host - The host for the model (e.g., `"huggingface"` or `"localhost"`).
@@ -140,6 +142,16 @@ const _audioGen = async (e) => {
         text: text
     });
 };
+const _rAudioGen = async (e) => {
+    const text = e.data.text;
+    const remoteOptions = e.data.remoteOptions;
+    let blob = await rAudioGen(text, remoteOptions);
+    self.postMessage({
+        jobType: "audioResp",
+        audio: URL.createObjectURL(blob),
+        text: text
+    });
+};
 self.onmessage = async (e) => {
     const jobType = e.data.jobType;
     switch(jobType){
@@ -158,10 +170,10 @@ self.onmessage = async (e) => {
             try{
                 await Kokoro.reset();
             }catch(e){
-              self.postMessage({
-                jobType: "error",
-                error: e
-              });
+                self.postMessage({
+                  jobType: "error",
+                  error: e
+                });
             }
         }
             break;
@@ -169,10 +181,21 @@ self.onmessage = async (e) => {
             try{
                 _audioGen(e);
             }catch(e){
-              self.postMessage({
-                jobType: "error",
-                error: e
-              });
+                self.postMessage({
+                  jobType: "error",
+                  error: e
+                });
+            }
+        }
+            break;
+        case "rAudioGen":{
+            try{
+                _rAudioGen(e);
+            }catch(e){
+                self.postMessage({
+                  jobType: "error",
+                  error: e
+                });
             }
         }
             break;
