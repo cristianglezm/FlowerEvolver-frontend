@@ -49,11 +49,15 @@ export const hashText = async (text) => {
 }
 
 export const STORAGE_KEY_KOKORO_MODEL_OPTIONS = "FlowerEvolverKokoroModelOptions";
+export const STORAGE_KEY_KOKORO_REMOTE_OPTIONS = "FlowerEvolverKokoroRemoteOptions";
+export const STORAGE_KEY_KOKORO_IS_LOCAL = "FlowerEvolverKokoroIsLocal";
+
 export const useKokoroStore = defineStore('KokoroStore', {
     state: () => ({
         wm,
         channel,
         isModelLoaded: false,
+        isLocal: JSON.parse(localStorage.getItem(STORAGE_KEY_KOKORO_IS_LOCAL) || JSON.stringify(true)),
         modelOptions: JSON.parse(localStorage.getItem(STORAGE_KEY_KOKORO_MODEL_OPTIONS) || JSON.stringify({
             host: "huggingface",
             model: "onnx-community/Kokoro-82M-v1.0-ONNX",
@@ -62,6 +66,12 @@ export const useKokoroStore = defineStore('KokoroStore', {
             voice: "af_bella"
         })),
         oldModelOptions: null,
+        remoteOptions: JSON.parse(localStorage.getItem(STORAGE_KEY_KOKORO_REMOTE_OPTIONS) || JSON.stringify({
+            url: "http://localhost:8880",
+            api_key: "sk-no-key-required",
+            model: "kokoro",
+            voice: "af_bella"
+        })),
         audios: new Map()
     }),
     getters: {
@@ -93,21 +103,46 @@ export const useKokoroStore = defineStore('KokoroStore', {
             this.audios = new Map();
         },
         async requestAudioGen(text){
-            if(this.isModelLoaded){
+            if(this.isLocal){
+                if(this.isModelLoaded){
+                    this.wm.sendRequest('kokoro', {
+                        jobType: "audioGen",
+                        text: text
+                    });
+                }
+            }else{
                 this.wm.sendRequest('kokoro', {
-                    jobType: "audioGen",
-                    text: text
-                });
+                    jobType: "rAudioGen",
+                    text: text,
+                    remoteOptions: structuredClone(toRaw(this.remoteOptions))
+                })
             }
         },
         async requestModelLoad(){
-            this.oldModelOptions = structuredClone(toRaw(this.modelOptions));
-            this.wm.sendRequest('kokoro', {
-                jobType: "loadModel",
-                modelOptions: structuredClone(toRaw(this.modelOptions))
-            });
+            if(this.isLocal){
+                this.oldModelOptions = structuredClone(toRaw(this.modelOptions));
+                this.wm.sendRequest('kokoro', {
+                    jobType: "loadModel",
+                    modelOptions: structuredClone(toRaw(this.modelOptions))
+                });
+            }else{
+                fetch(this.remoteOptions.url + "/health")
+                .then(response => {
+                    if(!response.ok){
+                        throw Error("health endpoint not available.");
+                    }
+                    response.json();
+                })
+                .then((server) => {
+                    this.isModelLoaded = server.status === "ok";
+                }) // it doesn't support /health, assume is ok (openAI, hf, etc)
+                .catch((_) => this.isModelLoaded = true)
+            }
         },
         async requestReset(){
+            if(this.isLocal){
+                return;
+            }
             this.isModelLoaded = false;
             this.wm.sendRequest('kokoro', {
                 jobType: "reset",
@@ -116,5 +151,11 @@ export const useKokoroStore = defineStore('KokoroStore', {
         async saveModelOptions(){
             localStorage.setItem(STORAGE_KEY_KOKORO_MODEL_OPTIONS, JSON.stringify(this.modelOptions));
         },
+        async saveRemoteOptions(){
+            localStorage.setItem(STORAGE_KEY_KOKORO_REMOTE_OPTIONS, JSON.stringify(this.remoteOptions));
+        },
+        async saveIsLocal(){
+            localStorage.setItem(STORAGE_KEY_KOKORO_IS_LOCAL, this.isLocal);
+        }
     }
 });
