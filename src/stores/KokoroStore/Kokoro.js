@@ -1,4 +1,5 @@
 import { env } from '@huggingface/transformers';
+import { HfInference } from '@huggingface/inference';
 import { KokoroTTS } from "kokoro-js";
 import { ModelCache, isGPUAvailable } from '../AIUtils';
 
@@ -80,7 +81,13 @@ export class Kokoro{
         }
     }
 };
-
+/**
+ * @brief Generates audio from text using Kokoro.
+ *
+ * @param {string} text - The text to be converted to speech.
+ *
+ * @returns {Promise<Object>} - The generated audio.
+ */
 export const audioGen = async (text) => {
     let tts = await Kokoro.getInstance();
     let audio = await tts.generate(text, {
@@ -88,5 +95,36 @@ export const audioGen = async (text) => {
     });
     return audio;
 };
-
-export default { CACHE_KEY, VOICES_CACHE_KEY, Kokoro, audioGen, isGPUAvailable };
+/**
+ * @brief Generates audio from text using remote text-to-speech (TTS) service.
+ *
+ * @param {string} text - The text to be converted to speech.
+ * @param {Object} [remoteOptions] - Configuration options for the remote TTS service.
+ * @param {string} [remoteOptions.url="http://localhost:8880"] - The base URL of the remote TTS service.
+ * @param {string} [remoteOptions.api_key="sk-no-key-required"] - The API key for the remote TTS service.
+ * @param {string} [remoteOptions.model="kokoro"] - The TTS model to be used.
+ * @param {string} [remoteOptions.voice="af_bella"] - The voice to be used.
+ * 
+ * @returns {Promise<Blob>} - The generated audio as a Blob.
+ */
+export const rAudioGen = async (text, remoteOptions = {
+    url: "http://localhost:8880",
+    api_key: "sk-no-key-required",
+    model: "kokoro",
+    voice: "af_bella"
+}) => {
+    const fullUrl = remoteOptions.url + "/v1/audio/speech";
+    const hf = new HfInference(remoteOptions.api_key).endpoint(fullUrl);
+    let audio = await hf.textToSpeech({
+        "model": remoteOptions.model,
+        "input": text,
+        "voice": remoteOptions.voice,
+        "stream": true,
+        "speed": 1.0,
+        "response_format": "wav",
+        "lang_code": "a",
+        "return_download_link": false
+    });
+    return audio;
+};
+export default { CACHE_KEY, VOICES_CACHE_KEY, Kokoro, audioGen, rAudioGen, isGPUAvailable };

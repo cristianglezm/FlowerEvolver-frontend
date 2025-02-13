@@ -105,8 +105,9 @@
           </div>
         </div>
         <div class="chat-textarea inlined-menu">
-          <textarea v-focus="!data.processingMessage"
-            v-model="data.message" type="textarea" :class="{'disabled': data.processingMessage}" 
+          <textarea
+            v-model="data.message"
+            v-focus="!data.processingMessage" type="textarea" :class="{'disabled': data.processingMessage}" 
             :disabled="data.processingMessage"
             placeholder="Type a message..."
             @keydown="handleEnter"
@@ -132,7 +133,7 @@
           </div>
           <details style="margin: 10px;">
             <summary class="desplegable-btn">LLM Options</summary>
-            <SwitchPanel :mode="ChatBotStore.isLocal" :left="'Model Options'" :right="'Remote Options'" @on-change="togglePanel">
+            <SwitchPanel :mode="ChatBotStore.isLocal" :left="'Model Options'" :right="'Remote Options'" @on-change="togglePanelLLM">
               <template #left>
                 <ChatBotModelOptions />
               </template>
@@ -143,7 +144,14 @@
           </details>
           <details style="margin: 10px;">
             <summary class="desplegable-btn">TTS Options</summary>
-            <KokoroModelOptions />
+            <SwitchPanel :mode="KokoroStore.isLocal" :left="'Model Options'" :right="'Remote Options'" @on-change="togglePanelKokoro">
+              <template #left>
+                <KokoroModelOptions />
+              </template>
+              <template #right>
+                <TTSRemoteOptions />
+              </template>
+            </SwitchPanel>
           </details>
         </div>
       </dialog>
@@ -196,6 +204,7 @@
  *              }
  *          },
  *          tts:{
+ *              isLocal: true,
  *              modelOptions:{
  *                  host: "huggingface",
  *                  model: "onnx-community/Kokoro-82M-v1.0-ONNX",
@@ -203,6 +212,12 @@
  *                  dtype: "q8",
  *                  voice: "af_bella"
  *              },
+ *              remoteOptions:{
+ *                  url: "http://localhost:8880",
+ *                  api_key: "sk-no-key-required",
+ *                  model: "kokoro",
+ *                  voice: "af_bella"
+ *              }
  *          }
  *     }"
  *   />
@@ -258,10 +273,11 @@ import { useDraggable } from '../composables/useDraggable';
 import SwitchPanel from './SwitchPanel.vue';
 import ToolTip from './ToolTip.vue';
 import ChatBotModelOptions from './ChatBotModelOptions.vue';
+import KokoroModelOptions from './KokoroModelOptions.vue';
 import LLMRemoteOptions from './LLMRemoteOptions.vue';
+import TTSRemoteOptions from './TTSRemoteOptions.vue';
 import MultiProgressNodal from './MultiProgressModal.vue';
 import ConfirmModal from './ConfirmModal.vue';
-import KokoroModelOptions from './KokoroModelOptions.vue';
 
 const { position, onMouseDown, onTouchStart, isDragging, setPosition } = useDraggable();
 const ErrorStore = useErrorStore();
@@ -386,7 +402,7 @@ const chatHistory = computed(() => {
 const onChange = () => {
     localStorage.setItem(CHATBOT_SETTINGS_KEY, data.generateSpeech);
 }
-const togglePanel = () => {
+const togglePanelLLM = () => {
     let wasLocal = ChatBotStore.isLocal;
     ChatBotStore.isLocal = !ChatBotStore.isLocal;
     ChatBotStore.saveIsLocal();
@@ -399,6 +415,22 @@ const togglePanel = () => {
         if(ChatBotStore.hasModelLoaded){
             // reload local model when user changes to local
             props.emitter.emit("ChatBotWidget#loadChatBotModel");
+        }
+    }
+};
+const togglePanelKokoro = () => {
+    let wasLocal = KokoroStore.isLocal;
+    KokoroStore.isLocal = !KokoroStore.isLocal;
+    KokoroStore.saveIsLocal();
+    if(wasLocal){
+        if(KokoroStore.hasModelLoaded){
+            // reset local model when user changes to remote
+            KokoroStore.requestReset();
+        }
+    }else{
+        if(KokoroStore.hasModelLoaded){
+            // reload local model when user changes to local
+            props.emitter.emit("ChatBotWidget#loadKokoroModel");
         }
     }
 };
