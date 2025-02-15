@@ -132,7 +132,7 @@
             <input id="generateSpeech" v-model="data.generateSpeech" type="checkbox" @change="onChange">
           </div>
           <details style="margin: 10px;">
-            <summary class="desplegable-btn">LLM Options</summary>
+            <summary class="bubble-btn">LLM Options</summary>
             <SwitchPanel :mode="ChatBotStore.isLocal" :left="'Model Options'" :right="'Remote Options'" @on-change="togglePanelLLM">
               <template #left>
                 <ChatBotModelOptions />
@@ -143,7 +143,7 @@
             </SwitchPanel>
           </details>
           <details style="margin: 10px;">
-            <summary class="desplegable-btn">TTS Options</summary>
+            <summary class="bubble-btn">TTS Options</summary>
             <SwitchPanel :mode="KokoroStore.isLocal" :left="'Model Options'" :right="'Remote Options'" @on-change="togglePanelKokoro">
               <template #left>
                 <KokoroModelOptions />
@@ -941,7 +941,7 @@ onUnmounted(() => {
         opacity: 0.5;
         cursor: not-allowed !important;
     }
-    .desplegable-btn{
+    .bubble-btn{
         font-size: x-large;
         border: solid 1px lightgreen;
         border-radius: 25px;
@@ -951,13 +951,13 @@ onUnmounted(() => {
         margin-bottom: 20px;
         margin-top: 20px;
     }
-    .desplegable-btn:hover{
+    .bubble-btn:hover{
         background-color: lightgreen;
         color: green;
         border: solid 1px green;
         box-shadow: inset 1px 1px 10px 2px black;
     }
-    .desplegable-btn:disabled{
+    .bubble-btn:disabled{
         opacity: 0.5;
         cursor: not-allowed !important;
     }

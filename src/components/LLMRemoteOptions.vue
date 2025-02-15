@@ -4,12 +4,12 @@
       <h1 style="text-align: center;">Remote Options</h1>
     </span>
     <div class="labelInputArea">
-      <ToolTip :info="'the backend url for the llm server'" />
+      <ToolTip :info="'the backend url for the llm server(llama.cpp, openAI, huggingface)'" />
       <label for="url">URL: </label>
       <input id="url" v-model="data.remoteOptions.url" type="text" @change="saveRemoteOptions">
     </div>
     <div class="labelInputArea">
-      <ToolTip :info="'api key to access the backend if needed'" />
+      <ToolTip :info="'api key to access the backend if needed (it will be saved to localStorage)'" />
       <label for="apiKey">API Key: </label>
       <input id="apiKey" v-model="data.remoteOptions.api_key" :placeholder="data.remoteOptions.api_key" type="text" @change="saveRemoteOptions">
     </div>
@@ -19,7 +19,7 @@
       <input id="model" v-model="data.remoteOptions.model" type="text" @change="saveRemoteOptions">
     </div>
     <details style="margin: 10px;">
-      <summary class="desplegable-btn">Advanced Options</summary>
+      <summary class="bubble-btn">Advanced Options</summary>
       <div class="labelInputArea">
         <ToolTip :info="'Limits the maximum number of tokens generated in one response.'" />
         <label for="max-tokens">max tokens: </label>
@@ -67,19 +67,25 @@
   .remote-options-container{
     margin-top: 0.9em;
   }
-  .desplegable-btn{
+  .bubble-btn{
     font-size: x-large;
-    border: solid lightgreen;
+    border: solid 1px lightgreen;
     border-radius: 25px;
     padding: 2px 5px 2px 5px;
     box-shadow: inset 1px 1px 10px 2px lightgreen;
     cursor: pointer;
+    margin-bottom: 20px;
+    margin-top: 20px;
   }
-  .desplegable-btn:hover{
+  .bubble-btn:hover{
     background-color: lightgreen;
     color: green;
-    border: solid green;
+    border: solid 1px green;
     box-shadow: inset 1px 1px 10px 2px black;
+  }
+  .bubble-btn:disabled{
+      opacity: 0.5;
+      cursor: not-allowed !important;
   }
   .labelInputArea{
       display: block;
