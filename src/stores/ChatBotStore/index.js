@@ -56,6 +56,35 @@ wm.onResponse('chatbot', (data) => {
             channel.emit('ChatBotWidget#stream', data.response);
         }
             break;
+        case "embeddings":{
+            let type = data.type;
+            let embeddings = data.embeddings;
+            let text = data.text;
+            switch(type){
+                case "user":{
+                    channel.emit('ChatBotWidget#userEmbeddings', {
+                        text: text,
+                        embeddings: embeddings
+                    });
+                }
+                    break;
+                case "document":{
+                    channel.emit('ChatBotWidget#documentEmbeddings', {
+                        text: text,
+                        embeddings: embeddings
+                    });
+                }
+                    break;
+                case "tool":{
+                    channel.emit('ChatBotWidget#toolEmbeddings', {
+                        text: text,
+                        embeddings: embeddings
+                    });
+                }
+                    break;
+            }
+        }
+            break;
         case "done":{
             channel.emit('ChatBotWidget#done');
         }
@@ -160,6 +189,22 @@ export const useChatBotStore = defineStore('ChatBotStore', {
                     chat_template,
                     tools,
                     documents
+                });
+            }
+        },
+        async requestEmbeddings(type, texts){
+            if(this.isLocal){
+                this.wm.sendRequest('chatbot', {
+                    jobType: "embeddings",
+                    type: type,
+                    texts: texts
+                });
+            }else{
+                this.wm.sendRequest('chatbot', {
+                    jobType: "rEmbeddings",
+                    type: type,
+                    texts: texts,
+                    remoteOptions: structuredClone(toRaw(this.remoteOptions)),
                 });
             }
         },

@@ -171,7 +171,6 @@
       }else{
         data.forceReload = false;
       }
-      /// @todo review if this is saved or not
       KokoroStore.saveModelOptions();
       setCorrectBtnTitle();
     };
