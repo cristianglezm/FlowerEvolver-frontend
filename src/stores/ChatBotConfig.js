@@ -1,7 +1,7 @@
 import { useFlowerStore } from "./FlowerStore";
 import { useCaptionerStore } from "./CaptionerStore";
 import { useRouter } from "vue-router";
-import { useDocumentStore } from "./documentStore";
+import { useVectorStore } from "./vectorStore";
 
 export const execCommand = (text) => {
     let textForUser = new Array();
@@ -36,11 +36,11 @@ export const execCommand = (text) => {
     for(let i=0;i<command.length;++i){
         switch(command[i].name){
             case "getDocument":{
-                let documentStore = useDocumentStore();
+                let vectorStore = useVectorStore();
                 let title = command[i].parameters.title;
                 if(title){
-                    if(documentStore.hasDocument(title)){
-                        textForUser.push(`${title}:\n${documentStore.getDocument(title)}`)
+                    if(vectorStore.hasDocument(title)){
+                        textForUser.push(`${title}:\n\n${vectorStore.getDocument(title)}`)
                     }else{
                         textForUser.push("sorry, I am afraid I don't know the information requested.");
                     }
