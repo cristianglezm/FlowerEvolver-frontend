@@ -5,7 +5,7 @@
     <router-view :key="routes.fullPath" class="view" />
     <AppFooter />
     <div v-show="isChatBotOpened">
-      <ChatBotWidget :emitter="emitter" :chat-template="chat_template" :tools="tools" :docKeys="documentStore.keys()" :executor="execCommand" />
+      <ChatBotWidget :emitter="emitter" :chat-template="chat_template" :tools="tools" :documents="documents" :executor="execCommand" />
     </div>
     <ProgressModal :id="'progressBar'" :channel="emitter" :on="'showProgress'" :update="'updateProgress'" />
     <MultiProgressNodal :id="'multiProgressBar'" :channel="emitter" :on="'requestMultiProgressBar'" />
@@ -25,14 +25,12 @@ import ChatBotWidget from './components/ChatBotWidget.vue';
 import { useRoute } from 'vue-router';
 import { useFlowerStore } from './stores/FlowerStore';
 import { useCaptionerStore } from './stores/CaptionerStore';
-import { useDocumentStore } from './stores/documentStore';
 import { chat_template, tools, documents,  execCommand } from './stores/ChatBotConfig';
 
 const routes = useRoute();
 const emitter = inject('emitter');
 const FlowerStore = useFlowerStore();
 const CaptionerStore = useCaptionerStore();
-const documentStore = useDocumentStore();
 
 const isChatBotOpened = computed(() => {
   return FlowerStore.settings.showChatBot;
@@ -44,7 +42,6 @@ const isLocal = () => {
           routes.path === '/Settings';
 };
 onMounted(() => {
-  documentStore.map(documents);
   emitter.on('App#loadCaptionerModel', () => {
     setTimeout(() => {
         emitter.emit('requestMultiProgressBar', {
