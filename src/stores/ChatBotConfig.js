@@ -1,26 +1,40 @@
 import { useFlowerStore } from "./FlowerStore";
 import { useCaptionerStore } from "./CaptionerStore";
 import { useRouter } from "vue-router";
-import { useDocumentStore } from "./documentStore";
+import { useVectorStore } from "./vectorStore";
 
+// we need this global router initialized in the App to be 
+// able to use goto as useRouter needs to be inside a <script setup>
+let router;
+// we need this global emitter initialized in the App to be 
+// able to use describe (to show and update the DescriptionModal).
+let emitter;
+export const initRouter = () => {
+    router = useRouter();
+};
+export const initEmitter = (channel) => {
+    emitter = channel;
+}
 export const execCommand = (text) => {
+    let infoForUser = new Array();
     let textForUser = new Array();
     let commandsToConfirm = new Array();
-    const makeResult = (textForUser, commandsToConfirm) => {
+    const makeResult = (textForUser = [], commandsToConfirm = [], infoForUser = []) => {
         return {
+            infoForUser: infoForUser,
             textForUser: textForUser,
             commandsToConfirm: commandsToConfirm
         };
     };
     if(text === undefined || text === null){
-        textForUser.push("response was not valid.");
-        return makeResult(textForUser, commandsToConfirm);
+        infoForUser.push("response was not valid.");
+        return makeResult(textForUser, commandsToConfirm, infoForUser);
     }
     let regex = /<tool_call>(.*?)<\/tool_call>/;
     let matches = text.match(regex);
     if(!matches){
         textForUser.push(text);
-        return makeResult(textForUser, commandsToConfirm);
+        return makeResult(textForUser, commandsToConfirm, infoForUser);
     }
     let command;
     try{
@@ -30,110 +44,148 @@ export const execCommand = (text) => {
             textForUser.push(cleanText);
         }
     }catch(_){
-        textForUser.push("I am sorry but I could not parse the command.");
-        return makeResult(textForUser, commandsToConfirm);
+        infoForUser.push("I am sorry but I could not parse the command.");
+        return makeResult(textForUser, commandsToConfirm, infoForUser);
     }
     for(let i=0;i<command.length;++i){
         switch(command[i].name){
             case "getDocument":{
-                let documentStore = useDocumentStore();
-                let title = command[i].parameters.title;
+                const vectorStore = useVectorStore();
+                const title = command[i].parameters?.title;
                 if(title){
-                    if(documentStore.hasDocument(title)){
-                        textForUser.push(`${title}:\n${documentStore.getDocument(title)}`)
+                    if(vectorStore.hasDocument(title)){
+                        infoForUser.push("I got the information requested for you.");
+                        textForUser.push(`${vectorStore.getDocument(title)}`);
                     }else{
-                        textForUser.push("sorry, I am afraid I don't know the information requested.");
+                        infoForUser.push("sorry, I am afraid I don't know the information requested.");
                     }
                 }else{
-                    textForUser.push("title was not valid");
+                    infoForUser.push("title was not valid");
                 }
             }
                 break;
             case "describe":{
-                let CaptionerStore = useCaptionerStore();
-                let FlowerStore = useFlowerStore();
-                let flowerID = command[i].parameters.id;
-                FlowerStore.db.flowers.get(flowerID)
+                const CaptionerStore = useCaptionerStore();
+                const FlowerStore = useFlowerStore();
+                let flowerID = command[i].parameters?.id;
+                if(flowerID){
+                    FlowerStore.db.flowers.get(flowerID)
                     .then((flower) => {
-                        if(CaptionerStore.isModelLoaded){
-                            CaptionerStore.requestDescription({
-                                id: flower.id,
-                                image: flower.image,
-                                isLocal: true
-                            });
-                            textForUser.push("describe command executed");
-                        }else{
-                            textForUser.push("please load the captioner model.");
-                        }
+                        const numPreload = 5;
+                        let lower = flower.id - numPreload;
+                        let offset = Math.min(flower.id - 1, Math.max(lower, 0));
+                        // preload descriptions around the flower we want numPreload * 2
+                        CaptionerStore.loadAndConcatLocalDescriptions(offset, numPreload * 2)
+                        .then(() => {
+                            // give a bit of time for cache to fill in.
+                            setTimeout(() => {
+                                if(CaptionerStore.localDescriptions.has(flower.id)){
+                                    if(emitter){
+                                        emitter.emit('showDescriptionModal', {
+                                            FlowerImage: flower.image,
+                                            FlowerID: flower.id
+                                        });
+                                        // give time for descriptionsModal to show up
+                                        setTimeout(() => {
+                                            emitter.emit('updateDesc', {
+                                                loading: false,
+                                                description: CaptionerStore.getLocalDescription(flower.id)
+                                            });
+                                        }, 500);
+                                    }
+                                    infoForUser.push("describe command executed");
+                                }else{
+                                    if(CaptionerStore.isModelLoaded){
+                                        CaptionerStore.requestDescription({
+                                            id: flower.id,
+                                            image: flower.image,
+                                            isLocal: true
+                                        });
+                                        if(emitter){
+                                            emitter.emit('showDescriptionModal', {
+                                                FlowerImage: flower.image,
+                                                FlowerID: flower.id
+                                            });
+                                        }
+                                        infoForUser.push("describe command executed");
+                                    }else{
+                                        infoForUser.push("please load the captioner model.");
+                                    }
+                                }
+                            }, 500);
+                        })
                     }).catch((_) => {
-                        textForUser.push("I am sorry I couldn't describe the flower because it was not found");
+                        infoForUser.push("I am sorry I couldn't describe the flower because it was not found");
                     });
+                }
             }
                 break;
             case "goto":{
-                let router = useRouter();
-                let path = command[i].parameters.path;
-                let fail = "sorry I could not execute command " + command[i].name;
-                let success = command[i].name + " command executed";
+                if(!router){
+                    throw Error("please call initRouter() in the App");
+                }
+                let path = command[i].parameters?.path;
+                let fail = "sorry I could not execute command goto";
+                let success = "goto command executed";
                 if(path){
                     switch(path){
                         case "Mutations":{
-                            let original = command[i].parameters.pathParameters.mutations.id;
+                            let original = command[i].parameters?.pathParameters?.mutations?.id;
                             if(original){
                                 router.push({name:'Mutations', params:{id: original, isLocal: true}});
-                                textForUser.push(success);
+                                infoForUser.push(success);
                             }else{
-                                textForUser.push("goto Mutations: Flower id not given");
-                                textForUser.push(fail);
+                                infoForUser.push("goto Mutations: Flower id not given");
+                                infoForUser.push(fail);
                             }
                         }
                             break;
                         case "Descendants":{
-                            let father = command[i].parameters.pathParameters.descendants.father;
-                            let mother = command[i].parameters.pathParameters.descendants.mother;
+                            let father = command[i].parameters?.pathParameters?.descendants?.father;
+                            let mother = command[i].parameters?.pathParameters?.descendants?.mother;
                             if(father && mother){
                                 router.push({name:'DescendantsFatherAndMother', params:{father: father, mother: mother, isLocal: "local"}});
-                                textForUser.push(success);
+                                infoForUser.push(success);
                             }else if(father){
                                 router.push({name:'DescendantsFatherOrMother', params:{father:father, isLocal: "local"}});
-                                textForUser.push(success);
+                                infoForUser.push(success);
                             }else{
-                                textForUser.push("father or mother id not given");
-                                textForUser.push(fail);
+                                infoForUser.push("father or mother id not given");
+                                infoForUser.push(fail);
                             }
                         }
                             break;
                         default:{
                             router.push({name: path });
-                            textForUser.push(success);
+                            infoForUser.push(success);
                         }
                             break;
                     }
                 }else{
-                    textForUser.push("goto: path was not found");
+                    infoForUser.push("goto: path was not found");
                 }
             }
                 break;
             case "reproduce":{
                 let FlowerStore = useFlowerStore();
-                let father = command[i].parameters.father;
-                let mother = command[i].parameters.mother;
+                let father = command[i].parameters?.father;
+                let mother = command[i].parameters?.mother;
                 let fail = "reproduce command failed";
                 let success = "reproduce command executed";
                 if(father && mother){
                     FlowerStore.selectLocalFlower({ id: father});
                     FlowerStore.selectLocalFlower({ id: mother});
                     FlowerStore.localReproduce();
-                    textForUser.push(success);
+                    infoForUser.push(success);
                 }else{
-                    textForUser.push("reproduce: father or mother id not given, need both ids.");
-                    textForUser.push(fail);
+                    infoForUser.push("reproduce: father or mother id not given, need both ids.");
+                    infoForUser.push(fail);
                 }
             }
                 break;
             case "mutate":{
                 let FlowerStore = useFlowerStore();
-                let original = command[i].parameters.id;
+                let original = command[i].parameters?.id;
                 let fail = "mutate command failed.";
                 let success = "mutate command executed.";
                 if(original){
@@ -141,40 +193,40 @@ export const execCommand = (text) => {
                     .then((flower) => {
                         FlowerStore.makeLocalMutation(flower);
                     }).catch((_) => {
-                        textForUser.push("mutate command not executed, Flower not found");
+                        infoForUser.push("mutate command not executed, Flower not found");
                     });
-                    textForUser.push(success);
+                    infoForUser.push(success);
                 }else{
-                    textForUser.push("mutate: flower id not given");
-                    textForUser.push(fail);
+                    infoForUser.push("mutate: flower id not given");
+                    infoForUser.push(fail);
                 }
             }
                 break;
             case "makeFlower":{
                 let FlowerStore = useFlowerStore();
                 FlowerStore.makeLocalFlower();
-                textForUser.push("makeFlower command executed");
+                infoForUser.push("makeFlower command executed");
             }
                 break;
-            case "addToFavs":{
+            case "addToFav":{
                 let FlowerStore = useFlowerStore();
                 let fail = "addToFavs command failed";
                 let success = "addToFavs command executed";
-                let id = command[i].parameters.id;
+                let id = command[i].parameters?.id;
                 if(id){
                     FlowerStore.addFlowerToFav(id);
-                    textForUser.push(success);
+                    infoForUser.push(success);
                 }else{
-                    textForUser.push("Flower id not found");
-                    textForUser.push(fail);
+                    infoForUser.push("Flower id not found");
+                    infoForUser.push(fail);
                 }
             }
                 break;
-            case "delfromFavs":{
+            case "deleteFromFav":{
                 let FlowerStore = useFlowerStore();
-                let fail = "delFromFavs command failed";
-                let success = "delFromFavs command executed";
-                let id = command[i].parameters.id;
+                let fail = "deleteFromFav command failed";
+                let success = "deleteFromFav requested confirmation";
+                let id = command[i].parameters?.id;
                 if(id){
                     commandsToConfirm.push({
                         title: `remove flower with id ${id} from favourites`,
@@ -185,10 +237,10 @@ export const execCommand = (text) => {
                             FlowerStore.removeFlowerFromFav(id);
                         }
                     });
-                    textForUser.push(success);
+                    infoForUser.push(success);
                 }else{
-                    textForUser.push("delFromFavs: id not given");
-                    textForUser.push(fail);
+                    infoForUser.push("deleteFromFav: id not given");
+                    infoForUser.push(fail);
                 }
             }
                 break;
@@ -196,7 +248,7 @@ export const execCommand = (text) => {
                 let FlowerStore = useFlowerStore();
                 let fail = "deleteFlower command failed";
                 let success = "deleteFlower requested confirmation";
-                let id = command[i].parameters.id;
+                let id = command[i].parameters?.id;
                 if(id){
                     commandsToConfirm.push({
                         title: `delete flower with id ${id}`,
@@ -207,10 +259,10 @@ export const execCommand = (text) => {
                             FlowerStore.deleteLocalFlower(id);
                         }
                     });
-                    textForUser.push(success);
+                    infoForUser.push(success);
                 }else{
-                    textForUser.push("deleteFlower: id not given");
-                    textForUser.push(fail);
+                    infoForUser.push("deleteFlower: id not given");
+                    infoForUser.push(fail);
                 }
             }
                 break;
@@ -226,11 +278,11 @@ export const execCommand = (text) => {
                             await FlowerStore.deleteAllFlowers();
                         }
                 });
-                textForUser.push(success);
+                infoForUser.push(success);
             }
                 break;
-            case "deleteNonFavs":{
-                let success = "deleteNonFavs requested confirmation";
+            case "deleteNonFavourites":{
+                let success = "deleteNonFavourites requested confirmation";
                 let FlowerStore = useFlowerStore();
                 commandsToConfirm.push({
                     title: 'Delete non favourites',
@@ -241,13 +293,13 @@ export const execCommand = (text) => {
                         await FlowerStore.deleteNonFavourites();
                     }
                 });
-                textForUser.push(success);
+                infoForUser.push(success);
             }
                 break;
-            default: textForUser.push("unknown command " + command[i].name);
+            default: infoForUser.push("unknown command " + command[i].name);
         }
     }
-    return makeResult(textForUser, commandsToConfirm);
+    return makeResult(textForUser, commandsToConfirm, infoForUser);
 };
 export const tools = [
     {
