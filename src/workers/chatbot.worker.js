@@ -1,4 +1,4 @@
-import { chat, rChat, ChatBot, rStreamingChat, streamingChat } from '../stores/ChatBotStore/ChatBot';
+import { getREmbeddings, getEmbeddings, chat, rChat, ChatBot, rStreamingChat, streamingChat } from '../stores/ChatBotStore/ChatBot';
 /**
  * @brief Web Worker that manages tasks related to loading a chatbot model, resetting it, and processing chat interactions.
  * 
@@ -20,6 +20,8 @@ import { chat, rChat, ChatBot, rStreamingChat, streamingChat } from '../stores/C
  *   - `"rStreaming"`: Handle server(llamacpp server, OpenAI, ...) streaming chat requests, process the response and sends the tokens.
  *   - `"chat"`: Handle a non-streaming chat request and send the response back.
  *   - `"rChat"`: Handle server(llamacpp server, OpenAI, ...) non-streaming chat request and send the response back.
+ *   - '"embeddings"': Handle a embeddings request and sends the embeddings back.
+ *   - '"rEmbeddings"': Handle server(llamacpp server, OpenAI, ...) embeddings request and sends the embeddings back.
  * 
  * @param {Object} e.data.modelOptions - Configuration options for the model (only for the `"loadModel"` job type).
  *   @property {String} host - The host for the model (e.g., `"huggingface"` or `"localhost"`).
@@ -162,72 +164,99 @@ const loadModel = async (modelOptions) => {
     });
 }
 const rStreaming = async (e) => {
-  const messages = e.data.messages;
-  const tools = e.data.tools;
-  const documents = e.data.documents;
-  const chat_template = e.data.chat_template;
-  const remoteOptions = e.data.remoteOptions;
-  let response = await rStreamingChat(messages, (text) => {
+    const messages = e.data.messages;
+    const tools = e.data.tools;
+    const documents = e.data.documents;
+    const chat_template = e.data.chat_template;
+    const remoteOptions = e.data.remoteOptions;
+    let response = await rStreamingChat(messages, (text) => {
+        self.postMessage({
+          jobType:"streaming",
+          response: text
+        });
+    }, remoteOptions, {tools, documents, chat_template});
+    self.postMessage({
+        jobType: "response",
+        response: response
+    });
+    self.postMessage({
+      jobType:"done"
+    });
+};
+const streaming = async (e) => {
+    const messages = e.data.messages;
+    const tools = e.data.tools;
+    const documents = e.data.documents;
+    const chat_template = e.data.chat_template;
+    let response = await streamingChat(messages, (text) => {
       self.postMessage({
         jobType:"streaming",
         response: text
       });
-  }, remoteOptions, {tools, documents, chat_template});
-  self.postMessage({
-      jobType: "response",
-      response: response
-  });
-  self.postMessage({
-    jobType:"done"
-  });
-};
-const streaming = async (e) => {
-  const messages = e.data.messages;
-  const tools = e.data.tools;
-  const documents = e.data.documents;
-  const chat_template = e.data.chat_template;
-  let response = await streamingChat(messages, (text) => {
+    }, {tools, documents, chat_template});
     self.postMessage({
-      jobType:"streaming",
-      response: text
+        jobType: "response",
+        response: response
     });
-  }, {tools, documents, chat_template});
-  self.postMessage({
-      jobType: "response",
-      response: response
-  });
-  self.postMessage({
-    jobType:"done"
-  });
+    self.postMessage({
+      jobType:"done"
+    });
 };
 const _rChat = async (e) => {
-  const messages = e.data.messages;
-  const tools = e.data.tools;
-  const documents = e.data.documents;
-  const remoteOptions = e.data.remoteOptions;
-  const chat_template = e.data.chat_template;
-  let response = await rChat(messages, remoteOptions, {tools, documents, chat_template});
-  self.postMessage({
-      jobType: "response",
-      response: response
-  });
-  self.postMessage({
-    jobType:"done"
-  });
+    const messages = e.data.messages;
+    const tools = e.data.tools;
+    const documents = e.data.documents;
+    const remoteOptions = e.data.remoteOptions;
+    const chat_template = e.data.chat_template;
+    let response = await rChat(messages, remoteOptions, {tools, documents, chat_template});
+    self.postMessage({
+        jobType: "response",
+        response: response
+    });
+    self.postMessage({
+      jobType:"done"
+    });
 };
 const _chat = async (e) => {
-  const messages = e.data.messages;
-  const tools = e.data.tools;
-  const documents = e.data.documents;
-  const chat_template = e.data.chat_template;
-  let response = await chat(messages, {tools, documents, chat_template});
-  self.postMessage({
-      jobType: "response",
-      response: response
-  });
-  self.postMessage({
-    jobType:"done"
-  });
+    const messages = e.data.messages;
+    const tools = e.data.tools;
+    const documents = e.data.documents;
+    const chat_template = e.data.chat_template;
+    let response = await chat(messages, {tools, documents, chat_template});
+    self.postMessage({
+        jobType: "response",
+        response: response
+    });
+    self.postMessage({
+      jobType:"done"
+    });
+};
+const _getEmbeddings = async (e) => {
+    const type = e.data.type;
+    const texts = e.data.texts;
+    for(const text of texts){
+        let response = await getEmbeddings(text);
+        self.postMessage({
+            jobType: "embeddings",
+            type: type,
+            text: text,
+            embeddings: response
+        });
+    }
+};
+const _getREmbeddings = async (e) => {
+    const type = e.data.type;
+    const texts = e.data.texts;
+    const remoteOptions = e.data.remoteOptions;
+    for(const text of texts){
+        let response = await getREmbeddings(text, remoteOptions);
+        self.postMessage({
+            jobType: "embeddings",
+            type: type,
+            text: text,
+            embeddings: response
+        });
+    }
 };
 self.onmessage = async (e) => {
     const jobType = e.data.jobType;
@@ -290,6 +319,28 @@ self.onmessage = async (e) => {
         case "chat":{
           try{
             await _chat(e);
+          }catch(e){
+            self.postMessage({
+              jobType: "error",
+              error: e
+            });
+          }
+        }
+            break;
+        case "embeddings":{
+          try{
+            await _getEmbeddings(e);
+          }catch(e){
+            self.postMessage({
+              jobType: "error",
+              error: e
+            });
+          }
+        }
+            break;
+        case "rEmbeddings":{
+          try{
+            await _getREmbeddings(e);
           }catch(e){
             self.postMessage({
               jobType: "error",

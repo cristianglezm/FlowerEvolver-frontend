@@ -49,11 +49,49 @@ wm.onResponse('chatbot', (data) => {
             for(const msg of result.textForUser.values()){
                 text += "\n" + msg;
             }
-            chatbotStore.addMessage(message.role, text);
+            if(text !== ""){
+                chatbotStore.addMessage(message.role, text);
+            }
+            let info = "";
+            for(const msg of result.infoForUser.values()){
+                info += "\n" + msg;
+            }
+            if(info !== ""){
+                chatbotStore.addMessage("info", info);
+            }
         }
             break;
         case "streaming":{
             channel.emit('ChatBotWidget#stream', data.response);
+        }
+            break;
+        case "embeddings":{
+            let type = data.type;
+            let embeddings = data.embeddings;
+            let text = data.text;
+            switch(type){
+                case "user":{
+                    channel.emit('ChatBotWidget#userEmbeddings', {
+                        text: text,
+                        embeddings: embeddings
+                    });
+                }
+                    break;
+                case "document":{
+                    channel.emit('ChatBotWidget#documentEmbeddings', {
+                        text: text,
+                        embeddings: embeddings
+                    });
+                }
+                    break;
+                case "tool":{
+                    channel.emit('ChatBotWidget#toolEmbeddings', {
+                        text: text,
+                        embeddings: embeddings
+                    });
+                }
+                    break;
+            }
         }
             break;
         case "done":{
@@ -123,11 +161,15 @@ export const useChatBotStore = defineStore('ChatBotStore', {
         async clearMessages(){
             this.chatHistory = [];
         },
+        __filterInfo(){
+            return toRaw(this.chatHistory).filter(conv => conv.role !== "info");
+        },
         async requestChat({chat_template = null, tools = null, documents = null}){
+            let filteredInfoChat = this.__filterInfo();
             if(this.isLocal){
                 this.wm.sendRequest('chatbot', {
                     jobType: "chat",
-                    messages: structuredClone(toRaw(this.chatHistory)),
+                    messages: structuredClone(toRaw(filteredInfoChat)),
                     chat_template,
                     tools,
                     documents
@@ -135,7 +177,7 @@ export const useChatBotStore = defineStore('ChatBotStore', {
             }else{
                 this.wm.sendRequest('chatbot', {
                     jobType: "rChat",
-                    messages: structuredClone(toRaw(this.chatHistory)),
+                    messages: structuredClone(toRaw(filteredInfoChat)),
                     remoteOptions: structuredClone(toRaw(this.remoteOptions)),
                     chat_template,
                     tools,
@@ -144,10 +186,11 @@ export const useChatBotStore = defineStore('ChatBotStore', {
             }
         },
         async requestStreamingChat({chat_template = null, tools = null, documents = null}){
+            let filteredInfoChat = this.__filterInfo();
             if(this.isLocal){
                 this.wm.sendRequest('chatbot', {
                     jobType: "streaming",
-                    messages: structuredClone(toRaw(this.chatHistory)),
+                    messages: structuredClone(toRaw(filteredInfoChat)),
                     chat_template,
                     tools,
                     documents
@@ -155,7 +198,7 @@ export const useChatBotStore = defineStore('ChatBotStore', {
             }else{
                 this.wm.sendRequest('chatbot', {
                     jobType: "rStreaming",
-                    messages: structuredClone(toRaw(this.chatHistory)),
+                    messages: structuredClone(toRaw(filteredInfoChat)),
                     remoteOptions: structuredClone(toRaw(this.remoteOptions)),
                     chat_template,
                     tools,
@@ -163,8 +206,25 @@ export const useChatBotStore = defineStore('ChatBotStore', {
                 });
             }
         },
+        async requestEmbeddings(type, texts){
+            if(this.isLocal){
+                this.wm.sendRequest('chatbot', {
+                    jobType: "embeddings",
+                    type: type,
+                    texts: texts
+                });
+            }else{
+                this.wm.sendRequest('chatbot', {
+                    jobType: "rEmbeddings",
+                    type: type,
+                    texts: texts,
+                    remoteOptions: structuredClone(toRaw(this.remoteOptions)),
+                });
+            }
+        },
         async requestRegenerate(id, {chat_template = null, tools = null, documents = null}){
-            let filteredChat = toRaw(this.chatHistory).filter(conv => conv.id  < id);
+            let filteredInfoChat = this.__filterInfo();
+            let filteredChat = toRaw(filteredInfoChat).filter(conv => conv.id  < id);
             this.chatHistory = filteredChat
             if(this.isLocal){
                 this.wm.sendRequest('chatbot', {
