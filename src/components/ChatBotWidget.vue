@@ -107,15 +107,15 @@
         <div class="chat-textarea inlined-menu">
           <textarea
             v-model="data.message"
-            v-focus="!data.processingMessage" type="textarea" :class="{'disabled': data.processingMessage}" 
-            :disabled="data.processingMessage"
+            v-focus="!isBusy" type="textarea" :class="{'disabled': isBusy}" 
+            :disabled="isBusy"
             placeholder="Type a message..."
             @keydown="handleEnter"
           />
           <div class="chat-buttons">
             <button
-              class="safe-button" :class="{'disabled': data.processingMessage}"
-              :disabled="data.processingMessage"
+              class="safe-button" :class="{'disabled': isBusy}"
+              :disabled="isBusy"
               @click="sendMessage()"
             >
               Send
@@ -129,7 +129,12 @@
           <div class="option-box labelInputArea">
             <ToolTip :info="'if checked it will automatically generate text-to-speech for each message generated.'" />
             <label for="generateSpeech">Generate Speech: </label>
-            <input id="generateSpeech" v-model="data.generateSpeech" type="checkbox" @change="onChange">
+            <input id="generateSpeech" v-model="data.options.generateSpeech" type="checkbox" @change="onChange">
+          </div>
+          <div class="option-box labelInputArea">
+            <ToolTip :info="'if checked it will use embeddings. (it can use a bit more memory)'" />
+            <label for="useEmbeddings">Use Embeddings: </label>
+            <input id="useEmbeddings" v-model="data.options.useEmbeddings" type="checkbox" @change="onChange">
           </div>
           <details style="margin: 10px;">
             <summary class="bubble-btn">LLM Options</summary>
@@ -165,13 +170,60 @@
 <script setup>
 /** 
  * @brief A draggable and interactive chatbot component for Vue 3.
+ * @details
+ * The `ChatBotWidget` component can be customized and used in different ways, including:
+ * 
+ * 1. Using System Only
+ * 
+ * This method focuses on setting up the chatbot with a system message.
+ * 
+ * <template>
+ *   <ChatBotWidget
+ *     :emitter="emitter"
+ *     :system="'You are a helpful assistant to help the user.'"
+ *     :greetings="'Hello! How can I assist you today?'"
+ *   />
+ * </template>
+ * 
+ * 2. Using Chat Template
+ * 
+ * If you want to use a custom chat template, you can specify it using the `:chat-template` prop.
+ * 
+ * <template>
+ *   <ChatBotWidget
+ *     :emitter="emitter"
+ *     :greetings="'Hello! How can I assist you today?'"
+ *     :chat-template="'Your custom @huggingface/jinja template here...'"
+ *     :tools="exampleTools"
+ *     :documents="exampleDocuments"
+ *     :executor="parseAndExecCommand"
+ *   />
+ * </template>
+ * 
+ * 3. Using Editable and Config
+ * 
+ * You can enable the `editable` mode and provide custom configurations using the `config` prop.
+ * 
+ * <template>
+ *   <ChatBotWidget
+ *     :emitter="emitter"
+ *     :greetings="'Hello! How can I assist you today?'"
+ *     :chat-template="'Your custom @huggingface/jinja template here...'"
+ *     :tools="exampleTools"
+ *     :documents="exampleDocuments"
+ *     :executor="parseAndExecCommand"
+ *     :editable="false"
+ *     :config="exampleConfig"
+ *   />
+ * </template>
+ * 
  * @usage
  * <template>
  *   <ChatBotWidget
  *     :emitter="emitter"
  *     :system="'You are a helpful assistant to help the user.'"
  *     :greetings="'Hello! How can I assist you today?'"
- *     :chatTemplate="'Your custom @huggingface/jinja template here...'"
+ *     :chat-template="'Your custom @huggingface/jinja template here...'"
  *     :tools="[
  *       { name: 'search', description: 'Search the database', parameters: { query: { description: 'query to look for', type: 'string', required: true } } },
  *       { name: 'translate', description: 'Translate text', parameters: {
@@ -179,11 +231,15 @@
  *          language: { description:'lang to translate to', require: true, type:'string'}
  *       }}
  *     ]"
- *     :docKeys="['title1', 'title2']"
+ *     :documents="[{'title': 'title1', 'content':'content1'}, {'title': 'title2', 'content':'content2'}]"
  *     :executor="parseAndExecCommand"
  *     :editable="false",
  *     :config="{
- *          generateSpeech: true,
+ *          options:{
+ *              generateSpeech: false,
+ *              useEmbeddings: true,
+ *              threshold: 0.8
+ *          }
  *          llm:{
  *              isLocal: true, 
  *              modelOptions: {
@@ -246,10 +302,10 @@
  *   Example: emitter.emit("ChatBotWidget#loadChatBotModel"); // this will load the model
  * - `system` (String, optional): Initial system message to set the chat context. (set this when not going to use tools)
  * - `greetings` (String, optional): Assistant's initial greeting message.
- * - `chatTemplate` (String, optional): Jinja template for formatting chat responses. (set this only when using tools, dockeys and executor)
+ * - `chatTemplate` (String, optional): Jinja template for formatting chat responses. (set this only when using tools, documents and executor)
  * - `tools` (Array<Object>, optional): Array of tool definitions for function prototypes. 
  *   Example: [{ "name": 'tool1', "description": 'description', "parameters": { "param1": {"description":'param1 desc', "require": true, "type":'string'} }}]
- * - `docKeys` (Array<String>, optional): Array of document keys for additional context.
+ * - `documents` (Array<Object>, optional): Array of documents for additional context.
  * - `executor` (Function, optional): A custom function to execute tasks when the chatbot calls a tool. it should return {textForUser: [], commandsToConfirm: []}
  * - `editable` (Boolean, optional): controls if settings can be edited or not if not you must give config prop.
  * - `config` (Object, optional): config object for ChatBotStore, more info on @usage
@@ -261,7 +317,7 @@
  *     :system="'You are a helpful assistant.'" 
  *     :greetings="'Hello, user!'" 
  *     :tools="[{ name: 'fetchData', description: 'Fetch data from API', parameters: { id:{ type: 'string', required:true, description: 'id paarameter'} } }]"
- *     :docKeys="[\"title1\", \"title2\"]"
+ *     :documents="[{'title': 'title1', 'content':'content1', {'title': 'title2', 'content':'content2'}}]"
  *     :executor="customExecutor"
  * />
  */
@@ -269,6 +325,7 @@ import { reactive, ref, computed, toRaw, onMounted, onUnmounted, nextTick } from
 import { useChatBotStore } from '../stores/ChatBotStore';
 import { useKokoroStore } from '../stores/KokoroStore';
 import { useErrorStore } from '../stores/ErrorStore';
+import { useVectorStore } from '../stores/vectorStore';
 import { useDraggable } from '../composables/useDraggable';
 import SwitchPanel from './SwitchPanel.vue';
 import ToolTip from './ToolTip.vue';
@@ -283,7 +340,7 @@ const { position, onMouseDown, onTouchStart, isDragging, setPosition } = useDrag
 const ErrorStore = useErrorStore();
 const ChatBotStore = useChatBotStore();
 const KokoroStore = useKokoroStore();
-
+const vectorStore = useVectorStore();
 /**
  * @brief scroll the element into view when rendered or updated.
  * @param {None} No parameters expected.
@@ -360,7 +417,7 @@ const props = defineProps({
         required: false,
         default: null
     },
-    docKeys:{
+    documents:{
         type: Array,
         required: false,
         default: null
@@ -384,14 +441,20 @@ const props = defineProps({
 const chatBox = ref(null);
 let parentElementDisplay = ref(null);
 let observer;
-const CHATBOT_SETTINGS_KEY = 'chatbotWidget#generateSpeech';
+const CHATBOT_SETTINGS_KEY = 'chatbotWidget#Options';
 const data = reactive({
     chatOpened: false,
     openOptions: false,
     expanded: false,
     processingMessage: false,
     processingAudio: false,
-    generateSpeech: JSON.parse(localStorage.getItem(CHATBOT_SETTINGS_KEY) || JSON.stringify(false)),
+    computedEmbeddings: false,
+    pendingEmbeddings: 0,
+    options: JSON.parse(localStorage.getItem(CHATBOT_SETTINGS_KEY) || JSON.stringify({
+        generateSpeech: false,
+        useEmbeddings: true,
+        threshold: 0.8,
+    })),
     message: "",
     pendingMsg: ""
 });
@@ -399,8 +462,11 @@ const data = reactive({
 const chatHistory = computed(() => {
     return ChatBotStore.getChatHistory;
 });
+const isBusy = computed(() => {
+    return data.processingAudio || data.processingMessage || (data.pendingEmbeddings > 0);
+});
 const onChange = () => {
-    localStorage.setItem(CHATBOT_SETTINGS_KEY, data.generateSpeech);
+    localStorage.setItem(CHATBOT_SETTINGS_KEY, JSON.stringify(toRaw(data.options)));
 }
 const togglePanelLLM = () => {
     let wasLocal = ChatBotStore.isLocal;
@@ -408,11 +474,13 @@ const togglePanelLLM = () => {
     ChatBotStore.saveIsLocal();
     if(wasLocal){
         if(ChatBotStore.hasModelLoaded){
+            data.computedEmbeddings = false;
             // reset local model when user changes to remote
             ChatBotStore.requestReset();
         }
     }else{
         if(ChatBotStore.hasModelLoaded){
+            data.computedEmbeddings = false;
             // reload local model when user changes to local
             props.emitter.emit("ChatBotWidget#loadChatBotModel");
         }
@@ -444,8 +512,9 @@ const loadChatBot = () => {
         }
     }else{
         ChatBotStore.requestModelLoad();
+        computeEmbeddings();
     }
-    if(!KokoroStore.hasModelLoaded && data.generateSpeech){
+    if(!KokoroStore.hasModelLoaded && data.options.generateSpeech){
         KokoroStore.requestModelLoad();
     }
 };
@@ -503,13 +572,29 @@ const sendMessage = () => {
     if(data.message.length === 0 || data.processingMessage){
         return;
     }
+    if(!data.computedEmbeddings && data.options.useEmbeddings){
+        computeEmbeddings();
+        return;
+    }
     data.processingMessage = true;
     ChatBotStore.addMessage("user", toRaw(data.message));
-    ChatBotStore.requestStreamingChat({
-        chat_template: props.chatTemplate, 
-        tools: props.tools, 
-        documents: props.docKeys
-    });
+    if(data.options.useEmbeddings){
+        ChatBotStore.requestEmbeddings("user", [data.message]);
+    }else{
+        let tools = null;
+        let documents = null;
+        if(props.tools){
+            tools = vectorStore.getTools;
+        }
+        if(props.documents){
+            documents = vectorStore.documentsKeys();
+        }
+        ChatBotStore.requestStreamingChat({
+            chat_template: props.chatTemplate, 
+            tools: tools, 
+            documents: documents
+        });
+    }
     data.message = "";
 };
 const regenerate = (id) => {
@@ -521,11 +606,38 @@ const regenerate = (id) => {
         return;
     }
     data.processingMessage = true;
+    const getMessageBeforeID = (id) => {
+        let previousMessage = null;
+        for(const m of ChatBotStore.chatHistory){
+            if(id === m.id){
+                return previousMessage;
+            }
+            previousMessage = m;
+        }
+        return previousMessage;
+    };
+    let tools = null;
+    let documents = null;
+    let message = getMessageBeforeID(id);
+    if(props.tools){
+        if(data.options.useEmbeddings && message && message.embeddings){
+            tools = vectorStore.retrieveTools(message.embeddings, data.options.threshold);
+        }else{
+            tools = vectorStore.getTools;
+        }
+    }
+    if(props.documents){
+        if(data.options.useEmbeddings && message && message.embeddings){
+            documents = vectorStore.retrieveDocuments(message.embeddings, data.options.threshold);
+        }else{
+            documents = vectorStore.documentsKeys();
+        }
+    }
     ChatBotStore.requestRegenerate(id, 
     {
         chat_template: props.chatTemplate, 
-        tools: props.tools, 
-        documents: props.docKeys
+        tools: tools, 
+        documents: documents
     });
 };
 const resetChat = () => {
@@ -555,7 +667,23 @@ const playAudio = (audio) => {
         audioPlayer.value.play();
     }
 };
+const computeEmbeddings = () => {
+    if(data.options.useEmbeddings && !data.computedEmbeddings){
+        data.computedEmbeddings = true;
+        let tools = vectorStore.toolsKeys();
+        let documents = vectorStore.documentsKeys();
+        ChatBotStore.requestEmbeddings('tool', tools);
+        ChatBotStore.requestEmbeddings('document', documents);
+        data.pendingEmbeddings = vectorStore.getLength;
+    }
+};
 onMounted(() => {
+    if(props.tools){
+        vectorStore.mapTools(props.tools);
+    }
+    if(props.documents){
+        vectorStore.mapDocuments(props.documents);
+    }
     props.emitter.on('ChatBotWidget#loadChatBotModel', () => {
         setTimeout(() => {
             props.emitter.emit('ChatBotWidget#requestMultiProgressBar', {
@@ -586,12 +714,40 @@ onMounted(() => {
         props.emitter.emit(e.eventName, e.event);
     });
     ChatBotStore.channel.on('ChatBotWidget#ToEmitter', (e) => {
+        if("ChatBotModelOptions#updateBtnTitle" === e.eventName){
+            computeEmbeddings();
+        }
         props.emitter.emit(e.eventName, e.event);
+    });
+    ChatBotStore.channel.on('ChatBotWidget#userEmbeddings', (e) => {
+        let tools = null;
+        let documents = null;
+        if(props.tools){
+            tools = vectorStore.retrieveTools(e.embeddings, data.options.threshold);
+        }
+        if(props.documents){
+            documents = vectorStore.retrieveDocuments(e.embeddings, data.options.threshold);
+        }
+        ChatBotStore.requestStreamingChat({
+            chat_template: props.chatTemplate, 
+            tools: tools, 
+            documents: documents
+        });
+        let lastMessage = ChatBotStore.getLastMessage();
+        lastMessage.embeddings = e.embeddings;
+    });
+    ChatBotStore.channel.on('ChatBotWidget#documentEmbeddings', (e) => {
+        vectorStore.addDocumentEmbeddings(e.text, e.embeddings);
+        --data.pendingEmbeddings;
+    });
+    ChatBotStore.channel.on('ChatBotWidget#toolEmbeddings', (e) => {
+        vectorStore.addToolEmbeddings(e.text, e.embeddings);
+        --data.pendingEmbeddings;
     });
     ChatBotStore.channel.on('ChatBotWidget#done', async () => {
         data.processingMessage = false;
         data.pendingMsg = "";
-        if(KokoroStore.hasModelLoaded && data.generateSpeech && !data.processingAudio){
+        if(KokoroStore.hasModelLoaded && data.options.generateSpeech && !data.processingAudio){
             data.processingAudio = true;
             let text = ChatBotStore.getLastMessage().content;
             let audio = await KokoroStore.getAudio(text);
@@ -631,7 +787,13 @@ onMounted(() => {
             throw Error("props.config is null, if props.editable is false, you need to provide a valid props.config");
         }
         if(props.config.generateSpeech){
-            data.generateSpeech = props.config.generateSpeech;
+            data.options.generateSpeech = props.config.generateSpeech;
+        }
+        if(props.config.threshold){
+            data.options.threshold = props.config.threshold;
+        }
+        if(props.config.useEmbeddings){
+            data.options.useEmbeddings = props.config.useEmbeddings;
         }
         applyConfig(props.config.llm, ChatBotStore);
         applyConfig(props.config.tts, KokoroStore);
@@ -661,6 +823,9 @@ onUnmounted(() => {
     ChatBotStore.channel.off('ChatBotWidget#done');
     ChatBotStore.channel.off('ChatBotWidget#stream');
     ChatBotStore.channel.off('ChatBotWidget#ToEmitter');
+    ChatBotStore.channel.off('ChatBotWidget#userEmbeddings');
+    ChatBotStore.channel.off('ChatBotWidget#documentEmbeddings');
+    ChatBotStore.channel.off('ChatBotWidget#toolEmbeddings');
     KokoroStore.channel.off('ChatBotWidget#ToEmitter');
     KokoroStore.channel.off('ChatBotWidget#audioResp');
     props.emitter.off("ChatBotWidget#loadChatBotModel");

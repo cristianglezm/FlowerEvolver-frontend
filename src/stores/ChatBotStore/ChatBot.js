@@ -1,4 +1,4 @@
-import { pipeline, env, TextStreamer } from '@huggingface/transformers';
+import { pipeline, env, TextStreamer, mean_pooling } from '@huggingface/transformers';
 import { ModelCache, isGPUAvailable } from '../AIUtils';
 import { HfInference } from '@huggingface/inference';
 import { Template } from "@huggingface/jinja";
@@ -38,7 +38,7 @@ export class ChatBot{
      * @param {Function|null} progress_callback - A callback function for reporting progress.
      * @returns {Promise<Object>} - The initialized chatbot instance.
      */
-	static async getInstance(progress_callback = null){
+    static async getInstance(progress_callback = null){
         if(this.instance === null){
             env.useBrowserCache = false;
             env.useCustomCache = true;
@@ -311,5 +311,40 @@ export const chat = async (messages, {tools = null, documents = null, chat_templ
     });
     return output;
 };
+/**
+ * @brief Extracts sentence embeddings from input text.
+ * @param {String} text - text to convert to embeddings 
+ * @returns {Array<Float32>}
+ */
+export const getEmbeddings = async (text) => {
+    let chatbot = await ChatBot.getInstance();
+    const inputs = await chatbot.tokenizer(text, { padding: true, truncation: true });
+    const output = await chatbot.model(inputs, { output_hidden_states: true });
+    let embedding = output.last_hidden_states ?? output.logits ?? output.token_embeddings;
+    let sentenceEmbedding = mean_pooling(embedding.normalize(2, -1), inputs.attention_mask);
+    return Array.from(sentenceEmbedding.data);
+};
 
-export default { CACHE_KEY, ChatBot, chat, rChat, streamingChat, rStreamingChat, isGPUAvailable };
+/**
+ * @brief Extracts sentence embeddings from input text.
+ * @param {String} text - text to convert to embeddings
+ * @param {Object} remoteOptions - options for remote server.
+ * @param {String} remoteOptions.url - url for backend
+ * @param {String} remoteOptions.api_key - api key for backend access
+ * @param {String} remoteOptions.model - model to use if supported.
+ * @returns {Array<Float32>}
+ */
+export const getREmbeddings = async (text, remoteOptions = {
+    url: "http://localhost:8080",
+    api_key: "sk-key-not-needed",
+    model: "HuggingFaceTB/SmolLM2-135M-Instruct",
+    }) => {
+        const fullUrl = remoteOptions.url + "/v1/embeddings";
+        const hf = new HfInference(remoteOptions.api_key).endpoint(fullUrl);
+        let embeddings = await hf.request({
+            model: remoteOptions.model,
+            input: text
+        });
+        return embeddings.data[0].embedding;
+};
+export default { CACHE_KEY, ChatBot, getEmbeddings, getREmbeddings, chat, rChat, streamingChat, rStreamingChat, isGPUAvailable };
