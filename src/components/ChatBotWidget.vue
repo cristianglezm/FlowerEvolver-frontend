@@ -765,27 +765,27 @@ onMounted(() => {
         }
     });
     ChatBotStore.executor = props.executor;
-    if(!props.editable){
-        const applyConfig = (config, store) => {
-            for(const key in config){
-                if(Object.prototype.hasOwnProperty.call(config, key) && 
-                    config[key] !== undefined){
-                    if(typeof config[key] === 'object' && 
-                        !Array.isArray(config[key])){
-                            if(store[key] !== undefined){
-                                applyConfig(config[key], store[key]);
-                            }
-                    }else{
+    const applyConfig = (config, store) => {
+        for(const key in config){
+            if(Object.prototype.hasOwnProperty.call(config, key) && 
+                config[key] !== undefined){
+                if(typeof config[key] === 'object' && 
+                    !Array.isArray(config[key])){
                         if(store[key] !== undefined){
-                            store[key] = config[key];
+                            applyConfig(config[key], store[key]);
                         }
+                }else{
+                    if(store[key] !== undefined){
+                        store[key] = config[key];
                     }
                 }
             }
-        };
-        if(props.config === null){
-            throw Error("props.config is null, if props.editable is false, you need to provide a valid props.config");
         }
+    };
+    if(!props.editable && props.config === null){
+        throw Error("props.config is null, if props.editable is false, you need to provide a valid props.config");
+    }
+    if(props.config){
         if(props.config.generateSpeech){
             data.options.generateSpeech = props.config.generateSpeech;
         }
