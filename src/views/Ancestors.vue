@@ -181,4 +181,9 @@
         grid-gap: 0.6rem;
         justify-content: center;
     }
+    @media only screen and (max-width: 1280px){
+        .gridFlowers{
+            grid-template-columns: 35% 35%;
+        }
+    }
 </style>
