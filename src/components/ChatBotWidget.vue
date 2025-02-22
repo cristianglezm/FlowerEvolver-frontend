@@ -286,7 +286,8 @@
  *  // parse text from llm and process, whatever is returned will be shown on the chat
  *   console.log('Executing function with:', text);
  *   return {
- *      textForUser: 'executed function with' + text,
+ *      infoForUser: 'executed function with'
+ *      textForUser: text, // parsed text that has no tool calls
  *      commandsToConfirm: {
  *          "title":"title for ConfirmModal",
  *          "message":"message ...",
@@ -306,7 +307,7 @@
  * - `tools` (Array<Object>, optional): Array of tool definitions for function prototypes. 
  *   Example: [{ "name": 'tool1', "description": 'description', "parameters": { "param1": {"description":'param1 desc', "require": true, "type":'string'} }}]
  * - `documents` (Array<Object>, optional): Array of documents for additional context.
- * - `executor` (Function, optional): A custom function to execute tasks when the chatbot calls a tool. it should return {textForUser: [], commandsToConfirm: []}
+ * - `executor` (Function, optional): A custom function to execute tasks when the chatbot calls a tool. it should return {infoForUser: [], textForUser: [], commandsToConfirm: []}
  * - `editable` (Boolean, optional): controls if settings can be edited or not if not you must give config prop.
  * - `config` (Object, optional): config object for ChatBotStore, more info on @usage
  * 
@@ -425,7 +426,7 @@ const props = defineProps({
     executor:{
         type: Function,
         required: false,
-        default: (content) => { return {textForUser: [content], commandsToConfirm: []}; }
+        default: (content) => { return {infoForUser: [], textForUser: [content], commandsToConfirm: []}; }
     },
     editable:{
         type: Boolean,
@@ -675,6 +676,7 @@ const computeEmbeddings = () => {
         ChatBotStore.requestEmbeddings('tool', tools);
         ChatBotStore.requestEmbeddings('document', documents);
         data.pendingEmbeddings = vectorStore.getLength;
+        ChatBotStore.addMessage("info", "I am computing the embeddings, please wait.");
     }
 };
 onMounted(() => {
