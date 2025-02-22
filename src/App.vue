@@ -25,7 +25,7 @@ import ChatBotWidget from './components/ChatBotWidget.vue';
 import { useRoute } from 'vue-router';
 import { useFlowerStore } from './stores/FlowerStore';
 import { useCaptionerStore } from './stores/CaptionerStore';
-import { chat_template, tools, documents,  execCommand } from './stores/ChatBotConfig';
+import { chat_template, tools, documents,  execCommand, initRouter, initEmitter } from './stores/ChatBotConfig';
 
 const routes = useRoute();
 const emitter = inject('emitter');
@@ -42,6 +42,10 @@ const isLocal = () => {
           routes.path === '/Settings';
 };
 onMounted(() => {
+  // we call this for execCommand goto fn
+  initRouter();
+  // we call this for execCommand describe fn
+  initEmitter(emitter);
   emitter.on('App#loadCaptionerModel', () => {
     setTimeout(() => {
         emitter.emit('requestMultiProgressBar', {

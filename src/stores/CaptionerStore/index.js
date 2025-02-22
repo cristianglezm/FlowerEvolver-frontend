@@ -106,13 +106,13 @@ export const useCaptionerStore = defineStore('CaptionerStore', {
             FlowerStore.db.descriptions.offset(offset).limit(limit).toArray()
             .then((descriptions) => {
                 descriptions.forEach((desc) => {
-                    newMap.set(desc.id, desc.desciption);
+                    newMap.set(desc.id, desc.description);
                 });
-                this.localDescriptions = new Map([this.localDescriptions, newMap]);
+                this.localDescriptions = new Map([...this.localDescriptions, ...newMap]);
             })
             .catch((e) => {
                 const ErrorStore = useErrorStore();
-                ErrorStore.push({ message: e });
+                ErrorStore.push(e);
             });
         },
         async requestDescription(Flower){
