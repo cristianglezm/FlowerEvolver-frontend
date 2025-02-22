@@ -4,23 +4,25 @@ import { useRouter } from "vue-router";
 import { useVectorStore } from "./vectorStore";
 
 export const execCommand = (text) => {
+    let infoForUser = new Array();
     let textForUser = new Array();
     let commandsToConfirm = new Array();
-    const makeResult = (textForUser, commandsToConfirm) => {
+    const makeResult = (textForUser = [], commandsToConfirm = [], infoForUser = []) => {
         return {
+            infoForUser: infoForUser,
             textForUser: textForUser,
             commandsToConfirm: commandsToConfirm
         };
     };
     if(text === undefined || text === null){
-        textForUser.push("response was not valid.");
-        return makeResult(textForUser, commandsToConfirm);
+        infoForUser.push("response was not valid.");
+        return makeResult(textForUser, commandsToConfirm, infoForUser);
     }
     let regex = /<tool_call>(.*?)<\/tool_call>/;
     let matches = text.match(regex);
     if(!matches){
         textForUser.push(text);
-        return makeResult(textForUser, commandsToConfirm);
+        return makeResult(textForUser, commandsToConfirm, infoForUser);
     }
     let command;
     try{
@@ -30,22 +32,23 @@ export const execCommand = (text) => {
             textForUser.push(cleanText);
         }
     }catch(_){
-        textForUser.push("I am sorry but I could not parse the command.");
-        return makeResult(textForUser, commandsToConfirm);
+        infoForUser.push("I am sorry but I could not parse the command.");
+        return makeResult(textForUser, commandsToConfirm, infoForUser);
     }
     for(let i=0;i<command.length;++i){
         switch(command[i].name){
             case "getDocument":{
-                let vectorStore = useVectorStore();
-                let title = command[i].parameters.title;
+                const vectorStore = useVectorStore();
+                const title = command[i].parameters?.title;
                 if(title){
                     if(vectorStore.hasDocument(title)){
-                        textForUser.push(`${title}:\n\n${vectorStore.getDocument(title)}`)
+                        infoForUser.push("I got the information requested for you.");
+                        textForUser.push(`${vectorStore.getDocument(title)}`);
                     }else{
-                        textForUser.push("sorry, I am afraid I don't know the information requested.");
+                        infoForUser.push("sorry, I am afraid I don't know the information requested.");
                     }
                 }else{
-                    textForUser.push("title was not valid");
+                    infoForUser.push("title was not valid");
                 }
             }
                 break;
@@ -61,30 +64,30 @@ export const execCommand = (text) => {
                                 image: flower.image,
                                 isLocal: true
                             });
-                            textForUser.push("describe command executed");
-                        }else{
-                            textForUser.push("please load the captioner model.");
-                        }
+                                        infoForUser.push("describe command executed");
+                                    }else{
+                                        infoForUser.push("please load the captioner model.");
+                                    }
                     }).catch((_) => {
-                        textForUser.push("I am sorry I couldn't describe the flower because it was not found");
+                        infoForUser.push("I am sorry I couldn't describe the flower because it was not found");
                     });
             }
                 break;
             case "goto":{
                 let router = useRouter();
                 let path = command[i].parameters.path;
-                let fail = "sorry I could not execute command " + command[i].name;
-                let success = command[i].name + " command executed";
+                let fail = "sorry I could not execute command goto";
+                let success = "goto command executed";
                 if(path){
                     switch(path){
                         case "Mutations":{
                             let original = command[i].parameters.pathParameters.mutations.id;
                             if(original){
                                 router.push({name:'Mutations', params:{id: original, isLocal: true}});
-                                textForUser.push(success);
+                                infoForUser.push(success);
                             }else{
-                                textForUser.push("goto Mutations: Flower id not given");
-                                textForUser.push(fail);
+                                infoForUser.push("goto Mutations: Flower id not given");
+                                infoForUser.push(fail);
                             }
                         }
                             break;
@@ -93,24 +96,24 @@ export const execCommand = (text) => {
                             let mother = command[i].parameters.pathParameters.descendants.mother;
                             if(father && mother){
                                 router.push({name:'DescendantsFatherAndMother', params:{father: father, mother: mother, isLocal: "local"}});
-                                textForUser.push(success);
+                                infoForUser.push(success);
                             }else if(father){
                                 router.push({name:'DescendantsFatherOrMother', params:{father:father, isLocal: "local"}});
-                                textForUser.push(success);
+                                infoForUser.push(success);
                             }else{
-                                textForUser.push("father or mother id not given");
-                                textForUser.push(fail);
+                                infoForUser.push("father or mother id not given");
+                                infoForUser.push(fail);
                             }
                         }
                             break;
                         default:{
                             router.push({name: path });
-                            textForUser.push(success);
+                            infoForUser.push(success);
                         }
                             break;
                     }
                 }else{
-                    textForUser.push("goto: path was not found");
+                    infoForUser.push("goto: path was not found");
                 }
             }
                 break;
@@ -124,10 +127,10 @@ export const execCommand = (text) => {
                     FlowerStore.selectLocalFlower({ id: father});
                     FlowerStore.selectLocalFlower({ id: mother});
                     FlowerStore.localReproduce();
-                    textForUser.push(success);
+                    infoForUser.push(success);
                 }else{
-                    textForUser.push("reproduce: father or mother id not given, need both ids.");
-                    textForUser.push(fail);
+                    infoForUser.push("reproduce: father or mother id not given, need both ids.");
+                    infoForUser.push(fail);
                 }
             }
                 break;
@@ -141,19 +144,19 @@ export const execCommand = (text) => {
                     .then((flower) => {
                         FlowerStore.makeLocalMutation(flower);
                     }).catch((_) => {
-                        textForUser.push("mutate command not executed, Flower not found");
+                        infoForUser.push("mutate command not executed, Flower not found");
                     });
-                    textForUser.push(success);
+                    infoForUser.push(success);
                 }else{
-                    textForUser.push("mutate: flower id not given");
-                    textForUser.push(fail);
+                    infoForUser.push("mutate: flower id not given");
+                    infoForUser.push(fail);
                 }
             }
                 break;
             case "makeFlower":{
                 let FlowerStore = useFlowerStore();
                 FlowerStore.makeLocalFlower();
-                textForUser.push("makeFlower command executed");
+                infoForUser.push("makeFlower command executed");
             }
                 break;
             case "addToFavs":{
@@ -163,10 +166,10 @@ export const execCommand = (text) => {
                 let id = command[i].parameters.id;
                 if(id){
                     FlowerStore.addFlowerToFav(id);
-                    textForUser.push(success);
+                    infoForUser.push(success);
                 }else{
-                    textForUser.push("Flower id not found");
-                    textForUser.push(fail);
+                    infoForUser.push("Flower id not found");
+                    infoForUser.push(fail);
                 }
             }
                 break;
@@ -185,10 +188,10 @@ export const execCommand = (text) => {
                             FlowerStore.removeFlowerFromFav(id);
                         }
                     });
-                    textForUser.push(success);
+                    infoForUser.push(success);
                 }else{
-                    textForUser.push("delFromFavs: id not given");
-                    textForUser.push(fail);
+                    infoForUser.push("deleteFromFav: id not given");
+                    infoForUser.push(fail);
                 }
             }
                 break;
@@ -207,10 +210,10 @@ export const execCommand = (text) => {
                             FlowerStore.deleteLocalFlower(id);
                         }
                     });
-                    textForUser.push(success);
+                    infoForUser.push(success);
                 }else{
-                    textForUser.push("deleteFlower: id not given");
-                    textForUser.push(fail);
+                    infoForUser.push("deleteFlower: id not given");
+                    infoForUser.push(fail);
                 }
             }
                 break;
@@ -226,7 +229,7 @@ export const execCommand = (text) => {
                             await FlowerStore.deleteAllFlowers();
                         }
                 });
-                textForUser.push(success);
+                infoForUser.push(success);
             }
                 break;
             case "deleteNonFavs":{
@@ -241,13 +244,13 @@ export const execCommand = (text) => {
                         await FlowerStore.deleteNonFavourites();
                     }
                 });
-                textForUser.push(success);
+                infoForUser.push(success);
             }
                 break;
-            default: textForUser.push("unknown command " + command[i].name);
+            default: infoForUser.push("unknown command " + command[i].name);
         }
     }
-    return makeResult(textForUser, commandsToConfirm);
+    return makeResult(textForUser, commandsToConfirm, infoForUser);
 };
 export const tools = [
     {
