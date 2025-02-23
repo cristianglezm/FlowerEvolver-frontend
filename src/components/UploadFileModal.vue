@@ -47,7 +47,7 @@
  * });
  */
 import { reactive, onMounted, onBeforeUnmount } from 'vue';
-import { useFlowersStore } from '../store';
+import { useErrorStore } from '../stores/ErrorStore';
 
 const props = defineProps({
     id:{
@@ -65,7 +65,7 @@ const props = defineProps({
 });
 const data = reactive({});
 
-let store = useFlowersStore();
+const ErrorStore = useErrorStore();
 
 const openModal = () => {
     data.dialog.showModal();
@@ -101,7 +101,7 @@ const validateFileType = () => {
         data.onUpload(data.dialog, data.files.files);
     }else{
         closeModal();
-        store.errors.push({message: notValidFile + " file was not valid, valid files are (.json)"});
+        ErrorStore.push(notValidFile + " file was not valid, valid files are (.json)");
     }
 };
 onMounted(() => {
