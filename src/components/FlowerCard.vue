@@ -2,8 +2,12 @@
   <div class="FlowerCard">
     <div v-if="props.isLocal">
       <div class="flowerMenu" :class="{Selected: data.selected}">
-        <img v-if="!data.clicked" class="drop-menu pointer" src="@/assets/x32/Arrow_down.png" @click="data.clicked = !data.clicked; ">
-        <img v-if="data.clicked" class="drop-menu pointer" src="@/assets/x32/Arrow_up.png" @click="data.clicked = !data.clicked; ">
+        <div v-if="!data.clicked" class="drop-menu pointer" @click="data.clicked = !data.clicked; ">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd" viewBox="0 0 512 299.283"><path d="M75.334 286.691c-64.764 36.929-96.186-15.595-60.203-51.975L215.997 25.104c33.472-33.472 46.534-33.472 80.006 0l200.866 209.612c35.983 36.38 4.561 88.904-60.203 51.975L256 189.339 75.334 286.691z"/></svg>
+        </div>
+        <div v-if="data.clicked" class="drop-menu pointer" @click="data.clicked = !data.clicked; ">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd" viewBox="0 0 512 299.283"><path d="M75.334 12.591C10.57-24.337-20.852 28.186 15.131 64.566l200.866 209.613c33.472 33.471 46.534 33.471 80.006 0L496.869 64.566c35.983-36.38 4.561-88.903-60.203-51.975L256 109.944 75.334 12.591z"/></svg>
+        </div>
         <div style="width: 100%;height: 100%;display: flex;justify-content: end;">
           <img :key="props.id" class="pointer" alt="favourite button" :src="data.heartIconSrc" @click="toggleFavourite(props.id)">
           <ParamsInfo :params="data.params" />
@@ -26,8 +30,12 @@
     </div>
     <div v-else>
       <div class="flowerMenu" :class="{Selected: data.selected}">
-        <img v-if="!data.clicked" class="drop-menu pointer" src="@/assets/x32/Arrow_down.png" @click="data.clicked = !data.clicked; ">
-        <img v-if="data.clicked" class="drop-menu pointer" src="@/assets/x32/Arrow_up.png" @click="data.clicked = !data.clicked; ">
+        <div v-if="!data.clicked" class="drop-menu pointer" @click="data.clicked = !data.clicked;" >
+            <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" viewBox="0 0 512 299.283"><path d="M75.334 286.691c-64.764 36.929-96.186-15.595-60.203-51.975L215.997 25.104c33.472-33.472 46.534-33.472 80.006 0l200.866 209.612c35.983 36.38 4.561 88.904-60.203 51.975L256 189.339 75.334 286.691z"/></svg>
+        </div>
+        <div v-if="data.clicked" class="drop-menu pointer" @click="data.clicked = !data.clicked;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" viewBox="0 0 512 299.283"><path d="M75.334 12.591C10.57-24.337-20.852 28.186 15.131 64.566l200.866 209.613c33.472 33.471 46.534 33.471 80.006 0L496.869 64.566c35.983-36.38 4.561-88.903-60.203-51.975L256 109.944 75.334 12.591z"/></svg>
+        </div>
         <div style="width: 100%;height: 100%;display: flex;justify-content: end;">
           <img :key="props.id" class="pointer disabled" alt="disabled favourite button" :src="data.heartIconSrc">
           <ParamsInfo :params="data.params" />
@@ -331,6 +339,7 @@
     }
     .flowerMenu{
         background-color: green;
+        color: lightgreen;
         box-shadow: 0.31rem 0.6rem 0.06rem 0.125rem rgba(12, 13, 12, 0.5);
         border: solid 0.06rem black;
         display: inline-flex;
@@ -385,5 +394,23 @@
     }
     p{
         color: lightgreen;
+    }
+    svg{
+        filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));
+    }
+    .svg-icon{
+        display: inline-block;
+        color: inherit;
+        vertical-align: middle;
+        fill: none;
+        stroke: currentColor;
+        margin-left: 2px;
+    }
+    .svg-icon-fill{
+        display: inline-block;
+        color: inherit;
+        vertical-align: middle;
+        fill: currentColor;
+        stroke: currentColor;
     }
 </style>
