@@ -5,8 +5,8 @@
     </span>
     <div class="labelInputArea">
       <ToolTip :info="'the backend url for the tts server (compatible with remsky/Kokoro-FastAPI)'" />
-      <label for="url">URL: </label>
-      <input id="url" v-model="data.remoteOptions.url" type="text" @change="saveRemoteOptions">
+      <label for="tts-url">URL: </label>
+      <input id="tts-url" v-model="data.remoteOptions.url" type="text" @change="saveRemoteOptions">
     </div>
     <div class="labelInputArea">
       <ToolTip :info="'api key to access the backend if needed (it will be saved to localStorage)'" />
@@ -203,6 +203,20 @@
       .styled-select{
           padding: 0.2rem;
           font-size: 0.9rem;
+      }
+  }
+  @media only screen and (max-width: 448px){
+      .labelInputArea label{
+          width: 6.8rem;
+          display: inline-block;
+          margin: 0rem 0rem 0rem 0.93rem;
+      }
+      .labelInputArea input[type=text]{
+          width: 38%;
+          font-size: 0.9rem;
+      }
+      .labelInputArea input[type=number]{
+          width: 15%;
       }
   }
   .labelInputArea input[type=number] {

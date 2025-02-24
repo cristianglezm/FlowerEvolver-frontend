@@ -5,8 +5,8 @@
     </span>
     <div class="labelInputArea">
       <ToolTip :info="'the backend url for the llm server(llama.cpp, openAI, huggingface)'" />
-      <label for="url">URL: </label>
-      <input id="url" v-model="data.remoteOptions.url" type="text" @change="saveRemoteOptions">
+      <label for="llm-url">URL: </label>
+      <input id="llm-url" v-model="data.remoteOptions.url" type="text" @change="saveRemoteOptions">
     </div>
     <div class="labelInputArea">
       <ToolTip :info="'api key to access the backend if needed (it will be saved to localStorage)'" />
@@ -139,6 +139,20 @@
       }
       .labelInputArea input[type=number]{
           width: 20%;
+      }
+  }
+  @media only screen and (max-width: 448px){
+      .labelInputArea label{
+          width: 7.5rem;
+          display: inline-block;
+          margin: 0rem 0rem 0rem 0.93rem;
+      }
+      .labelInputArea input[type=text]{
+          width: 38%;
+          font-size: 0.9rem;
+      }
+      .labelInputArea input[type=number]{
+          width: 15%;
       }
   }
   .labelInputArea input[type=number] {
