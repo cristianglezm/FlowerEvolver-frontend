@@ -315,4 +315,21 @@
           width: 50%;
       }
     }
+    @media only screen and (max-width: 448px){
+      .ModelOptions-container{
+        font-size: 0.75rem;
+      }
+      .labelInputArea label{
+          width: 5rem;
+          display: inline-block;
+          margin: 0rem 0rem 0rem 0.93rem;
+      }
+      .labelInputArea input[type=text]{
+          width: 48%;
+          font-size: 0.9rem;
+      }
+      .labelInputArea select{
+          width: 50%;
+      }
+    }
 </style>
