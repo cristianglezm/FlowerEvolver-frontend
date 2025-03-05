@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import Vue from '@vitejs/plugin-vue';
 import eslint from "vite-plugin-eslint";
 import path from 'path';
-import vueDevTools from 'vite-plugin-vue-devtools'
+import vueDevTools from 'vite-plugin-vue-devtools';
 
 export default defineConfig({
     plugins: [
@@ -15,12 +15,17 @@ export default defineConfig({
         },
     },
     build: {
-	    chunkSizeWarningLimit: 2500,
+        chunkSizeWarningLimit: 2500,
+        rollupOptions: {
+            output: {
+                format: 'esm',
+            }
+        }
     },
     esbuild: {
         legalComments: 'inline',
     },
     envPrefix: ["VITE_APP_"],
     sourcemap: process.env.NODE_ENV === 'development',
-    base: process.env.NODE_ENV === 'production' ? process.env.VITE_APP_BASE_URL:'/',
+    base: process.env.NODE_ENV === 'production' ? process.env.VITE_APP_BASE_URL : '/',
 });

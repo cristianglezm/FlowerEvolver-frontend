@@ -22,7 +22,8 @@
         "pinia": "^4.0.3",
         "vue": "^3.5.42",
         "vue-axios": "^3.6.0",
-        "vue-router": "^5.3.1"
+        "vue-router": "^5.3.1",
+        "waveform-data": "^4.5.1"
     },
     "devDependencies": {
         "eslint": "^10.2.1",
