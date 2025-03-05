@@ -15,12 +15,20 @@ export default defineConfig({
         },
     },
     build: {
-        chunkSizeWarningLimit: 2500,
+	    chunkSizeWarningLimit: 2500,
         rollupOptions: {
-            output: {
+             output: {
                 format: 'esm',
-            }
-        }
+                manualChunks(id) {
+                    if (['vue', 'vue-router', '@cristianglezm/flower-evolver-wasm', '@huggingface/transformers'].some(pkg => id.includes(pkg))) {
+                        return 'vendor';
+                    }
+                    if (id.includes('kokoro-js')) {
+                        return 'kokoro';
+                    }
+                 },
+             }
+         }
     },
     esbuild: {
         legalComments: 'inline',
