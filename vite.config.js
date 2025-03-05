@@ -16,6 +16,21 @@ export default defineConfig({
     },
     build: {
 	    chunkSizeWarningLimit: 2500,
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: [
+                        'vue',
+                        'vue-router',
+                        '@cristianglezm/flower-evolver-wasm',
+                        '@huggingface/transformers',
+                    ],
+                    kokoro: [
+                        'kokoro-js',
+                    ]
+                }
+            }
+        }
     },
     esbuild: {
         legalComments: 'inline',
