@@ -39,10 +39,10 @@
           </div>
           <div>
             <div v-if="!data.chatOpened" class="drop-menu pointer" @click="toggleMessageWindow()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" viewBox="0 0 512 299.283"><path d="M75.334 286.691c-64.764 36.929-96.186-15.595-60.203-51.975L215.997 25.104c33.472-33.472 46.534-33.472 80.006 0l200.866 209.612c35.983 36.38 4.561 88.904-60.203 51.975L256 189.339 75.334 286.691z"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" viewBox="0 0 512 299.283"><path d="M75.334 286.691c-64.764 36.929-96.186-15.595-60.203-51.975L215.997 25.104c33.472-33.472 46.534-33.472 80.006 0l200.866 209.612c35.983 36.38 4.561 88.904-60.203 51.975L256 189.339 75.334 286.691z" /></svg>
             </div>
             <div v-else class="drop-menu pointer" @click="toggleMessageWindow()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" viewBox="0 0 512 299.283"><path d="M75.334 12.591C10.57-24.337-20.852 28.186 15.131 64.566l200.866 209.613c33.472 33.471 46.534 33.471 80.006 0L496.869 64.566c35.983-36.38 4.561-88.903-60.203-51.975L256 109.944 75.334 12.591z"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" viewBox="0 0 512 299.283"><path d="M75.334 12.591C10.57-24.337-20.852 28.186 15.131 64.566l200.866 209.613c33.472 33.471 46.534 33.471 80.006 0L496.869 64.566c35.983-36.38 4.561-88.903-60.203-51.975L256 109.944 75.334 12.591z" /></svg>
             </div>
           </div>
         </div>
@@ -62,20 +62,21 @@
                 </div>
               </div>
               <div v-show="message.role === 'assistant' && message.hover" class="reg-btn">
+                <AudioPlayer 
+                  :audio-key="message.content"
+                  :audio-player="audioPlayer"
+                  :is-audio-playing="data.processingAudio"
+                  :mode="'wf'"
+                  :render-mode="'bars'"
+                  :render-sample-range="5"
+                  :max-width="200"
+                  :height="16"
+                  @on-request-audio="requestAudio"
+                />
                 <button
                   class="safe-button reg-btn"
-                  :class="{'disabled': data.processingAudio}"
-                  :disabled="data.processingAudio"
-                  @click="playMessage(message.content)"
-                >
-                  <span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" class="svg-icon svg-icon-fill" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M7 7.638v8.724c0 1.294 1.464 2.075 2.577 1.376l6.94-4.363a1.615 1.615 0 0 0 0-2.75l-6.94-4.363C8.464 5.562 7 6.344 7 7.638Z" clip-rule="evenodd" /></svg>
-                  </span>
-                </button>
-                <button
-                  class="safe-button reg-btn"
-                  :class="{'disabled': data.processingMessage}"
-                  :disabled="data.processingMessage"
+                  :class="{'disabled': isBusy}"
+                  :disabled="isBusy"
                   @click="regenerate(message.id)"
                 >
                   Regenerate
@@ -128,7 +129,10 @@
         </div>
       </div>
       <dialog id="ChatBot-dialog-options" v-toggle-dialog="data.openOptions" class="chatbot-Options">
-        <span class="close" @click="toggleOptions()">&times;</span>
+        <div class="inlined">
+          <h2>Options</h2>
+          <span class="close" @click="toggleOptions()">&times;</span>
+        </div>
         <div>
           <div class="option-box labelInputArea">
             <ToolTip :info="'if checked it will automatically generate text-to-speech for each message generated.'" />
@@ -340,6 +344,7 @@ import LLMRemoteOptions from './LLMRemoteOptions.vue';
 import TTSRemoteOptions from './TTSRemoteOptions.vue';
 import MultiProgressNodal from './MultiProgressModal.vue';
 import ConfirmModal from './ConfirmModal.vue';
+import AudioPlayer from './AudioPlayer.vue';
 
 const { position, onMouseDown, onTouchStart, isDragging, setPosition } = useDraggable();
 const ErrorStore = useErrorStore();
@@ -446,6 +451,7 @@ const props = defineProps({
 const chatBox = ref(null);
 let parentElementDisplay = ref(null);
 let observer;
+const audioPlayer = ref(null);
 const CHATBOT_SETTINGS_KEY = 'chatbotWidget#Options';
 const data = reactive({
     chatOpened: false,
@@ -652,26 +658,14 @@ const resetChat = () => {
     }
     ChatBotStore.addMessage("assistant", props.greetings);
 };
-const playMessage = async (text) => {
-    let audio = await KokoroStore.getAudio(text);
-    if(audio){
-        playAudio(audio);
+const requestAudio = async (text) => {
+    if(KokoroStore.hasModelLoaded && !data.processingAudio){
+        data.processingAudio = true;
+        KokoroStore.requestAudioGen(text);
     }else{
-        if(KokoroStore.hasModelLoaded && !data.processingAudio){
-            data.processingAudio = true;
-            KokoroStore.requestAudioGen(text);
-        }else{
-            ErrorStore.push("The Speech generation model is not loaded, please load it first.");
-        }
+        ErrorStore.push("The Speech generation model is not loaded, please load it first.");
     }
-};
-const audioPlayer = ref(null);
-const playAudio = (audio) => {
-    if(audioPlayer.value){
-        audioPlayer.value.src = audio;
-        audioPlayer.value.play();
-    }
-};
+}
 const computeEmbeddings = () => {
     if(data.options.useEmbeddings && !data.computedEmbeddings){
         data.computedEmbeddings = true;
@@ -712,9 +706,8 @@ onMounted(() => {
             });
         }, 2000);
     });
-    KokoroStore.channel.on('ChatBotWidget#audioResp', (e) => {
+    KokoroStore.channel.on('ChatBotWidget#audioResp', (_) => {
         data.processingAudio = false;
-        playAudio(e.audio);
     });
     KokoroStore.channel.on('ChatBotWidget#ToEmitter', (e) => {
         props.emitter.emit(e.eventName, e.event);
@@ -755,13 +748,19 @@ onMounted(() => {
         data.pendingMsg = "";
         if(KokoroStore.hasModelLoaded && data.options.generateSpeech && !data.processingAudio){
             data.processingAudio = true;
-            let text = ChatBotStore.getLastMessage().content;
-            let audio = await KokoroStore.getAudio(text);
-            if(audio){
-                playAudio(audio);
-                data.processingAudio = false;
+            let message = ChatBotStore.getLastMessage();
+            let audio = await KokoroStore.getAudio(message.content);
+            // make audio for message.role 'assistant' and 'info'
+            if(message.role !== 'user'){
+                if(audio){
+                    // emit event so AudioPlayer component can play it.
+                    KokoroStore.channel.emit('ChatBotWidget#audioResp', { audio: audio, text: message.content });
+                    data.processingAudio = false;
+                }else{
+                    KokoroStore.requestAudioGen(message.content);
+                }
             }else{
-                KokoroStore.requestAudioGen(text);
+                data.processingAudio = false;
             }
         }
     });
@@ -906,8 +905,6 @@ onUnmounted(() => {
         display: inline-flex;
         flex-flow: row nowrap;
         justify-content: end;
-        width: 100%;
-        height: 1px;
     }
     .close:hover{
         color: black;
@@ -917,6 +914,14 @@ onUnmounted(() => {
         flex-flow: column nowrap;
         flex-grow: 1;
         height: inherit;
+    }
+    .inlined{
+        display: flex;
+        flex-flow: row nowrap;
+    }
+    .inlined h2{
+        width: 100%;
+        text-align: center;
     }
     .inlined-menu{
         display: inline-flex;
