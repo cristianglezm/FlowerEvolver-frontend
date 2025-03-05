@@ -33,7 +33,8 @@ wm.onResponse('kokoro', (data) => {
         case "audioResp":{
             KokoroStore.addAudio(data.text, data.audio);
             channel.emit('ChatBotWidget#audioResp', {
-                audio: data.audio
+                audio: data.audio,
+                text: data.text
             });
         }
             break;
