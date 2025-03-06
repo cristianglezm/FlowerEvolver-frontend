@@ -129,7 +129,10 @@
         </div>
       </div>
       <dialog id="ChatBot-dialog-options" v-toggle-dialog="data.openOptions" class="chatbot-Options">
-        <span class="close" @click="toggleOptions()">&times;</span>
+        <div class="inlined">
+          <h2>Options</h2>
+          <span class="close" @click="toggleOptions()">&times;</span>
+        </div>
         <div>
           <div class="option-box labelInputArea">
             <ToolTip :info="'if checked it will automatically generate text-to-speech for each message generated.'" />
@@ -902,8 +905,6 @@ onUnmounted(() => {
         display: inline-flex;
         flex-flow: row nowrap;
         justify-content: end;
-        width: 100%;
-        height: 1px;
     }
     .close:hover{
         color: black;
@@ -913,6 +914,14 @@ onUnmounted(() => {
         flex-flow: column nowrap;
         flex-grow: 1;
         height: inherit;
+    }
+    .inlined{
+        display: flex;
+        flex-flow: row nowrap;
+    }
+    .inlined h2{
+        width: 100%;
+        text-align: center;
     }
     .inlined-menu{
         display: inline-flex;
