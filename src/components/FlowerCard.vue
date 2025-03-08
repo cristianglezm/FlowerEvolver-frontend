@@ -2,48 +2,56 @@
   <div class="FlowerCard">
     <div v-if="props.isLocal">
       <div class="flowerMenu" :class="{Selected: data.selected}">
-        <img v-if="!data.clicked" class="drop-menu pointer" src="@/assets/x32/Arrow_down.png" @click="data.clicked = !data.clicked; ">
-        <img v-if="data.clicked" class="drop-menu pointer" src="@/assets/x32/Arrow_up.png" @click="data.clicked = !data.clicked; ">
+        <div v-if="!data.clicked" class="drop-menu pointer" @click="data.clicked = !data.clicked; ">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd" viewBox="0 0 512 299.283"><path d="M75.334 286.691c-64.764 36.929-96.186-15.595-60.203-51.975L215.997 25.104c33.472-33.472 46.534-33.472 80.006 0l200.866 209.612c35.983 36.38 4.561 88.904-60.203 51.975L256 189.339 75.334 286.691z" /></svg>
+        </div>
+        <div v-if="data.clicked" class="drop-menu pointer" @click="data.clicked = !data.clicked; ">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd" viewBox="0 0 512 299.283"><path d="M75.334 12.591C10.57-24.337-20.852 28.186 15.131 64.566l200.866 209.613c33.472 33.471 46.534 33.471 80.006 0L496.869 64.566c35.983-36.38 4.561-88.903-60.203-51.975L256 109.944 75.334 12.591z" /></svg>
+        </div>
         <div style="width: 100%;height: 100%;display: flex;justify-content: end;">
           <img :key="props.id" class="pointer" alt="favourite button" :src="data.heartIconSrc" @click="toggleFavourite(props.id)">
           <ParamsInfo :params="data.params" />
         </div>
         <div v-if="data.clicked" class="flower-buttons">
-            <a @click="mutate(); data.clicked = !data.clicked;">Mutate</a>
-            <a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a>
-            <a @click="shareFlower(); data.clicked = !data.clicked;">Share</a>
-            <a @click="describe(); data.clicked = !data.clicked;">Describe</a>
-            <a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a>
-            <a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a>
-            <a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a>
-            <a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a>
-            <a @click="deleteThisFlower(); data.clicked = !data.clicked;">Delete Flower</a>
-            <a @click="store.redrawFlower({genome: props.genome}); data.clicked = !data.clicked;">Redraw Flower</a>
+          <a @click="mutate(); data.clicked = !data.clicked;">Mutate</a>
+          <a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a>
+          <a @click="shareFlower(); data.clicked = !data.clicked;">Share</a>
+          <a @click="describe(); data.clicked = !data.clicked;">Describe</a>
+          <a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a>
+          <a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a>
+          <a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a>
+          <a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a>
+          <a @click="deleteThisFlower(); data.clicked = !data.clicked;">Delete Flower</a>
+          <a @click="FlowerStore.redrawFlower({genome: props.genome}); data.clicked = !data.clicked;">Redraw Flower</a>
         </div>
       </div>
-      <img :id="'FlImage' + props.id" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage">
+      <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="FlowerStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
       <p><strong>{{ props.id }}</strong></p>
     </div>
     <div v-else>
       <div class="flowerMenu" :class="{Selected: data.selected}">
-        <img v-if="!data.clicked" class="drop-menu pointer" src="@/assets/x32/Arrow_down.png" @click="data.clicked = !data.clicked; ">
-        <img v-if="data.clicked" class="drop-menu pointer" src="@/assets/x32/Arrow_up.png" @click="data.clicked = !data.clicked; ">
+        <div v-if="!data.clicked" class="drop-menu pointer" @click="data.clicked = !data.clicked;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" viewBox="0 0 512 299.283"><path d="M75.334 286.691c-64.764 36.929-96.186-15.595-60.203-51.975L215.997 25.104c33.472-33.472 46.534-33.472 80.006 0l200.866 209.612c35.983 36.38 4.561 88.904-60.203 51.975L256 189.339 75.334 286.691z" /></svg>
+        </div>
+        <div v-if="data.clicked" class="drop-menu pointer" @click="data.clicked = !data.clicked;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" viewBox="0 0 512 299.283"><path d="M75.334 12.591C10.57-24.337-20.852 28.186 15.131 64.566l200.866 209.613c33.472 33.471 46.534 33.471 80.006 0L496.869 64.566c35.983-36.38 4.561-88.903-60.203-51.975L256 109.944 75.334 12.591z" /></svg>
+        </div>
         <div style="width: 100%;height: 100%;display: flex;justify-content: end;">
           <img :key="props.id" class="pointer disabled" alt="disabled favourite button" :src="data.heartIconSrc">
           <ParamsInfo :params="data.params" />
         </div>
         <div v-if="data.clicked" class="flower-buttons">
-            <a @click="mutate(); data.clicked = !data.clicked;">Mutate</a>
-            <a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a>
-            <a @click="addToLocal(); data.clicked = !data.clicked;">Add to local</a>
-            <a @click="describe(); data.clicked = !data.clicked;">Describe</a>
-            <a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a>
-            <a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a>
-            <a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a>
-            <a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a>
+          <a @click="mutate(); data.clicked = !data.clicked;">Mutate</a>
+          <a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a>
+          <a @click="addToLocal(); data.clicked = !data.clicked;">Add to local</a>
+          <a @click="describe(); data.clicked = !data.clicked;">Describe</a>
+          <a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a>
+          <a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a>
+          <a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a>
+          <a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a>
         </div>
       </div>
-      <img :id="'FlImage' + props.id" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage">
+      <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="FlowerStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
       <p><strong>{{ props.id }}</strong></p>
     </div>
   </div>
@@ -51,12 +59,14 @@
 
 <script setup>
 
-    import { useFlowersStore } from '../store';
-    import { useAIStore } from '../store/AIStore';
+    import { useFlowerStore } from '../stores/FlowerStore';
+    import { useCaptionerStore } from '../stores/CaptionerStore';
     import { onMounted, reactive, inject, onUnmounted } from 'vue';
     import { useRouter } from 'vue-router';
     import ParamsInfo from './ParamsInfo.vue';
-	
+    import ZoomableImage from './ZoomableImage.vue';
+    import { useErrorStore } from '../stores/ErrorStore';
+
     const props = defineProps({
         id: {
             type: Number,
@@ -125,25 +135,27 @@
                 P: 6.0,
                 bias: 1.0
                 },
+        lensSize: { x: 100, y: 100 },
     });
     const router = useRouter();
-    const store = useFlowersStore();
-    const AIStore = useAIStore();
+    const FlowerStore = useFlowerStore();
+    const ErrorStore = useErrorStore();
+    const CaptionerStore = useCaptionerStore();
     const emitter = inject('emitter');
     onMounted(() => {
         if(props.isLocal){
             parseParams();
-            store.isFavourited(props.id)
+            FlowerStore.isFavourited(props.id)
                 .then((isFav) => {
                     if(isFav){
                         data.heartIconSrc = loadImage("heart_full.png","x32");
                     }
                 });
-            if(AIStore.localDescriptions.has(props.id)){
-                data.description = "Flower " + props.id + " - " + AIStore.getLocalDescription(props.id);
+            if(CaptionerStore.localDescriptions.has(props.id)){
+                data.description = "Flower " + props.id + " - " + CaptionerStore.getLocalDescription(props.id);
             }
         }
-        AIStore.channel.on('captioner#done', (e) => {
+        CaptionerStore.channel.on('captioner#done', (e) => {
             if(e.id === props.id){
                 data.description = "Flower " + props.id + " - " + e.description;
                 emitter.emit('updateDesc', {
@@ -159,7 +171,7 @@
     });
     onUnmounted(() => {
         emitter.off('checkSelected');
-        AIStore.channel.off('captioner#done');
+        CaptionerStore.channel.off('captioner#done');
     });
 
     const deleteThisFlower = () => {
@@ -168,9 +180,8 @@
             message: 'Do you wanna delete flower ' + props.id + '?',
             btnNo: 'No',
             btnYes: 'Delete Flower',
-            onConfirm: (dialog) => {
-                store.deleteLocalFlower(props.id);
-                dialog.close();
+            onConfirm: () => {
+                FlowerStore.deleteLocalFlower(props.id);
             },
         });
     };
@@ -183,22 +194,22 @@
     };
     const onSelected = () => {
         if(props.isLocal){
-            store.selectLocalFlower({id: props.id, genome: props.genome,image: props.image});
+            FlowerStore.selectLocalFlower({id: props.id, genome: props.genome,image: props.image});
         }else{
-            store.selectRemoteFlower({id: props.id, genome: props.genome,image: props.image});
+            FlowerStore.selectRemoteFlower({id: props.id, genome: props.genome,image: props.image});
         }
         emitter.emit('checkSelected');
     };
     const shareFlower = () => {
-        store.shareFlower(props.genome);
+        FlowerStore.shareFlower(props.genome);
     };
     const describe = () => {
-        if(!store.settings.loadModel){
-            store.errors.push({message: "check load model option in Settings to use this."});
+        if(!CaptionerStore.hasModelLoaded){
+            ErrorStore.push("check load model option or click download / load Model in Settings to use this.");
             return;
         }
         if(props.isLocal){
-            if(AIStore.localDescriptions.has(props.id)){
+            if(CaptionerStore.localDescriptions.has(props.id)){
                 emitter.emit('showDescriptionModal', {
                     FlowerImage: getImage(),
                     FlowerID: props.id
@@ -206,18 +217,18 @@
                 setTimeout(() => {
                     emitter.emit('updateDesc', {
                         loading: false,
-                        description: AIStore.getLocalDescription(props.id)
+                        description: CaptionerStore.getLocalDescription(props.id)
                     });
                 }, 500);
             }else{
-                AIStore.requestDescription({ id: props.id, image: props.image, isLocal: props.isLocal });
+                CaptionerStore.requestDescription({ id: props.id, image: props.image, isLocal: props.isLocal });
                 emitter.emit('showDescriptionModal', {
                     FlowerImage: getImage(),
                     FlowerID: props.id
                 });
             }
         }else{
-            if(AIStore.remoteDescriptions.has(props.id)){
+            if(CaptionerStore.remoteDescriptions.has(props.id)){
                 emitter.emit('showDescriptionModal', {
                     FlowerImage: getImage(),
                     FlowerID: props.id
@@ -225,11 +236,11 @@
                 setTimeout(() => {
                     emitter.emit('updateDesc', {
                         loading: false,
-                        description: AIStore.getRemoteDescription(props.id)
+                        description: CaptionerStore.getRemoteDescription(props.id)
                     });
                 }, 500);
             }else{
-                AIStore.requestDescription({ id: props.id, image: props.image, isLocal: props.isLocal });
+                CaptionerStore.requestDescription({ id: props.id, image: props.image, isLocal: props.isLocal });
                 emitter.emit('showDescriptionModal', {
                     FlowerImage: getImage(),
                     FlowerID: props.id
@@ -247,31 +258,31 @@
     };
     const isSelected = () => {
         if(props.isLocal){
-            return store.isLocalFlowerSelected({id: props.id, genome: props.genome, image: props.image})
+            return FlowerStore.isLocalFlowerSelected({id: props.id, genome: props.genome, image: props.image})
         }
-        return store.isRemoteFlowerSelected({id: props.id, genome: props.genome, image: props.image})
+        return FlowerStore.isRemoteFlowerSelected({id: props.id, genome: props.genome, image: props.image})
     };
     const toggleFavourite = async (id) => {
         if(props.isLocal){
-            let isFav = await store.isFavourited(id);
+            let isFav = await FlowerStore.isFavourited(id);
             if(isFav){
                 data.index = 6;
                 setTimeout(changeHeartIcon, 50, true);
-                store.removeFlowerFromFav(id);
+                FlowerStore.removeFlowerFromFav(id);
             }else{
                 data.index = 0;
                 setTimeout(changeHeartIcon, 50, false);
-                await store.addFlowerToFav(id);
+                await FlowerStore.addFlowerToFav(id);
             }
         }else{
-            store.errors.push({message: "Add the flower to local first to add it to favourites."});
+            ErrorStore.push("Add the flower to local first to add it to favourites.");
         }
     };
     const addToLocal = () => {
         if(!props.isLocal){
-            store.addRemoteFlowerToLocal({id: props.id, genome: props.genome, image: props.image});
+            FlowerStore.addRemoteFlowerToLocal({id: props.id, genome: props.genome, image: props.image});
         }else{
-            store.errors.push({message: "This flower is a local flower already."});
+            ErrorStore.push("This flower is a local flower already.");
         }
     };
     const changeHeartIcon = (desc) => {
@@ -306,19 +317,20 @@
     };
     const mutate = () => {
         if(props.isLocal){
-            store.makeLocalMutation({id: props.id, image: props.image, genome: props.genome});
+            FlowerStore.makeLocalMutation({id: props.id, image: props.image, genome: props.genome});
         }else{
-            store.makeRemoteMutation({id: props.id, image: props.image, genome: props.genome});
+            FlowerStore.makeRemoteMutation({id: props.id, image: props.image, genome: props.genome});
         }
     };
 
 </script>
-
-<style scoped>
+<style>
     .FlowerImage{
         width: 100%;
         height: auto;
     }
+</style>
+<style scoped>
     .FlowerCard{
         margin: auto auto auto auto;
     }
@@ -327,6 +339,7 @@
     }
     .flowerMenu{
         background-color: green;
+        color: lightgreen;
         box-shadow: 0.31rem 0.6rem 0.06rem 0.125rem rgba(12, 13, 12, 0.5);
         border: solid 0.06rem black;
         display: inline-flex;
@@ -381,5 +394,23 @@
     }
     p{
         color: lightgreen;
+    }
+    svg{
+        filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));
+    }
+    .svg-icon{
+        display: inline-block;
+        color: inherit;
+        vertical-align: middle;
+        fill: none;
+        stroke: currentColor;
+        margin-left: 2px;
+    }
+    .svg-icon-fill{
+        display: inline-block;
+        color: inherit;
+        vertical-align: middle;
+        fill: currentColor;
+        stroke: currentColor;
     }
 </style>
