@@ -14,7 +14,7 @@
         "@cristianglezm/flower-evolver-wasm": "^1.1.0",
         "@huggingface/inference": "^2.8.1",
         "@huggingface/jinja": "^0.3.3",
-        "@huggingface/transformers": "^3.3.3",
+        "@huggingface/transformers": "^3.4.0",
         "axios": "^1.8.4",
         "dexie": "^4.0.11",
         "kokoro-js": "^1.2.0",
