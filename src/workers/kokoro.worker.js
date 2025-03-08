@@ -1,4 +1,5 @@
-import { Kokoro, audioGen, rAudioGen } from '../stores/KokoroStore/Kokoro';
+import { TextSplitterStream } from 'kokoro-js';
+import { Kokoro, audioGen, rAudioGen, streamingAudioGen } from '../stores/KokoroStore/Kokoro';
 
 /**
  * @brief Web Worker that manages tasks related to loading a Kokoro model, resetting it, and processing text to audio.
@@ -19,6 +20,8 @@ import { Kokoro, audioGen, rAudioGen } from '../stores/KokoroStore/Kokoro';
  *   - `"reset"`: Reset the chatbot model and clear its state.
  *   - `"audioGen"`: generate audio for 'text'
  *   - `"rAudioGen"': generate audio for 'text' in the configured remote server.
+ *   - `"streamingAudio"`: Generate audio for a given 'text' by splitting it into chunks and processing each chunk locally to audio.
+ *   - `"rStreamingAudio"`: Generate audio for a given 'text' by splitting it into chunks and sending each chunk to a remote server for audio processing.
  * 
  * @param {Object} e.data.modelOptions - Configuration options for the model (only for the `"loadModel"` job type).
  *   @property {String} host - The host for the model (e.g., `"huggingface"` or `"localhost"`).
@@ -142,6 +145,46 @@ const _audioGen = async (e) => {
         text: text
     });
 };
+const _streamingAudioGen = async (e) => {
+    const fullText = e.data.text;
+    streamingAudioGen(async (splitter, stream) => {
+        splitter.push(fullText);
+        splitter.close();
+        for await(const { text, _, audio } of stream){
+            const blob = audio.toBlob({type: 'audio/wav'});
+            self.postMessage({
+                jobType: "streamingAudioChunk",
+                audio: URL.createObjectURL(blob),
+                text: text
+            });
+        }
+        self.postMessage({
+            jobType: "streamingAudioChunk#done",
+            text: fullText
+        });
+    });
+};
+const _rStreamingAudioGen = async (e) => {
+    const fullText = e.data.text;
+    const remoteOptions = e.data.remoteOptions;
+    let splitter = new TextSplitterStream();
+    splitter.push(fullText);
+    splitter.close();
+    for await(const text of splitter){
+        let blob = await rAudioGen(text, remoteOptions);
+        self.postMessage({
+            jobType: "streamingAudioChunk",
+            audio: URL.createObjectURL(blob),
+            text: text
+        });
+    }
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    await sleep(200);
+    self.postMessage({
+        jobType: "streamingAudioChunk#done",
+        text: fullText
+    });
+};
 const _rAudioGen = async (e) => {
     const text = e.data.text;
     const remoteOptions = e.data.remoteOptions;
@@ -188,6 +231,17 @@ self.onmessage = async (e) => {
             }
         }
             break;
+        case "streamingAudio":{
+            try{
+                _streamingAudioGen(e);
+            }catch(e){
+                self.postMessage({
+                    jobType: "error",
+                    error: e
+                });
+            }
+        }
+            break;
         case "rAudioGen":{
             try{
                 _rAudioGen(e);
@@ -195,6 +249,17 @@ self.onmessage = async (e) => {
                 self.postMessage({
                   jobType: "error",
                   error: e
+                });
+            }
+        }
+            break;
+        case "rStreamingAudio":{
+            try{
+                _rStreamingAudioGen(e);
+            }catch(e){
+                self.postMessage({
+                    jobType: "error",
+                    error: e
                 });
             }
         }

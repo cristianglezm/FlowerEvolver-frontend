@@ -1,6 +1,6 @@
 import { env } from '@huggingface/transformers';
 import { HfInference } from '@huggingface/inference';
-import { KokoroTTS } from "kokoro-js";
+import { KokoroTTS, TextSplitterStream } from "kokoro-js";
 import { ModelCache, isGPUAvailable } from '../AIUtils';
 
 // @todo replace with 'fe-kokoro-cache' when able to use custom cache.
@@ -96,6 +96,21 @@ export const audioGen = async (text) => {
     return audio;
 };
 /**
+ * @brief Generates audio from text(splits the text and streams the chunks) using Kokoro.
+ *
+ * @param {Function} callback
+ * @param {TextSplitterStream} splitter
+ * @param {AsyncGenerator} stream
+ */
+export const streamingAudioGen = async (callback) => {
+    let tts = await Kokoro.getInstance();
+    const splitter = new TextSplitterStream();
+    const stream = tts.stream(splitter, {
+        voice: Kokoro.modelOptions.voice
+    });
+    callback(splitter, stream);
+};
+/**
  * @brief Generates audio from text using remote text-to-speech (TTS) service.
  *
  * @param {string} text - The text to be converted to speech.
@@ -127,4 +142,4 @@ export const rAudioGen = async (text, remoteOptions = {
     });
     return audio;
 };
-export default { CACHE_KEY, VOICES_CACHE_KEY, Kokoro, audioGen, rAudioGen, isGPUAvailable };
+export default { CACHE_KEY, VOICES_CACHE_KEY, Kokoro, audioGen, streamingAudioGen, rAudioGen, isGPUAvailable };
