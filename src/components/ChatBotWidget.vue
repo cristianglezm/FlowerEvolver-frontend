@@ -452,6 +452,7 @@ const chatBox = ref(null);
 let parentElementDisplay = ref(null);
 let observer;
 const audioPlayer = ref(null);
+let queue = ref([]);
 const CHATBOT_SETTINGS_KEY = 'chatbotWidget#Options';
 const data = reactive({
     chatOpened: false,
@@ -666,6 +667,13 @@ const requestAudio = async (text) => {
         ErrorStore.push("The Speech generation model is not loaded, please load it first.");
     }
 }
+const playNextAudio = () => {
+    if(queue.value.length){
+        let item = queue.value.shift();
+        audioPlayer.value.src = item.audio;
+        audioPlayer.value.play();
+    }
+};
 const computeEmbeddings = () => {
     if(data.options.useEmbeddings && !data.computedEmbeddings){
         data.computedEmbeddings = true;
@@ -708,6 +716,23 @@ onMounted(() => {
     });
     KokoroStore.channel.on('ChatBotWidget#audioResp', (_) => {
         data.processingAudio = false;
+    });
+    KokoroStore.channel.on('ChatBotWidget#AudioChunkDone', (_) => {
+        data.processingAudio = false;
+        audioPlayer.value.removeEventListener('ended', playNextAudio);
+    });
+    KokoroStore.channel.on('ChatBotWidget#AudioChunk', (e) => {
+        data.processingAudio = true;
+        if(audioPlayer.value.currentTime > 0 && !audioPlayer.value.paused){
+            queue.value.push({
+                text: e.text,
+                audio: e.audio
+            });
+        }else{
+            audioPlayer.value.src = e.audio;
+            audioPlayer.value.play();
+            audioPlayer.value.addEventListener('ended', playNextAudio);
+        }
     });
     KokoroStore.channel.on('ChatBotWidget#ToEmitter', (e) => {
         props.emitter.emit(e.eventName, e.event);
@@ -757,7 +782,7 @@ onMounted(() => {
                     KokoroStore.channel.emit('ChatBotWidget#audioResp', { audio: audio, text: message.content });
                     data.processingAudio = false;
                 }else{
-                    KokoroStore.requestAudioGen(message.content);
+                    KokoroStore.requestStreamingAudioGen(message.content);
                 }
             }else{
                 data.processingAudio = false;
@@ -833,6 +858,8 @@ onUnmounted(() => {
     ChatBotStore.channel.off('ChatBotWidget#toolEmbeddings');
     KokoroStore.channel.off('ChatBotWidget#ToEmitter');
     KokoroStore.channel.off('ChatBotWidget#audioResp');
+    KokoroStore.channel.off('ChatBotWidget#AudioChunk');
+    KokoroStore.channel.off('ChatBotWidget#AudioChunkDone');
     props.emitter.off("ChatBotWidget#loadChatBotModel");
     props.emitter.off('ChatBotWidget#loadKokoroModel');
     if(observer){
