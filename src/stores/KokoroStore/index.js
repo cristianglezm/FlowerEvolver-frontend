@@ -186,12 +186,16 @@ export const useKokoroStore = defineStore('KokoroStore', {
             }
             let mergedAudioSamples = [];
             let sampleRate = 44100;
+            const chunkSize = 10000;
             for(let chunk of this.pendingChunks){
                 const response = await fetch(chunk.audio);
                 const arrayBuffer = await response.arrayBuffer();
                 const audioContext = new AudioContext();
                 const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                mergedAudioSamples.push(...audioBuffer.getChannelData(0));
+                const channelData = audioBuffer.getChannelData(0);
+                for(let i = 0;i < channelData.length;i += chunkSize){
+                    mergedAudioSamples.push(...channelData.slice(i, i + chunkSize));
+                }
                 sampleRate = audioBuffer.sampleRate;
             }
             const rawAudio = new RawAudio(new Float32Array(mergedAudioSamples), sampleRate);
