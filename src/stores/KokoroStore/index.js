@@ -4,6 +4,7 @@ import WorkerManager from '../WorkerManager';
 import kokoro from '../../workers/kokoro.worker?worker';
 import { toRaw } from 'vue';
 import { useErrorStore } from '../ErrorStore';
+import { RawAudio } from '@huggingface/transformers';
 
 let channel = new mitt();
 const wm = new WorkerManager(channel);
@@ -36,6 +37,19 @@ wm.onResponse('kokoro', (data) => {
                 audio: data.audio,
                 text: data.text
             });
+        }
+            break;
+        case "streamingAudioChunk":{
+            KokoroStore.pendingChunks.push({text: data.text, audio: data.audio});
+            channel.emit('ChatBotWidget#AudioChunk', {
+                audio: data.audio,
+                text: data.text
+            });
+        }
+            break;
+        case "streamingAudioChunk#done":{
+            KokoroStore._mergePendingChunks(data.text);
+            channel.emit('ChatBotWidget#AudioChunkDone');
         }
             break;
     }
@@ -73,7 +87,8 @@ export const useKokoroStore = defineStore('KokoroStore', {
             model: "kokoro",
             voice: "af_bella"
         })),
-        audios: new Map()
+        audios: new Map(),
+        pendingChunks: []
     }),
     getters: {
         getAudios: (state) => {
@@ -116,7 +131,23 @@ export const useKokoroStore = defineStore('KokoroStore', {
                     jobType: "rAudioGen",
                     text: text,
                     remoteOptions: structuredClone(toRaw(this.remoteOptions))
-                })
+                });
+            }
+        },
+        async requestStreamingAudioGen(text){
+            if(this.isLocal){
+                if(this.isModelLoaded){
+                    this.wm.sendRequest('kokoro', {
+                        jobType: "streamingAudio",
+                        text: text
+                    });
+                }
+            }else{
+                this.wm.sendRequest('kokoro', {
+                    jobType: "rStreamingAudio",
+                    text: text,
+                    remoteOptions: structuredClone(toRaw(this.remoteOptions))
+                });
             }
         },
         async requestModelLoad(){
@@ -141,13 +172,33 @@ export const useKokoroStore = defineStore('KokoroStore', {
             }
         },
         async requestReset(){
-            if(this.isLocal){
+            if(!this.isLocal){
                 return;
             }
             this.isModelLoaded = false;
             this.wm.sendRequest('kokoro', {
                 jobType: "reset",
             });
+        },
+        async _mergePendingChunks(text){
+            if(!this.pendingChunks || this.pendingChunks.length === 0){
+              return;
+            }
+            let mergedAudioSamples = [];
+            let sampleRate = 44100;
+            for(let chunk of this.pendingChunks){
+                const response = await fetch(chunk.audio);
+                const arrayBuffer = await response.arrayBuffer();
+                const audioContext = new AudioContext();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                mergedAudioSamples.push(...audioBuffer.getChannelData(0));
+                sampleRate = audioBuffer.sampleRate;
+            }
+            const rawAudio = new RawAudio(new Float32Array(mergedAudioSamples), sampleRate);
+            const wavBlob = rawAudio.toBlob();
+            const audioURL = URL.createObjectURL(wavBlob);
+            await this.addAudio(text, audioURL);
+            this.pendingChunks = [];
         },
         async saveModelOptions(){
             localStorage.setItem(STORAGE_KEY_KOKORO_MODEL_OPTIONS, JSON.stringify(this.modelOptions));
