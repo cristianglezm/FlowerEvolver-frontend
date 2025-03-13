@@ -2,10 +2,23 @@ import { defineStore } from "pinia";
 import { toRaw } from "vue";
 
 const cosineSimilarity = (vecA, vecB) => {
-	const dotProduct = vecA.reduce((sum, a, idx) => sum + a * vecB[idx], 0);
-	const magnitudeA = Math.sqrt(vecA.reduce((sum, a) => sum + a * a, 0)); 
-	const magnitudeB = Math.sqrt(vecB.reduce((sum, b) => sum + b * b, 0)); 
-	return dotProduct / (magnitudeA * magnitudeB);
+    if (vecA.length !== vecB.length) {
+        throw new Error("vecA and vecB size should be equal.");
+    }
+    let dotProduct = 0;
+    let magnitudeA = 0;
+    let magnitudeB = 0;
+    for(let i = 0; i < vecA.length; ++i){
+        dotProduct += vecA[i] * vecB[i];
+        magnitudeA += vecA[i] * vecA[i];
+        magnitudeB += vecB[i] * vecB[i];
+    }
+    magnitudeA = Math.sqrt(magnitudeA);
+    magnitudeB = Math.sqrt(magnitudeB);
+    if(magnitudeA === 0 || magnitudeB === 0){
+        return 0;
+    }
+    return dotProduct / (magnitudeA * magnitudeB);
 };
 
 /**
