@@ -246,8 +246,8 @@
  *          options:{
  *              generateSpeech: false,
  *              useEmbeddings: true,
- *              threshold: 0.8
- *          }
+ *              threshold: 0.75
+ *          },
  *          llm:{
  *              isLocal: true, 
  *              modelOptions: {
@@ -465,7 +465,7 @@ const data = reactive({
     options: JSON.parse(localStorage.getItem(CHATBOT_SETTINGS_KEY) || JSON.stringify({
         generateSpeech: false,
         useEmbeddings: true,
-        threshold: 0.8,
+        threshold: 0.75,
     })),
     message: "",
     pendingMsg: ""
