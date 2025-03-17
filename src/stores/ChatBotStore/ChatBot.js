@@ -341,10 +341,11 @@ export const getREmbeddings = async (text, remoteOptions = {
     }) => {
         const fullUrl = remoteOptions.url + "/v1/embeddings";
         const hf = new HfInference(remoteOptions.api_key).endpoint(fullUrl);
-        let embeddings = await hf.request({
+        let response = await hf.request({
             model: remoteOptions.model,
-            input: text
+            content: text
         });
-        return embeddings.data[0].embedding;
+        let index = response[0].index;
+        return response[0].embedding[index];
 };
 export default { CACHE_KEY, ChatBot, getEmbeddings, getREmbeddings, chat, rChat, streamingChat, rStreamingChat, isGPUAvailable };
