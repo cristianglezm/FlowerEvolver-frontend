@@ -294,15 +294,15 @@
  *  // parse text from llm and process, whatever is returned will be shown on the chat
  *   console.log('Executing function with:', text);
  *   return {
- *      infoForUser: 'executed function with'
- *      textForUser: text, // parsed text that has no tool calls
- *      commandsToConfirm: {
+ *      infoForUser: ['executed function with']
+ *      textForUser: [text], // parsed text that has no tool calls
+ *      commandsToConfirm: [{
  *          "title":"title for ConfirmModal",
  *          "message":"message ...",
  *          "btnNo": "text for button no",
  *          "btnYes": "text for button yes",
  *          "onConfirm": () => { console.log("fn to execute when user clicks btnYes") }
- *      },
+ *      }]
  *   };
  * };
  * 
@@ -322,7 +322,7 @@
  * @example
  * The component can be embedded in a parent component with optional props:
  * <ChatBotWidget 
- *     :emitter="emitter" // this is a mit() event bus
+ *     :emitter="emitter" // this is a mitt() event bus
  *     :system="'You are a helpful assistant.'" 
  *     :greetings="'Hello, user!'" 
  *     :tools="[{ name: 'fetchData', description: 'Fetch data from API', parameters: { id:{ type: 'string', required:true, description: 'id paarameter'} } }]"
