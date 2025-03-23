@@ -547,8 +547,8 @@ export const documents = [
         "content": "To export garden flowers, go to the 'Settings' tab and use the 'export garden flowers' option."
     },
     {
-        "title": "How do I import data for the native app?",
-        "content": "To import data for the native app, go to the 'Settings' tab and use the 'import' options provided. This will allow you to use the data within the native app."
+        "title": "How do I export data for the native app?",
+        "content": "To export data for the native app, go to the 'Settings' tab and use the 'export' options provided. This will allow you to use the data within the native app."
     },
     {
         "title": "How do I redraw all flowers with current parameters?",
