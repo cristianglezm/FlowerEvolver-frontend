@@ -870,6 +870,7 @@ onUnmounted(() => {
 
 <style scoped>
     .chatbot-widget-core{
+        all: initial;
         position: fixed;
         display: flex;
         flex-flow: column nowrap;
@@ -880,6 +881,7 @@ onUnmounted(() => {
         border-radius: 0.6em;
         z-index: 10;
         box-shadow: 10px 10px 4px 3px rgba(0, 0, 0, 0.4);
+        scrollbar-color: lightgreen rgb(47,50,52);
     }
     .chatbot-widget-expanded{
         width: 98% !important;
@@ -923,6 +925,9 @@ onUnmounted(() => {
         border: solid lightgreen;
         color: lightgreen;
         box-shadow: 10px 10px 4px 3px rgba(0, 0, 0, 0.4);
+        box-sizing: inherit;
+        margin: auto;
+        font-weight: normal;
     }
     .close{
         color: lightgreen;
@@ -1183,6 +1188,7 @@ onUnmounted(() => {
         border-radius: 2em;
         width: 50px;
         height: 25px;
+        box-sizing: content-box;
     }
     .bouncing-dots{
         display: flex;
