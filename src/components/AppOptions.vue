@@ -236,6 +236,7 @@ const validateInteger = (number, Default) => {
         border-radius: 50%;
         -webkit-appearance: none;
         margin-top: -6px;
+        box-shadow: 1px 2px 10px 1px rgba(47, 57, 53, 0.8);
     }
     .labelInputArea input[type=range]::-moz-range-thumb{
         background-color: green;
@@ -246,6 +247,7 @@ const validateInteger = (number, Default) => {
         height: 16px;
         border-radius: 50%;
         -moz-appearance: none;
+        box-shadow: 1px 2px 10px 1px rgba(47, 57, 53, 0.8);
     }
     .labelInputArea input[type=range]::-ms-thumb{
         background-color: green;
@@ -256,6 +258,7 @@ const validateInteger = (number, Default) => {
         height: 16px;
         border-radius: 50%;
         -ms-appearance: none;
+        box-shadow: 1px 2px 10px 1px rgba(47, 57, 53, 0.8);
     }
     .safe-button{
         position: relative;
