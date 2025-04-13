@@ -2,7 +2,6 @@
 # package ecosystems to update and where the package manifests are located.
 # Please see the documentation for all configuration options:
 # https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
-
 version: 2
 updates:
   - package-ecosystem: "npm"
@@ -13,7 +12,35 @@ updates:
       - cristianglezm
     assignees:
       - cristianglezm
-      
+    open-pull-requests-limit: 5
+    groups:
+      core-vue:
+        patterns:
+          - "vue"
+          - "pinia"
+          - "vue-router"
+          - "vue-axios"
+      misc:
+        patterns:
+          - "axios"
+          - "dexie"
+          - "mitt"
+          - "@cristianglezm/flower-evolver-wasm"
+      ai-tools:
+        patterns:
+          - "@huggingface/*"
+          - "kokoro-js"
+      dev-tools:
+        patterns:
+          - "eslint"
+          - "@eslint/js"
+          - "eslint-plugin-vue"
+          - "globals"
+          - "vite"
+          - "@vitejs/plugin-vue"
+          - "vite-plugin-*"
+
+  # GitHub Actions updates (not part of npm groups)
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
