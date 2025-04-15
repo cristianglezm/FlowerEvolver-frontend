@@ -6,8 +6,8 @@
         <a :href="data.base_url + 'FlowerEvolver_win64.zip'">download x64</a>
       </div>
       <div id="linux">
-        Ubuntu 20.04
-        <a :href="data.base_url + 'FlowerEvolver_x64_ubuntu_20.04.tgz'">download x64</a>
+        Ubuntu 22.04
+        <a :href="data.base_url + 'FlowerEvolver_x64_ubuntu_22.04.tgz'">download x64</a>
       </div>
     </div>
     <video id="fe-video" loading="lazy" controls="true" :src="data.base_url + 'FlowerEvolver-v1.mp4'" />
