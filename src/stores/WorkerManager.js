@@ -1,7 +1,7 @@
 export default class WorkerManager{
     /**
      * @brief Constructs a WorkerManager instance.
-     * @param channel {Emitter} The event emitter used for managing worker events.
+     * @param channel Emitter(mitt) The event emitter used for managing worker events.
      */
     constructor(channel){
         this.workers = new Map();
@@ -19,7 +19,7 @@ export default class WorkerManager{
             this.channel.emit(name + '#onmessage', data);
         };
         worker.onerror = (e) => {
-            const data = e.data;
+            const data = e.message + " at " + e.filename + " at line "+ e.lineno;
             this.channel.emit(name + '#onerror', data);
         }
     }

@@ -70,7 +70,7 @@
                   :render-mode="'bars'"
                   :render-sample-range="5"
                   :max-width="200"
-                  :height="16"
+                  :height="32"
                   @on-request-audio="requestAudio"
                 />
                 <button
@@ -148,7 +148,7 @@
             <summary class="bubble-btn">LLM Options</summary>
             <SwitchPanel :mode="ChatBotStore.isLocal" :left="'Model Options'" :right="'Remote Options'" @on-change="togglePanelLLM">
               <template #left>
-                <ChatBotModelOptions />
+                <ChatBotModelOptions :emitter="emitter" />
               </template>
               <template #right>
                 <LLMRemoteOptions />
@@ -159,7 +159,7 @@
             <summary class="bubble-btn">TTS Options</summary>
             <SwitchPanel :mode="KokoroStore.isLocal" :left="'Model Options'" :right="'Remote Options'" @on-change="togglePanelKokoro">
               <template #left>
-                <KokoroModelOptions />
+                <KokoroModelOptions :emitter="emitter" />
               </template>
               <template #right>
                 <TTSRemoteOptions />
@@ -195,8 +195,8 @@
  * 
  * 2. Using Chat Template
  * 
- * If you want to use a custom chat template, you can specify it using the `:chat-template` prop.
- * 
+ * If you want to use a custom chat template(from @huggingface/jinja), you can specify it using the `:chat-template` prop.
+ * if tools and documents are provided, both will be injected into the chat_template
  * <template>
  *   <ChatBotWidget
  *     :emitter="emitter"
@@ -294,7 +294,7 @@
  *  // parse text from llm and process, whatever is returned will be shown on the chat
  *   console.log('Executing function with:', text);
  *   return {
- *      infoForUser: ['executed function with']
+ *      infoForUser: ['executed function with: ' + text]
  *      textForUser: [text], // parsed text that has no tool calls
  *      commandsToConfirm: [{
  *          "title":"title for ConfirmModal",
@@ -331,6 +331,7 @@
  * />
  */
 import { reactive, ref, computed, toRaw, onMounted, onUnmounted, nextTick } from 'vue';
+import mitt from 'mitt';
 import { useChatBotStore } from '../stores/ChatBotStore';
 import { useKokoroStore } from '../stores/KokoroStore';
 import { useErrorStore } from '../stores/ErrorStore';
@@ -401,11 +402,14 @@ const vToggleDialog = {
         }
     }
 };
+defineOptions({
+    shadow: true
+});
 const props = defineProps({
     emitter:{
         type: Object,
-        required: true,
-        default: null
+        required: false,
+        default: mitt()
     },
     system:{
         type: String,
@@ -849,6 +853,7 @@ onMounted(() => {
     });
     observer.observe(parentElement, { attributes: true, attributeFilter: ['style'] });
 });
+
 onUnmounted(() => {
     ChatBotStore.channel.off('ChatBotWidget#done');
     ChatBotStore.channel.off('ChatBotWidget#stream');
@@ -866,9 +871,20 @@ onUnmounted(() => {
         observer.disconnect();
     }
 });
+  /*!
+   * @license SIL Open Font License 1.1 - Copyright (c) 2023, GitHub
+   * https://github.com/githubnext/monaspace
+   * with Reserved Font Name "Monaspace", including subfamilies: "Argon", "Neon", "Xenon", "Radon", and "Krypton"
+   */
 </script>
 
 <style scoped>
+    @font-face{
+        font-family: 'MonaspaceRadon-Regular';
+        src: url('../assets/MonaspaceRadon-Regular.otf') format('opentype');
+        font-weight: normal;
+        font-style: normal;
+    }
     .chatbot-widget-core{
         all: initial;
         position: fixed;
@@ -882,6 +898,8 @@ onUnmounted(() => {
         z-index: 10;
         box-shadow: 10px 10px 4px 3px rgba(0, 0, 0, 0.4);
         scrollbar-color: lightgreen rgb(47,50,52);
+        font-family: 'MonaspaceRadon-Regular', Arial, Helvetica, sans-serif;
+        font-weight: normal;
     }
     .chatbot-widget-expanded{
         width: 98% !important;
