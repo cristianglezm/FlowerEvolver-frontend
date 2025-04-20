@@ -21,8 +21,7 @@
  *       garden: JSON.stringify(garden)
  *   });
  */
-
-import fe from '@cristianglezm/flower-evolver-wasm';
+import { FEParams, FEService } from '@cristianglezm/flower-evolver-wasm';
 
 let FE;
 
@@ -33,26 +32,28 @@ self.onmessage = async (e) => {
         P: 6.0,
         bias: 1.0
     };
+    params.radius = Math.min(256, Math.max(params.radius, 4));
     let numFlowers = e.data.numFlowers;
-    self.canvas = new OffscreenCanvas(params.radius * 2, params.radius * 3);
     let garden = {
         Generation: []
     };
     if(!FE){
-        FE = await fe();
+        FE = new FEService();
+        await FE.init();
     }
     for(let i=0;i<numFlowers;++i){
         try{
-            let genome;
+            let flower;
             try{
-                genome = FE.makeFlower(params.radius, params.numLayers, params.P, params.bias);
+                FE.setParams(new FEParams(params.radius, params.numLayers, params.P, params.bias));
+                flower = await FE.makeFlower();
             }catch(_){
-                //console.error(FE.getExceptionMessage(_));
+                //console.error(_);
                 console.error("garden could not draw a flower");
                 continue;
             }
-            garden.Generation.push(JSON.parse(genome).Flower);
-            let image = await createImageBitmap(self.canvas);
+            garden.Generation.push(JSON.parse(flower.genome).Flower);
+            let image = await createImageBitmap(FE.canvas);
             self.postMessage({
                 id: i,
                 image: image,

@@ -66,6 +66,8 @@
 <style scoped>
   .remote-options-container{
     margin-top: 0.9em;
+    background-color: green;
+    color: lightgreen;
   }
   .bubble-btn{
     font-size: x-large;

@@ -1,4 +1,8 @@
-import { pipeline, env, TextStreamer, mean_pooling } from '@huggingface/transformers';
+import { pipeline } from '@huggingface/transformers';
+import { env } from '@huggingface/transformers';
+import { TextStreamer } from '@huggingface/transformers';
+import { mean_pooling } from '@huggingface/transformers';
+
 import { ModelCache, isGPUAvailable } from '../AIUtils';
 import { HfInference } from '@huggingface/inference';
 import { Template } from "@huggingface/jinja";
@@ -348,4 +352,3 @@ export const getREmbeddings = async (text, remoteOptions = {
         let index = response[0].index;
         return response[0].embedding[index];
 };
-export default { CACHE_KEY, ChatBot, getEmbeddings, getREmbeddings, chat, rChat, streamingChat, rStreamingChat, isGPUAvailable };

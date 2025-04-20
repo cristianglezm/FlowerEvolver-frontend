@@ -129,6 +129,8 @@ onBeforeUnmount(() => {
         display: flex;
         flex-flow: column nowrap;
         text-align: center;
+        margin: auto;
+        box-sizing: content-box;
     }
     .ConfirmModal-container p{
         overflow: auto;

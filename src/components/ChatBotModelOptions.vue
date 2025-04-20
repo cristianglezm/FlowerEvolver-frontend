@@ -43,14 +43,20 @@
 </template>
 
 <script setup>
-  import { computed, inject, nextTick, onMounted, onUnmounted, reactive } from 'vue';
+  import { computed, nextTick, onMounted, onUnmounted, reactive } from 'vue';
   import { ChatBot, isGPUAvailable, CACHE_KEY as CHATBOT_CACHE_KEY } from '../stores/ChatBotStore/ChatBot'
   import { useChatBotStore } from '../stores/ChatBotStore';
   import { CacheManager as CM } from '../stores/CacheManager';
   import CacheManager from './CacheManager.vue';
   import ToolTip from './ToolTip.vue';
 
-  const emitter = inject('emitter');
+  const props = defineProps({
+      emitter: {
+        type: Object,
+        required: true,
+      }
+  });
+  const emitter = props.emitter;
   const ChatBotStore = useChatBotStore();
   
   let data = reactive({
