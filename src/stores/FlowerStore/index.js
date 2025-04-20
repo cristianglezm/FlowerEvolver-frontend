@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { db as ddb } from './db';
 import axios from 'axios';
-import fe from '@cristianglezm/flower-evolver-wasm';
+import { FEParams, FEService } from '@cristianglezm/flower-evolver-wasm';
 import { useErrorStore } from '../ErrorStore';
 
 export const API = import.meta.env.VITE_APP_API_URL;
@@ -12,7 +12,6 @@ export const STORAGE_KEY_GARDEN = "FlowerEvolverGarden";
 export const useFlowerStore = defineStore('FlowerStore', {
 	state: () => ({
 		fe: null,
-		canvas: document.getElementById("canvas"),
 		db: ddb,
 		remoteFlowers: [],
 		localFlowers: [],
@@ -64,14 +63,12 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		},
 		getAncestors: (state) => {
 			return state.ancestors;
-		},
-		getDataURL: (state) => () => {
-			return state.canvas.toDataURL();
 		}
 	},
 	actions: {
 		async loadFE(){
-			this.fe = await fe();
+			this.fe = new FEService();
+			await this.fe.init();
 		},
 		increaseOffset(offset){
 			return offset + this.settings.limit;
@@ -151,24 +148,24 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				.then(response => {
 					return response.text();
 				})
-				.then(genome => {
+				.then(async (genome) => {
 					if(this.fe){
 						if(!this.db.isOpen()){
 							this.db.open();
 						}
-						this.canvas.width = this.settings.params.radius * 2;
-						this.canvas.height = this.settings.params.radius * 3;
+						let localFlower;
 						try{
-							this.fe.drawFlower(genome, this.settings.params.radius, this.settings.params.numLayers, 
-												this.settings.params.P, this.settings.params.bias);
+							this.fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
+								this.settings.params.P, this.settings.params.bias));
+							localFlower = await this.fe.drawFlower(genome);
 						}catch(e){
 							const ErrorStore = useErrorStore();
 							ErrorStore.push(e);
 							return;
 						}
 						let f = {
-							genome: genome,
-							image: this.getDataURL()
+							genome: localFlower.genome,
+							image: localFlower.image
 						};
 						this.db.flowers.add(f)
 						.then((id) => {
@@ -446,21 +443,20 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					if(!this.db.isOpen()){
 						this.db.open();
 					}
-					this.canvas.width = this.settings.params.radius * 2;
-					this.canvas.height = this.settings.params.radius * 3;
-					let genome;
+					let flower;
 					try{
-						genome = this.fe.makeFlower(this.settings.params.radius, this.settings.params.numLayers, 
-                                                        this.settings.params.P, this.settings.params.bias);
+						this.fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
+														this.settings.params.P, this.settings.params.bias));
+						flower = await this.fe.makeFlower();
 					}catch(_){
 						const ErrorStore = useErrorStore();
-						//ErrorStore.push(this.fe.getExceptionMessage(e));
+						//ErrorStore.push(_);
 						ErrorStore.push("couldn't make a local flower");
 						return;
 					}
 					let id = await this.db.flowers.add({
-						genome: genome,
-						image: this.getDataURL()
+						genome: flower.genome,
+						image: flower.image
 					});
 					let f = await this.db.flowers.get(id);
 					this.localFlowers.unshift(f);
@@ -480,18 +476,18 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					if(!this.db.isOpen()){
 						this.db.open();
 					}
-					this.canvas.width = this.settings.params.radius * 2;
-					this.canvas.height = this.settings.params.radius * 3;
+					let f;
 					try{
-						this.fe.drawFlower(flower.genome, this.settings.params.radius, this.settings.params.numLayers, 
-                                                this.settings.params.P, this.settings.params.bias);
+						this.fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
+							this.settings.params.P, this.settings.params.bias));
+						f = await this.fe.drawFlower(flower.genome);
 					}catch(_){
-						//ErrorStore.push(this.fe.getExceptionMessage(_));
 						const ErrorStore = useErrorStore();
+						// ErrorStore.push(_);
 						ErrorStore.push("couldn't redraw a local flower.");
 						return;
 					}
-					flower.image = this.getDataURL();
+					flower.image = f.image;
 					delete flower.id;
 					flower.id = await this.db.flowers.add(flower)
 					.catch(e => {
@@ -592,22 +588,20 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					}
 					let f1 = await this.db.flowers.get(this.localSelected.flowers[0]);
 					let f2 = await this.db.flowers.get(this.localSelected.flowers[1]);
-					this.canvas.width = this.settings.params.radius * 2;
-					this.canvas.height = this.settings.params.radius * 3;
-					let genome;
+					let flower;
 					try{
-						genome = this.fe.reproduce(f1.genome, f2.genome,
-                                                        this.settings.params.radius, this.settings.params.numLayers, 
-                                                        this.settings.params.P, this.settings.params.bias);
+						this.fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
+							this.settings.params.P, this.settings.params.bias));
+						flower = await this.fe.reproduce(f1.genome, f2.genome);
 					}catch(_){
 						const ErrorStore = useErrorStore();
-						//ErrorStore.push(this.fe.getExceptionMessage(_));
+						//ErrorStore.push(_);
 						ErrorStore.push("couldn't reproduce some local flowers");
 						return;
 					}
 					let id = await this.db.flowers.add({
-						genome: genome,
-						image: this.getDataURL()
+						genome: flower.genome,
+						image: flower.image
 					});
 					this.db.descendants.add({
 						id: id,
@@ -646,19 +640,17 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				}
 			});
 		},
-		async makeLocalMutation(flower){
+		async makeLocalMutation(original){
 			if(this.fe){
 				try{
 					if(!this.db.isOpen()){
 						this.db.open();
 					}
-					this.canvas.width = this.settings.params.radius * 2;
-					this.canvas.height = this.settings.params.radius * 3;
-					let genome;
+					let flower;
 					try{
-						genome = this.fe.mutate(flower.genome, 
-                                                    this.settings.params.radius, this.settings.params.numLayers, 
-                                                    this.settings.params.P, this.settings.params.bias,
+						this.fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
+							this.settings.params.P, this.settings.params.bias));
+						flower = await this.fe.mutate(original.genome, 
                                                     this.settings.mutationRates.addNodeRate, 
                                                     this.settings.mutationRates.addConnRate, 
                                                     this.settings.mutationRates.removeConnRate, 
@@ -669,17 +661,17 @@ export const useFlowerStore = defineStore('FlowerStore', {
                                                 );
 					}catch(_){
 						const ErrorStore = useErrorStore();
-						//ErrorStore.push(this.fe.getExceptionMessage(_));
+						//ErrorStore.push(_);
 						ErrorStore.push("couldn't mutate a local flower.");
 						return;
 					}
 					let id = await this.db.flowers.add({
-						genome: genome, 
-						image: this.getDataURL()
+						genome: flower.genome, 
+						image: flower.image
 					});
 					this.db.mutations.add({
 						id: id, 
-						original: flower.id
+						original: original.id
 					}).catch(e => {
 						const ErrorStore = useErrorStore();
 						ErrorStore.push(e);
