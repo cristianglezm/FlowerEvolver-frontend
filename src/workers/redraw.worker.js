@@ -14,7 +14,7 @@
  *   });
  */
 import { db } from  '../stores/FlowerStore/db';
-import fe from '@cristianglezm/flower-evolver-wasm';
+import { FEParams, FEService } from '@cristianglezm/flower-evolver-wasm';
 
 const updateFlowers = (flowers) => {
     db.flowers.bulkPut(flowers);
@@ -23,17 +23,16 @@ const updateFlowers = (flowers) => {
 let FE;
 
 self.onmessage = async (e) => {
-    self.canvas = new OffscreenCanvas(128, 192);
     let params = e.data.params;
     let batchSize = e.data.batchSize;
     if(!db.isOpen()){
         db.open();
     }
     if(!FE){
-        FE = await fe();
+        FE = new FEService();
+        await FE.init();
     }
-    self.canvas.width = params.radius * 2;
-    self.canvas.height = params.radius * 3;
+    FE.setParams(new FEParams(params.radius, params.numLayers, params.P, params.bias));
     let totalCount = await db.flowers.count();
     let totalBatches = Math.ceil(totalCount / batchSize);
     for(let batchIndex = 0; batchIndex < totalBatches; ++batchIndex){
@@ -46,15 +45,13 @@ self.onmessage = async (e) => {
             });
             ++progress;
             try{
-                FE.drawFlower(f.genome, params.radius, params.numLayers, params.P, params.bias);
+                let flower = await FE.drawFlower(f.genome);
+                f.image = flower.image;
             }catch(_){
-                //console.error(FE.getExceptionMessage(_));
+                //console.error(_);
                 console.error("redraw could not draw flower with id " + f.id);
                 continue;
             }
-            let blob = await self.canvas.convertToBlob();
-            let frs = await new FileReaderSync();
-            f.image = await frs.readAsDataURL(blob);
         }
         updateFlowers(flowers);
     }

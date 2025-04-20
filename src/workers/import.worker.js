@@ -29,7 +29,7 @@
  *   });
  */
 import { db } from  '../stores/FlowerStore/db';
-import fe from '@cristianglezm/flower-evolver-wasm';
+import { FEParams, FEService } from '@cristianglezm/flower-evolver-wasm';
 
 let FE;
 
@@ -48,13 +48,12 @@ const importFlower = async (self, json, toFavs) => {
     let flower = {};
     let params = json.Flower.petals;
     params.radius = clamp(params.radius, 4, 256);
-    self.canvas.width = params.radius * 2;
-    self.canvas.height = params.radius * 3;
+    FE.setParams(new FEParams(params.radius, params.numLayers, params.P, params.bias));
     flower.genome = JSON.stringify(json);
     try{
-        FE.drawFlower(flower.genome, params.radius, params.numLayers, params.P, params.bias);
+        flower = await FE.drawFlower(flower.genome);
     }catch(_){
-        //console.error(FE.getExceptionMessage(_));
+        //console.error(_);
         console.error("importer could not import flower");
         self.postMessage({
             type: "updateProgress",
@@ -62,9 +61,6 @@ const importFlower = async (self, json, toFavs) => {
         });
         return;
     }
-    let blob = await self.canvas.convertToBlob();
-    let frs = await new FileReaderSync();
-    flower.image = await frs.readAsDataURL(blob);
     let id = await db.flowers.add(flower);
     if(toFavs){
         db.favourites.add(id, id);
@@ -81,13 +77,12 @@ const importGeneration = async (self, batchSize, json, toFavs) => {
         let flower = {};
         let params = f.petals;
         params.radius = clamp(params.radius, 4, 256);
-        self.canvas.width = params.radius * 2;
-        self.canvas.height = params.radius * 3;
+        FE.setParams(new FEParams(params.radius, params.numLayers, params.P, params.bias));
         flower.genome = JSON.stringify({ Flower: f});
         try{
-            FE.drawFlower(flower.genome, params.radius, params.numLayers, params.P, params.bias);
+            flower = await FE.drawFlower(flower.genome);
         }catch(_){
-            //console.error(FE.getExceptionMessage(_));
+            //console.error(_);
             console.error("importer could not import flower " + (progress - 1));
             self.postMessage({
                 type: "updateProgress",
@@ -96,9 +91,6 @@ const importGeneration = async (self, batchSize, json, toFavs) => {
             ++progress;
             continue;
         }
-        let blob = await self.canvas.convertToBlob();
-        let frs = await new FileReaderSync();
-        flower.image = await frs.readAsDataURL(blob);
         flowers.push(flower);
         if(flowers.length >= batchSize){
             await addFlowers(flowers, toFavs);
@@ -123,13 +115,12 @@ const importSession = async (self, batchSize, json, toFavs) => {
             let flower = {};
             let params = f.petals;
             params.radius = clamp(params.radius, 4, 256);
-            self.canvas.width = params.radius * 2;
-            self.canvas.height = params.radius * 3;
+            FE.setParams(new FEParams(params.radius, params.numLayers, params.P, params.bias));
             flower.genome = JSON.stringify({ Flower: f});
             try{
-                FE.drawFlower(flower.genome, params.radius, params.numLayers, params.P, params.bias);
+                flower = await FE.drawFlower(flower.genome);
             }catch(_){
-                //console.error(FE.getExceptionMessage(_));
+                //console.error(_);
                 console.error("importer could not import flower " + (progress - 1));
                 self.postMessage({
                     type: "updateProgress",
@@ -138,9 +129,6 @@ const importSession = async (self, batchSize, json, toFavs) => {
                 ++progress;
                 continue;
             }
-            let blob = await self.canvas.convertToBlob();
-            let frs = await new FileReaderSync();
-            flower.image = await frs.readAsDataURL(blob);
             flowers.push(flower);
             if(flowers.length >= batchSize){
                 await addFlowers(flowers, toFavs);
@@ -160,7 +148,6 @@ const importSession = async (self, batchSize, json, toFavs) => {
 };
 
 self.onmessage = async (e) => {
-    self.canvas = new OffscreenCanvas(128, 192);
     let files = e.data.files;
     let batchSize = e.data.batchSize;
     let toFavs = e.data.toFavs;
@@ -168,7 +155,8 @@ self.onmessage = async (e) => {
         db.open();
     }
     if(!FE){
-        FE = await fe();
+        FE = new FEService();
+        await FE.init();
     }
     let fr = new FileReaderSync();
     for(let i=0;i<files.length;++i){
