@@ -1,4 +1,10 @@
-import { getREmbeddings, getEmbeddings, chat, rChat, ChatBot, rStreamingChat, streamingChat } from '../stores/ChatBotStore/ChatBot';
+import { getREmbeddings } from '../stores/ChatBotStore/ChatBot';
+import { getEmbeddings } from '../stores/ChatBotStore/ChatBot';
+import { chat } from '../stores/ChatBotStore/ChatBot';
+import { rChat } from '../stores/ChatBotStore/ChatBot';
+import { ChatBot } from '../stores/ChatBotStore/ChatBot';
+import { rStreamingChat } from '../stores/ChatBotStore/ChatBot';
+import { streamingChat } from '../stores/ChatBotStore/ChatBot';
 /**
  * @brief Web Worker that manages tasks related to loading a chatbot model, resetting it, and processing chat interactions.
  * 

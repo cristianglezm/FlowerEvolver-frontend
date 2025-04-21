@@ -37,5 +37,5 @@ export const dataURLToBlob = (dataURL) => {
         ia[i] = byteString.charCodeAt(i);
     }
     return new Blob([ab], { type: mimeString });
-}
+};
 export default { isGPUAvailable, ModelCache, dataURLToBlob };
