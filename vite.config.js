@@ -13,7 +13,7 @@ export default defineConfig({
             registerType: 'autoUpdate',
             workbox: {
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,tgz,zip,otf,json}'],
-                maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+                maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
             },
             manifest: {
                 name: 'FlowerEvolver',
