@@ -65,6 +65,8 @@ const popError = () => {
         box-shadow: 0rem 1rem 2rem 0rem black;
         overflow: auto;
         z-index: 11;
+        margin: auto;
+        box-sizing: content-box;
     }
     p{
         font-size: 1.6rem;

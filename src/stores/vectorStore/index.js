@@ -158,7 +158,7 @@ export const useVectorStore = defineStore('vectorStore', {
         /**
          * @brief Retrieves the documents titles that are similar to embeddings
          * @param {Float32Array} embeddings
-         * @param {Float} threshold - threshold (default 0.5)
+         * @param {Number} threshold - threshold (default 0.5)
          * @returns {Array<String>} the document titles that are similar.
          */
         retrieveDocuments(embeddings, threshold = 0.5){
@@ -225,7 +225,7 @@ export const useVectorStore = defineStore('vectorStore', {
         /**
          * @brief Retrieves the tools that are similar to embeddings
          * @param {Float32Array} embeddings 
-         * @param {Float} threshold - threshold (default 0.5)
+         * @param {Number} threshold - threshold (default 0.5)
          * @returns {Array<Object>} the tools that are similar.
          */
         retrieveTools(embeddings, threshold = 0.5){
