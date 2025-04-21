@@ -142,4 +142,3 @@ export const rAudioGen = async (text, remoteOptions = {
     });
     return audio;
 };
-export default { CACHE_KEY, VOICES_CACHE_KEY, Kokoro, audioGen, streamingAudioGen, rAudioGen, isGPUAvailable };

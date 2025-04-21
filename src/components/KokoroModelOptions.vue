@@ -59,14 +59,20 @@
 </template>
   
   <script setup>
-    import { computed, inject, nextTick, onMounted, onUnmounted, reactive } from 'vue';
+    import { computed, nextTick, onMounted, onUnmounted, reactive } from 'vue';
     import { Kokoro, isGPUAvailable, CACHE_KEY as KOKORO_CACHE_KEY, VOICES_CACHE_KEY } from '../stores/KokoroStore/Kokoro'
     import { useKokoroStore } from '../stores/KokoroStore';
     import { CacheManager as CM } from '../stores/CacheManager';
     import CacheManager from './CacheManager.vue';
     import ToolTip from './ToolTip.vue';
-  
-    const emitter = inject('emitter');
+
+    const props = defineProps({
+      emitter: {
+        type: Object,
+        required: true,
+      }
+    });
+    const emitter = props.emitter;
     const KokoroStore = useKokoroStore();
     
     let data = reactive({

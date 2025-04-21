@@ -1,6 +1,6 @@
 <template>
   <dialog :id="props.id" style="overflow: auto;" aria-labelledby="modalTitle" role="dialog" aria-modal="true">
-    <div id="multiProgress-container" class="center">
+    <div class="center multiProgress-container">
       <div>
         <h1 id="modalTitle">{{ data.title }}</h1>
       </div>
@@ -165,7 +165,7 @@ const closeModal = () => {
         top: 50%;
         transform: translate(-50%, -50%);
     }
-    #multiProgress-container{
+    .multiProgress-container{
         background-color: green;
         color: lightgreen;
         position: fixed;
@@ -177,9 +177,11 @@ const closeModal = () => {
         padding: 0.125rem;
         text-align: center;
         height: 90%;
+        margin: auto;
+        box-sizing: content-box;
     }
     @media only screen and (max-width: 1280px){
-        #multiProgress-container{
+        .multiProgress-container{
             width: 90%;
         }
         h1, h2{
