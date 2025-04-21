@@ -12,9 +12,9 @@
     },
     "dependencies": {
         "@cristianglezm/flower-evolver-wasm": "^3.0.0",
-        "@huggingface/inference": "^2.8.1",
-        "@huggingface/jinja": "^0.3.3",
-        "@huggingface/transformers": "^3.4.2",
+        "@huggingface/inference": "^3.8.1",
+        "@huggingface/jinja": "^0.3.4",
+        "@huggingface/transformers": "^3.5.0",
         "axios": "^1.11.0",
         "dexie": "^4.2.0",
         "kokoro-js": "^1.2.0",
