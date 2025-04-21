@@ -1,9 +1,9 @@
-import { defineConfig } from 'vite';
-import Vue from '@vitejs/plugin-vue';
-import eslint from "vite-plugin-eslint";
-import path from 'path';
 import vueDevTools from 'vite-plugin-vue-devtools';
 import { VitePWA } from 'vite-plugin-pwa';
+import eslint from "vite-plugin-eslint";
+import Vue from '@vitejs/plugin-vue';
+import { defineConfig } from 'vite';
+import path from 'path';
 
 export default defineConfig({
     plugins: [
@@ -13,7 +13,7 @@ export default defineConfig({
             registerType: 'autoUpdate',
             workbox: {
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,tgz,zip,otf,json}'],
-                maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+                maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
             },
             manifest: {
                 name: 'FlowerEvolver',
