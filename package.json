@@ -13,7 +13,7 @@
     "dependencies": {
         "@cristianglezm/flower-evolver-wasm": "^2.0.1",
         "@xenova/transformers": "^2.17.2",
-        "axios": "^1.10.0",
+        "axios": "^1.11.0",
         "dexie": "^4.0.11",
         "mitt": "^3.0.1",
         "pinia": "^3.0.3",
