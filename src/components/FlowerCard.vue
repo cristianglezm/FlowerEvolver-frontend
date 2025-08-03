@@ -1,71 +1,128 @@
 <template>
   <div class="FlowerCard">
     <div v-if="props.isLocal">
-      <div class="flowerMenu" :class="{Selected: data.selected}">
-        <div v-if="!data.clicked" class="drop-menu pointer" @click="data.clicked = !data.clicked; ">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd" viewBox="0 0 512 299.283"><path d="M75.334 286.691c-64.764 36.929-96.186-15.595-60.203-51.975L215.997 25.104c33.472-33.472 46.534-33.472 80.006 0l200.866 209.612c35.983 36.38 4.561 88.904-60.203 51.975L256 189.339 75.334 286.691z" /></svg>
+      <div class="flowerMenu" :class="{ Selected: data.selected }">
+        <div v-if="!data.openMainMenu" class="drop-menu pointer" @click="toggleMainMenu()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd" viewBox="0 0 512 299.283">
+            <path d="M75.334 286.691c-64.764 36.929-96.186-15.595-60.203-51.975L215.997 25.104c33.472-33.472 46.534-33.472 80.006 0l200.866 209.612c35.983 36.38 4.561 88.904-60.203 51.975L256 189.339 75.334 286.691z" />
+          </svg>
         </div>
-        <div v-if="data.clicked" class="drop-menu pointer" @click="data.clicked = !data.clicked; ">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd" viewBox="0 0 512 299.283"><path d="M75.334 12.591C10.57-24.337-20.852 28.186 15.131 64.566l200.866 209.613c33.472 33.471 46.534 33.471 80.006 0L496.869 64.566c35.983-36.38 4.561-88.903-60.203-51.975L256 109.944 75.334 12.591z" /></svg>
+        <div v-if="data.openMainMenu" class="drop-menu pointer" @click="toggleMainMenu()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd" viewBox="0 0 512 299.283">
+            <path d="M75.334 12.591C10.57-24.337-20.852 28.186 15.131 64.566l200.866 209.613c33.472 33.471 46.534 33.471 80.006 0L496.869 64.566c35.983-36.38 4.561-88.903-60.203-51.975L256 109.944 75.334 12.591z" />
+          </svg>
         </div>
-        <div style="width: 100%;height: 100%;display: flex;justify-content: end;">
-          <img :key="props.id" class="pointer" alt="favourite button" :src="data.heartIconSrc" @click="toggleFavourite(props.id)">
-          <ParamsInfo :params="data.params" />
+        <div style="width: 100%; height: 100%; display: flex; justify-content: end">
+          <img :key="props.id" class="pointer favourite-btn" alt="favourite button" :src="data.heartIconSrc" @click="toggleFavourite(props.id)">
+          <button class="pointer safe-button" alt="more options" style="font-size: large; font-weight: bold" @click="toggleSecMenu()">+</button>
         </div>
-        <div v-if="data.clicked" class="flower-buttons">
-          <a @click="mutate(); data.clicked = !data.clicked;">Mutate</a>
-          <a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a>
-          <a @click="shareFlower(); data.clicked = !data.clicked;">Share</a>
-          <a @click="describe(); data.clicked = !data.clicked;">Describe</a>
-          <a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a>
-          <a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a>
-          <a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a>
-          <a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a>
-          <a @click="deleteThisFlower(); data.clicked = !data.clicked;">Delete Flower</a>
-          <a @click="FlowerStore.redrawFlower({genome: props.genome}); data.clicked = !data.clicked;">Redraw Flower</a>
-        </div>
+        <Transition name="slide-from-top">
+          <FloatingPanel v-if="data.openSecMenu" :loc="'bottom-end'" :match-parent-width="false" style="width: max-content; max-width: 90vw; right: 0">
+            <div class="secondary-menu">
+              <ParamsInfo :params="data.params" />
+              <StatsInfo :stats="data.stats" />
+              <button class="safe-button" @click="is3D = !is3D; emissive=false; toggleSecMenu();">3D</button>
+              <button class="safe-button" @click="is3D = !is3D; emissive=true; toggleSecMenu();">E3D</button>
+            </div>
+          </FloatingPanel>
+        </Transition>
+        <Transition name="slide-from-top">
+          <FloatingPanel v-if="data.openMainMenu" :loc="'bottom'" :match-parent-width="false">
+            <div class="main-menu">
+              <a @click="mutate(); toggleMainMenu();">Mutate</a>
+              <a @click="onSelected(); toggleMainMenu();">Select Flower</a>
+              <a @click="shareFlower(); toggleMainMenu();">Share</a>
+              <a @click="describe(); toggleMainMenu();">Describe</a>
+              <a @click="downloadGenome(); toggleMainMenu();">Download Genome</a>
+              <a @click="downloadImage(); toggleMainMenu();">Download Image</a>
+              <a @click="downloadPetals(); toggleMainMenu();">Download Petals</a>
+              <a @click="download3DModel(); toggleMainMenu();">Download 3D</a>
+              <a @click="downloadEmissive3DModel(); toggleMainMenu();">Download Emissive 3D</a>
+              <a @click="showMutations(); toggleMainMenu();">Show Mutations</a>
+              <a @click="showAncestors(); toggleMainMenu();">Show Descendants</a>
+              <a @click="deleteThisFlower(); toggleMainMenu();">Delete Flower</a>
+              <a @click="FlowerStore.redrawFlower({ genome: props.genome }); toggleMainMenu();">Redraw Flower</a>
+            </div>
+          </FloatingPanel>
+        </Transition>
       </div>
-      <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="FlowerStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
-      <p><strong>{{ props.id }}</strong></p>
+      <div v-if="is3D" style="width: 100%; height: 100%">
+        <ThreeFlower :id="props.id" :width="245" :height="350" :genome="props.genome" :emissive="emissive" />
+      </div>
+      <div v-else>
+        <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="FlowerStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
+      </div>
+      <p>
+        <strong>{{ props.id }}</strong>
+      </p>
     </div>
     <div v-else>
-      <div class="flowerMenu" :class="{Selected: data.selected}">
-        <div v-if="!data.clicked" class="drop-menu pointer" @click="data.clicked = !data.clicked;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" viewBox="0 0 512 299.283"><path d="M75.334 286.691c-64.764 36.929-96.186-15.595-60.203-51.975L215.997 25.104c33.472-33.472 46.534-33.472 80.006 0l200.866 209.612c35.983 36.38 4.561 88.904-60.203 51.975L256 189.339 75.334 286.691z" /></svg>
+      <div class="flowerMenu" :class="{ Selected: data.selected }">
+        <div v-if="!data.openMainMenu" class="drop-menu pointer" @click="toggleMainMenu()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" viewBox="0 0 512 299.283">
+            <path d="M75.334 286.691c-64.764 36.929-96.186-15.595-60.203-51.975L215.997 25.104c33.472-33.472 46.534-33.472 80.006 0l200.866 209.612c35.983 36.38 4.561 88.904-60.203 51.975L256 189.339 75.334 286.691z" />
+          </svg>
         </div>
-        <div v-if="data.clicked" class="drop-menu pointer" @click="data.clicked = !data.clicked;">
+        <div v-if="data.openMainMenu" class="drop-menu pointer" @click="toggleMainMenu()">
           <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" viewBox="0 0 512 299.283"><path d="M75.334 12.591C10.57-24.337-20.852 28.186 15.131 64.566l200.866 209.613c33.472 33.471 46.534 33.471 80.006 0L496.869 64.566c35.983-36.38 4.561-88.903-60.203-51.975L256 109.944 75.334 12.591z" /></svg>
         </div>
-        <div style="width: 100%;height: 100%;display: flex;justify-content: end;">
-          <img :key="props.id" class="pointer disabled" alt="disabled favourite button" :src="data.heartIconSrc">
-          <ParamsInfo :params="data.params" />
+        <div style="width: 100%; height: 100%; display: flex; justify-content: end; position: relative;">
+          <img :key="props.id" class="pointer favourite-btn disabled" alt="favourite button" :src="data.heartIconSrc">
+          <button class="pointer safe-button" alt="more options" style="font-size: large; font-weight: bold" @click="toggleSecMenu()">+</button>
+          <Transition name="slide-from-top">
+            <FloatingPanel v-if="data.openSecMenu" :loc="'bottom-end'" :match-parent-width="false" style="width: max-content">
+              <div class="secondary-menu">
+                <ParamsInfo :params="data.params" />
+                <StatsInfo :stats="data.stats" />
+                <button class="safe-button" @click="is3D = !is3D; emissive=false; toggleSecMenu();">3D</button>
+                <button class="safe-button" @click="is3D = !is3D; emissive=true; toggleSecMenu();">E3D</button>
+              </div>
+            </FloatingPanel>
+          </Transition>
         </div>
-        <div v-if="data.clicked" class="flower-buttons">
-          <a @click="mutate(); data.clicked = !data.clicked;">Mutate</a>
-          <a @click="onSelected(); data.clicked = !data.clicked;">Select Flower</a>
-          <a @click="addToLocal(); data.clicked = !data.clicked;">Add to local</a>
-          <a @click="describe(); data.clicked = !data.clicked;">Describe</a>
-          <a @click="downloadGenome(); data.clicked = !data.clicked;">Download Genome</a>
-          <a @click="downloadImage(); data.clicked = !data.clicked;">Download Image</a>
-          <a @click="showMutations(); data.clicked = !data.clicked;">Show Mutations</a>
-          <a @click="showAncestors(); data.clicked = !data.clicked;">Show Descendants</a>
-        </div>
+        <Transition name="slide-from-top">
+          <FloatingPanel v-if="data.openMainMenu" :loc="'bottom'" :match-parent-width="false">
+            <div class="main-menu">
+              <a @click="mutate(); toggleMainMenu();">Mutate</a>
+              <a @click="onSelected(); toggleMainMenu();">Select Flower</a>
+              <a @click="addToLocal(); toggleMainMenu();">Add to local</a>
+              <a @click="describe(); toggleMainMenu();">Describe</a>
+              <a @click="downloadGenome(); toggleMainMenu();">Download Genome</a>
+              <a @click="downloadImage(); toggleMainMenu();">Download Image</a>
+              <a @click="downloadPetals(); toggleMainMenu();"> Download Petals </a>
+              <a @click="download3DModel(); toggleMainMenu();"> Download 3D Model </a>
+              <a @click="downloadEmissive3DModel(); toggleMainMenu();">Download Emissive 3D Model</a>
+              <a @click="showMutations(); toggleMainMenu();">Show Mutations</a>
+              <a @click="showAncestors(); toggleMainMenu();">Show Descendants</a>
+            </div>
+          </FloatingPanel>
+        </Transition>
       </div>
-      <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="FlowerStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
-      <p><strong>{{ props.id }}</strong></p>
+      <div v-if="is3D" style="width: 100%; height: 100%">
+        <ThreeFlower :id="props.id" :width="245" :height="350" :genome="props.genome" :emissive="emissive" />
+      </div>
+      <div v-else>
+        <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="FlowerStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
+      </div>
+      <p>
+        <strong>{{ props.id }}</strong>
+      </p>
     </div>
   </div>
 </template>
 
 <script setup>
-
+    import { onMounted, ref, reactive, inject, onUnmounted } from "vue";
     import { useFlowerStore } from '../stores/FlowerStore';
     import { useCaptionerStore } from '../stores/CaptionerStore';
-    import { onMounted, reactive, inject, onUnmounted } from 'vue';
+    import { useErrorStore } from '../stores/ErrorStore';
     import { useRouter } from 'vue-router';
     import ParamsInfo from './ParamsInfo.vue';
+    import StatsInfo from "./StatsInfo.vue";
     import ZoomableImage from './ZoomableImage.vue';
-    import { useErrorStore } from '../stores/ErrorStore';
+    import FloatingPanel from "./FloatingPanel.vue";
+    import ThreeFlower from "./ThreeFlower.vue";
+    import JSZip from "jszip";
 
     const props = defineProps({
         id: {
@@ -89,6 +146,8 @@
             default: true
         }
     });
+    const is3D = ref(false);
+    const emissive = ref(false);
     const loadImage = (url, res) => {
         return new URL(`/src/assets/${res}/${url}`, import.meta.url);
     };
@@ -116,7 +175,8 @@
         IMAGES_URL: import.meta.env.VITE_APP_IMAGES_URL,
         DOWNLOAD_URL: import.meta.env.VITE_APP_DOWNLOAD_URL,
         description: "Flower " + props.id + " - click describe for a better description",
-        clicked: false,
+        openMainMenu: false,
+        openSecMenu: false,
         selected: false,
         index: 0,
         heartIconSrc: loadImage("heart_empty.png","x32"),
@@ -135,6 +195,7 @@
                 P: 6.0,
                 bias: 1.0
                 },
+        stats: {},
         lensSize: { x: 100, y: 100 },
     });
     const router = useRouter();
@@ -154,6 +215,16 @@
             if(CaptionerStore.localDescriptions.has(props.id)){
                 data.description = "Flower " + props.id + " - " + CaptionerStore.getLocalDescription(props.id);
             }
+            setTimeout(() => {
+                data.stats = FlowerStore.fe.getFlowerStats(props.genome, 0.3, 23, 1000, 0);
+            }, 100);
+        }else{
+            setTimeout(async () => {
+                let blob = await fetch(data.DOWNLOAD_URL + props.genome);
+                let genome = await blob.text();
+                console.log(genome); /// @todo remove this
+                data.stats = FlowerStore.fe.getFlowerStats(genome, 0.3, 23, 1000, 0);
+            }, 100);
         }
         CaptionerStore.channel.on('captioner#done', (e) => {
             if(e.id === props.id){
@@ -173,7 +244,12 @@
         emitter.off('checkSelected');
         CaptionerStore.channel.off('captioner#done');
     });
-
+    const toggleMainMenu = () => {
+      data.openMainMenu = !data.openMainMenu;
+    };
+    const toggleSecMenu = () => {
+      data.openSecMenu = !data.openSecMenu;
+    };
     const deleteThisFlower = () => {
         emitter.emit('showYesNo', {
             title: 'Delete Action',
@@ -315,6 +391,70 @@
             window.location = data.DOWNLOAD_URL + props.image;
         }
     };
+    const downloadPetalsImpl = async (genome) => {
+            const zip = new JSZip();
+            for(let i = FlowerStore.settings.params.numLayers; i >= 0; --i){
+                let f = await FlowerStore.fe.drawPetalLayer(genome, i);
+                zip.file(
+                  `Flower_${props.id}_PetalLayer_${i}.png`,
+                  f.image.split(",")[1],
+                  { base64: true },
+                );
+            }
+            const content = await zip.generateAsync({ type: "blob" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(content);
+            link.download = `Flower_${props.id}_Petals.zip`;
+            link.click();
+    };
+    const downloadPetals = async () => {
+        if(props.isLocal){
+            await downloadPetalsImpl(props.genome);
+        }else{
+            let blob = await fetch(data.DOWNLOAD_URL + props.genome);
+            let genome = await blob.text();
+            await downloadPetalsImpl(genome);
+        }
+    };
+    const download3DModelImpl = async (genome, type) => {
+        let model;
+        if(type === "emissive"){
+            model = model = await FlowerStore.fe.drawEmissive3DFlower(
+                genome,
+                props.id.toString(),
+                "both"
+          );
+        }else{
+          model = await FlowerStore.fe.draw3DFlower(
+            genome,
+            props.id.toString(),
+            "both"
+          );
+        }
+        const link = document.createElement("a");
+        link.href = "data:application/json," + model;
+        let name = type === "emissive" ? `Flower_${props.id}_Emissive.gltf` : `Flower_${props.id}.gltf`;
+        link.download = name;
+        link.click();
+    };
+    const downloadEmissive3DModel = async () => {
+      if(props.isLocal){
+          await download3DModelImpl(props.genome, "emissive");
+      }else{
+          let blob = await fetch(data.DOWNLOAD_URL + props.genome);
+          let genome = await blob.text();
+          await download3DModelImpl(genome, "emissive");
+      }
+    };
+    const download3DModel = async () => {
+      if(props.isLocal){
+          await download3DModelImpl(props.genome, "normal");
+      }else{
+          let blob = await fetch(data.DOWNLOAD_URL + props.genome);
+          let genome = await blob.text();
+          await download3DModelImpl(genome, "normal");
+      }
+    };
     const mutate = () => {
         if(props.isLocal){
             FlowerStore.makeLocalMutation({id: props.id, image: props.image, genome: props.genome});
@@ -322,7 +462,6 @@
             FlowerStore.makeRemoteMutation({id: props.id, image: props.image, genome: props.genome});
         }
     };
-
 </script>
 <style>
     .FlowerImage{
@@ -333,6 +472,8 @@
 <style scoped>
     .FlowerCard{
         margin: auto auto auto auto;
+        padding: 0.6rem;
+        background-color: rgb(37, 39, 41);
     }
     .FlowerCard p{
         text-align: center;
@@ -352,26 +493,30 @@
         border-style: solid solid solid solid;
         border-color: red;
     }
-    .FlowerCard{
-        padding: 0.6rem;
-        background-color: rgb(37, 39, 41);
-    }
     .drop-menu{
         position: relative;
         display: inline-block;
     }
-    .flower-buttons{
-        position: absolute;
-        z-index: 1;
-        translate: 0 12%;
+    .secondary-menu{
+        display: flex;
+        gap: 5px;
+        padding: 2px;
+        padding-bottom: 10px;
+        flex-flow: column nowrap;
+        background-color: green;
+        border-bottom-left-radius: 20px;
+        border-bottom-right-radius: 20px;
+        box-shadow: 0.125rem 0.375rem 1rem 0.375rem rgba(0, 128, 0, 0.5);
+    }
+    .main-menu{
         padding: 0rem 1.31rem 1.31rem 0rem;
         background-color: green;
-        box-shadow: 0.125rem 0.375rem 1rem 0.375rem rgba(0,128,0,0.5);
+        box-shadow: 0.125rem 0.375rem 1rem 0.375rem rgba(0, 128, 0, 0.5);
         display: flex;
         flex-flow: column wrap;
         border-radius: 0rem 0rem 1.25rem 1.25rem;
     }
-    .flower-buttons a{
+    .main-menu a{
         font-size: 1.15rem;
         border-radius: 0.25rem;
         color: lightgreen;
@@ -381,10 +526,15 @@
         cursor: pointer;
         text-decoration: none;
     }
+    @media only screen and (max-width: 1280px){
+        .main-menu a{
+          font-size: 0.9rem;
+        }
+    }
     .pointer{
         cursor: pointer;
     }
-    .flower-buttons a:hover{
+    .main-menu a:hover{
         color: green;
         background-color: lightgreen;
     }
@@ -412,5 +562,34 @@
         vertical-align: middle;
         fill: currentColor;
         stroke: currentColor;
+    }
+    .safe-button{
+        border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
+        cursor: pointer;
+        border-color: lightgreen;
+        background-color: green;
+        color: lightgreen;
+    }
+    .safe-button:hover{
+        cursor: pointer;
+        background-color: lightgreen;
+        color: green;
+    }
+    .favourite-btn{
+        filter: drop-shadow(2px 2px black);
+    }
+    .slide-from-top-enter-active,
+    .slide-from-top-leave-active{
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    .slide-from-top-enter-from,
+    .slide-from-top-leave-to{
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+    .slide-from-top-enter-to,
+    .slide-from-top-leave-from{
+        opacity: 1;
+        transform: translateY(0);
     }
 </style>

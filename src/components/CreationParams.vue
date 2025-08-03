@@ -28,7 +28,7 @@
 <script setup>
 import { reactive } from 'vue';
 import ToolTip from '../components/ToolTip.vue';
-import { useFlowerStore, STORAGE_KEY } from '../stores/FlowerStore';
+import { useFlowerStore, FEParams, STORAGE_KEY } from '../stores/FlowerStore';
 
 const FlowerStore = useFlowerStore();
 
@@ -46,17 +46,29 @@ const restoreDefaults = () => {
     params.bias = 1.0;
     validateParams();
 };
-
 const clamp = (val, min, max) => {
     return Math.min(max, Math.max(val, min));
-}
+};
+const getTimesDivisibleBy = (val, divisor) => {
+    let count = 0;
+    if(divisor <= 1){
+        return 1;
+    }
+    val = Math.abs(val);
+    while(val > 1){
+        ++count;
+        val /= divisor;
+    }
+    return count;
+};
 const saveSettings = () => {
+    FlowerStore.fe.setParams(new FEParams(params.radius, params.numLayers, params.P, params.bias));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(FlowerStore.settings));
 };
 
 const validateParams = () => {
     params.radius = clamp(params.radius, 4, 256);
-    params.numLayers = Math.max(1, params.numLayers);
+    params.numLayers = clamp(params.numLayers, 1, getTimesDivisibleBy(params.radius, 2));
     params.P = validateFloat(params.P, 6.0);
     params.bias = validateFloat(params.bias, 1.0);
     FlowerStore.settings.params = params;
