@@ -402,7 +402,8 @@ export const tools = [
                     "Downloads",
                     "Settings",
                     "Mutations",
-                    "Descendants"
+                    "Descendants",
+                    "Charts"
                 ],
                 "type": "string",
                 "required": true
