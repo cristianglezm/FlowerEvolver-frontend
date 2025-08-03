@@ -90,8 +90,8 @@
               <a @click="downloadGenome(); toggleMainMenu();">Download Genome</a>
               <a @click="downloadImage(); toggleMainMenu();">Download Image</a>
               <a @click="downloadPetals(); toggleMainMenu();"> Download Petals </a>
-              <a @click="download3DModel(); toggleMainMenu();"> Download 3D Model </a>
-              <a @click="downloadEmissive3DModel(); toggleMainMenu();">Download Emissive 3D Model</a>
+              <a @click="download3DModel(); toggleMainMenu();"> Download 3D </a>
+              <a @click="downloadEmissive3DModel(); toggleMainMenu();">Download Emissive 3D </a>
               <a @click="showMutations(); toggleMainMenu();">Show Mutations</a>
               <a @click="showAncestors(); toggleMainMenu();">Show Descendants</a>
             </div>
@@ -222,7 +222,6 @@
             setTimeout(async () => {
                 let blob = await fetch(data.DOWNLOAD_URL + props.genome);
                 let genome = await blob.text();
-                console.log(genome); /// @todo remove this
                 data.stats = FlowerStore.fe.getFlowerStats(genome, 0.3, 23, 1000, 0);
             }, 100);
         }
