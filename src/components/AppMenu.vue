@@ -8,6 +8,7 @@
           <router-link to="/LastAdded"> Last Added </router-link>
           <router-link to="/Browse?page=0"> Browse </router-link>
           <router-link to="/Favourites?page=0"> Favourites </router-link>
+          <router-link to="/Charts"> Charts </router-link>
           <router-link to="/Downloads"> Downloads </router-link>
           <router-link to="/Settings"> Settings </router-link>
         </nav>
@@ -16,6 +17,7 @@
           <router-link to="/LastAdded"> Last Added </router-link>
           <router-link to="/Browse"> Browse </router-link>
           <router-link to="/Favourites"> Favourites </router-link>
+          <router-link to="/Charts"> Charts </router-link>
           <router-link to="/Downloads"> Downloads </router-link>
           <router-link to="/Settings"> Settings </router-link>
         </nav>
@@ -42,6 +44,7 @@
           <router-link to="/LastAdded"> Last Added </router-link>
           <router-link to="/Browse?page=0"> Browse </router-link>
           <router-link to="/Favourites?page=0"> Favourites </router-link>
+          <router-link to="/Charts"> Charts </router-link>
           <router-link to="/Downloads"> Downloads </router-link>
           <router-link to="/Settings"> Settings </router-link>
         </div>
@@ -50,6 +53,7 @@
           <router-link to="/LastAdded"> Last Added </router-link>
           <router-link to="/Browse"> Browse </router-link>
           <router-link to="/Favourites"> Favourites </router-link>
+          <router-link to="/Charts"> Charts </router-link>
           <router-link to="/Downloads"> Downloads </router-link>
           <router-link to="/Settings"> Settings </router-link>
         </div>
