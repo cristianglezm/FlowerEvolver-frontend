@@ -4,6 +4,7 @@ import axios from 'axios';
 import { FEParams, FEService } from '@cristianglezm/flower-evolver-wasm';
 import { useErrorStore } from '../ErrorStore';
 
+export { FEParams, FEService };
 export const API = import.meta.env.VITE_APP_API_URL;
 export const URL = import.meta.env.VITE_APP_DOWNLOAD_URL;
 export const STORAGE_KEY = 'FlowerEvolverSettings';

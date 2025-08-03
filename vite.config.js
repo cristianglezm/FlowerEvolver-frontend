@@ -1,9 +1,9 @@
-import { defineConfig } from 'vite';
-import Vue from '@vitejs/plugin-vue';
-import eslint from "vite-plugin-eslint";
-import path from 'path';
 import vueDevTools from 'vite-plugin-vue-devtools';
 import { VitePWA } from 'vite-plugin-pwa';
+import eslint from "vite-plugin-eslint";
+import Vue from '@vitejs/plugin-vue';
+import { defineConfig } from 'vite';
+import path from 'path';
 
 export default defineConfig({
     plugins: [
