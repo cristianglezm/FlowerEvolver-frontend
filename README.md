@@ -43,7 +43,7 @@ npm run dev
 
 ## License
 
-Copyright 2020-2024 Cristian Gonzalez <cristian.glez.m@gmail.com>
+Copyright 2020-2025 Cristian Gonzalez <cristian.glez.m@gmail.com>
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
@@ -53,7 +53,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 ### Flower Evolver
 
-Copyright 2015-2024 Cristian Gonzalez Cristian.glez.m@gmail.com
+Copyright 2015-2025 Cristian Gonzalez Cristian.glez.m@gmail.com
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
