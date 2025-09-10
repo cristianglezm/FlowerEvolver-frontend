@@ -3,12 +3,12 @@
     <div class="ConfirmModal-container center">
       <div class="inlined">
         <h2>{{ data.title }}</h2>
-        <span class="close" @click="closeModal()">&times;</span>
+        <span class="close" @click="nextItem()">&times;</span>
       </div>
       <p style="text-align: center;">{{ data.message }}</p>
       <div>
-        <button @click="closeModal()">{{ data.btnNo }}</button>
-        <button @click="data.accept(data.dialog)">{{ data.btnYes }}</button>
+        <button @click="nextItem()">{{ data.btnNo }}</button>
+        <button @click="data.accept(); nextItem()">{{ data.btnYes }}</button>
       </div>
     </div>
   </dialog>
@@ -34,9 +34,8 @@
  *       message: 'Do you wanna delete flower ' + this.id + '?',
  *       btnNo: 'No',
  *       btnYes: 'Delete Flower',
- *       onConfirm: (dialog) => {
+ *       onConfirm: () => {
  *           this.deleteLocalFlower(this.id);
- *           dialog.close();
  *       },
  *   });
  */
@@ -65,16 +64,31 @@ const openModal = () => {
 const closeModal = () => {
     data.dialog.close();
 };
-
+const nextItem = () => {
+    if(data.queue.length > 0){
+        let item = data.queue.pop();
+        data.title = item.title;
+        data.message = item.message;
+        data.btnNo = item.btnNo;
+        data.btnYes = item.btnYes;
+        data.accept = item.onConfirm;
+    }else{
+        closeModal();
+    }
+};
 onMounted(() => {
     data.dialog = document.getElementById(props.id);
+    data.queue = new Array();
     props.channel.on(props.on, (e) => {
-        data.title = e.title;
-        data.message = e.message;
-        data.btnNo = e.btnNo;
-        data.btnYes = e.btnYes;
-        data.accept = e.onConfirm;
-        openModal();
+        if(data.queue.length > 0){
+            data.queue.push(e);
+        }else{
+            data.queue.push(e);
+            setTimeout(() => {
+                nextItem();
+                openModal();
+            }, 20);
+        }
     });
 });
 
@@ -115,6 +129,8 @@ onBeforeUnmount(() => {
         display: flex;
         flex-flow: column nowrap;
         text-align: center;
+        margin: auto;
+        box-sizing: content-box;
     }
     .ConfirmModal-container p{
         overflow: auto;

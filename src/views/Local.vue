@@ -15,17 +15,19 @@
 import { nextTick, onMounted, reactive, computed, inject, watch } from 'vue';
 import FlowersTable from '../components/FlowersTable.vue';
 import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
-import { useFlowersStore } from '../store';
-import { useAIStore } from '../store/AIStore';
+import { useFlowerStore } from '../stores/FlowerStore';
+import { useErrorStore } from '../stores/ErrorStore';
+import { useCaptionerStore } from '../stores/CaptionerStore';
 import { useRoute, useRouter } from 'vue-router';
 import importWorker from '../workers/import.worker?worker';
-import WorkerManager from '../store/WorkerManager';
+import WorkerManager from '../stores/WorkerManager';
 import mitt from 'mitt';
 
 const routes = useRoute();
 const router = useRouter();
-const store = useFlowersStore();
-const AIStore = useAIStore();
+const FlowerStore = useFlowerStore();
+const ErrorStore = useErrorStore();
+const CaptionerStore = useCaptionerStore();
 const emitter = inject('emitter');
 let channel = mitt();
 let wm = new WorkerManager(channel);
@@ -45,27 +47,27 @@ watch(data, () => {
     }
 });
 const flowers = computed(() => {
-    return store.getLocalFlowers();
+    return FlowerStore.getLocalFlowers;
 });
 onMounted(() => {
     data.offset = 0;
     data.page = parseInt(routes.query.page, 10) || 0;
     if(isPaginated()){
         getFlowersFrom(data.page);
-        store.getLocalFlowersCount().then(c => data.totalPages = Math.round(c / store.settings.limit));
+        FlowerStore.getLocalFlowersCount().then(c => data.totalPages = Math.round(c / FlowerStore.settings.limit));
     }else{
-        store.updateLocalFlowers({limit: store.settings.limit, offset: data.offset});
-        AIStore.loadLocalDescriptions(data.offset, store.settings.limit);
-        data.offset = store.increaseOffset(data.offset);
+        FlowerStore.updateLocalFlowers({limit: FlowerStore.settings.limit, offset: data.offset});
+        CaptionerStore.loadLocalDescriptions(data.offset, FlowerStore.settings.limit);
+        data.offset = FlowerStore.increaseOffset(data.offset);
     }
     loadDemoFlowers();
 });
 
 const nextBatch = () => {
-    updateFlowers(store.settings.limit, data.offset);
+    updateFlowers(FlowerStore.settings.limit, data.offset);
 };
 const onError = (e) => {
-    store.errors.push({ message: e});
+    ErrorStore.push(e);
 };
 wm.onError('importer', onError);
 wm.onResponse('importer', (e) => {
@@ -88,15 +90,15 @@ wm.onResponse('importer', (e) => {
     }
 });
 const updateFlowers = (limit, offset) => {
-    store.updateAndConcatLocalFlowers({limit:limit, offset:offset});
-    AIStore.loadAndConcatLocalDescriptions(offset, limit);
-    data.offset = store.increaseOffset(offset);
+    FlowerStore.updateAndConcatLocalFlowers({limit:limit, offset:offset});
+    CaptionerStore.loadAndConcatLocalDescriptions(offset, limit);
+    data.offset = FlowerStore.increaseOffset(offset);
 };
 const getFlowersFrom = (page) => {
     nextTick(() => {
-        data.offset = store.calcOffset(page);
-        store.updateLocalFlowers({limit: store.settings.limit, offset: data.offset});
-        AIStore.loadLocalDescriptions(data.offset, store.settings.limit);
+        data.offset = FlowerStore.calcOffset(page);
+        FlowerStore.updateLocalFlowers({limit: FlowerStore.settings.limit, offset: data.offset});
+        CaptionerStore.loadLocalDescriptions(data.offset, FlowerStore.settings.limit);
     });
 };
 const prevPage = () => {
@@ -112,11 +114,11 @@ const nextPage = () => {
     }
 };
 const isPaginated = () => {
-    return store.settings.pagination;
+    return FlowerStore.settings.pagination;
 };
 
 const loadDemoFlowers = async () => {
-    if(store.settings.loadDemoFlowers){
+    if(FlowerStore.settings.loadDemoFlowers){
         const blob = await fetch(data.demoFlowersFile)
                 .then(response => {
                     return response.blob();
@@ -125,9 +127,9 @@ const loadDemoFlowers = async () => {
         wm.sendRequest('importer', {
             files: files,
             toFavs: false,
-            batchSize: store.settings.limit
+            batchSize: FlowerStore.settings.limit
         });
-        store.setLoadDemoFlowers(false);
+        FlowerStore.setLoadDemoFlowers(false);
     }else{
         data.killWorker = true;
     }
