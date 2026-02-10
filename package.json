@@ -17,9 +17,9 @@
         "dexie": "^4.3.0",
         "mitt": "^3.0.1",
         "pinia": "^3.0.4",
-        "vue": "^3.5.27",
+        "vue": "^3.5.28",
         "vue-axios": "^3.5.2",
-        "vue-router": "^5.0.1"
+        "vue-router": "^5.0.2"
     },
     "devDependencies": {
         "eslint": "^10.0.0",
