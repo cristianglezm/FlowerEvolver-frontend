@@ -163,7 +163,7 @@ self.onmessage = async (e) => {
         if(files[i].type != 'application/json'){
             continue;
         }
-        let json = {};
+        let json;
         {
             let text = await fr.readAsText(files[i]);
             json = JSON.parse(text);
