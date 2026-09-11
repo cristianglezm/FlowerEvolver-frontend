@@ -56,7 +56,7 @@ export class Captioner{
 }
 
 export const describe = async (image) => {
-    let url = '';
+    let url;
     if(image.includes('data')){
         const blob = dataURLToBlob(image);
         url = URL.createObjectURL(blob);

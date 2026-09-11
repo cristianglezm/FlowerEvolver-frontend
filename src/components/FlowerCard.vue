@@ -418,7 +418,7 @@
     const download3DModelImpl = async (genome, type) => {
         let model;
         if(type === "emissive"){
-            model = model = await FlowerStore.fe.drawEmissive3DFlower(
+            model = await FlowerStore.fe.drawEmissive3DFlower(
                 genome,
                 props.id.toString(),
                 "both"
