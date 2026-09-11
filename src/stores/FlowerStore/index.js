@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { markRaw } from 'vue';
 import { db as ddb } from './db';
 import axios from 'axios';
 import { FEParams, FEService } from '@cristianglezm/flower-evolver-wasm';
@@ -68,7 +69,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 	},
 	actions: {
 		async loadFE(){
-			this.fe = new FEService();
+			this.fe = markRaw(new FEService());
 			await this.fe.init();
 		},
 		increaseOffset(offset){

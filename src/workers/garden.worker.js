@@ -53,10 +53,9 @@ self.onmessage = async (e) => {
                 continue;
             }
             garden.Generation.push(JSON.parse(flower.genome).Flower);
-            let image = await createImageBitmap(FE.canvas);
             self.postMessage({
                 id: i,
-                image: image,
+                image: flower.image,
                 ready: false
             });
         }catch(e){

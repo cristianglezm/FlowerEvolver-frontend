@@ -45,7 +45,11 @@ wm.onResponse('garden', (e) => {
     }else{
         let flowerGarden = document.getElementById("flowerGarden");
         let ctx = flowerGarden.getContext("2d");
-        ctx.drawImage(e.image, position.x, position.y);
+        let img = new Image();
+        img.onload = () => {
+            ctx.drawImage(img, position.x, position.y);
+        };
+        img.src = e.image;
     }
 });
 

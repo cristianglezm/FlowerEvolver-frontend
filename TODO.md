@@ -22,7 +22,7 @@
     - q4f16 gives exception.
     - bnb4 - works on CPU (it takes ~24s)
 * [ ] fix not working on Chrome or Edge GPU
-* [ ] Firefox webGPU not supported yet. (wait for it)
+* [x] Firefox webGPU not supported yet.
 
 ## ChatBot
 
