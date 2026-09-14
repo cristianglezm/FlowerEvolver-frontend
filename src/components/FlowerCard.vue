@@ -1,19 +1,19 @@
 <template>
-  <div class="FlowerCard">
+  <div class="FlowerCard" data-testid="flower-card" :data-flower-id="props.id">
     <div v-if="props.isLocal">
       <div class="flowerMenu" :class="{ Selected: data.selected }">
-        <div v-if="!data.openMainMenu" class="drop-menu pointer" @click="toggleMainMenu()">
+        <div v-if="!data.openMainMenu" class="drop-menu pointer" data-testid="flower-menu-toggle" @click="toggleMainMenu()">
           <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd" viewBox="0 0 512 299.283">
             <path d="M75.334 286.691c-64.764 36.929-96.186-15.595-60.203-51.975L215.997 25.104c33.472-33.472 46.534-33.472 80.006 0l200.866 209.612c35.983 36.38 4.561 88.904-60.203 51.975L256 189.339 75.334 286.691z" />
           </svg>
         </div>
-        <div v-if="data.openMainMenu" class="drop-menu pointer" @click="toggleMainMenu()">
+        <div v-if="data.openMainMenu" class="drop-menu pointer" data-testid="flower-menu-toggle" @click="toggleMainMenu()">
           <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd" viewBox="0 0 512 299.283">
             <path d="M75.334 12.591C10.57-24.337-20.852 28.186 15.131 64.566l200.866 209.613c33.472 33.471 46.534 33.471 80.006 0L496.869 64.566c35.983-36.38 4.561-88.903-60.203-51.975L256 109.944 75.334 12.591z" />
           </svg>
         </div>
         <div style="width: 100%; height: 100%; display: flex; justify-content: end">
-          <img :key="props.id" class="pointer favourite-btn" alt="favourite button" :src="data.heartIconSrc" @click="toggleFavourite(props.id)">
+          <img :key="props.id" class="pointer favourite-btn" alt="favourite button" data-testid="flower-favourite" :src="data.heartIconSrc" @click="toggleFavourite(props.id)">
           <button class="pointer safe-button" alt="more options" style="font-size: large; font-weight: bold" @click="toggleSecMenu()">+</button>
         </div>
         <Transition name="slide-from-top">
@@ -29,8 +29,8 @@
         <Transition name="slide-from-top">
           <FloatingPanel v-if="data.openMainMenu" :loc="'bottom'" :match-parent-width="false">
             <div class="main-menu">
-              <a @click="mutate(); toggleMainMenu();">Mutate</a>
-              <a @click="onSelected(); toggleMainMenu();">Select Flower</a>
+              <a data-testid="flower-mutate" @click="mutate(); toggleMainMenu();">Mutate</a>
+              <a data-testid="flower-select" @click="onSelected(); toggleMainMenu();">Select Flower</a>
               <a @click="shareFlower(); toggleMainMenu();">Share</a>
               <a @click="describe(); toggleMainMenu();">Describe</a>
               <a @click="downloadGenome(); toggleMainMenu();">Download Genome</a>
@@ -58,12 +58,12 @@
     </div>
     <div v-else>
       <div class="flowerMenu" :class="{ Selected: data.selected }">
-        <div v-if="!data.openMainMenu" class="drop-menu pointer" @click="toggleMainMenu()">
+        <div v-if="!data.openMainMenu" class="drop-menu pointer" data-testid="flower-menu-toggle" @click="toggleMainMenu()">
           <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" viewBox="0 0 512 299.283">
             <path d="M75.334 286.691c-64.764 36.929-96.186-15.595-60.203-51.975L215.997 25.104c33.472-33.472 46.534-33.472 80.006 0l200.866 209.612c35.983 36.38 4.561 88.904-60.203 51.975L256 189.339 75.334 286.691z" />
           </svg>
         </div>
-        <div v-if="data.openMainMenu" class="drop-menu pointer" @click="toggleMainMenu()">
+        <div v-if="data.openMainMenu" class="drop-menu pointer" data-testid="flower-menu-toggle" @click="toggleMainMenu()">
           <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" viewBox="0 0 512 299.283"><path d="M75.334 12.591C10.57-24.337-20.852 28.186 15.131 64.566l200.866 209.613c33.472 33.471 46.534 33.471 80.006 0L496.869 64.566c35.983-36.38 4.561-88.903-60.203-51.975L256 109.944 75.334 12.591z" /></svg>
         </div>
         <div style="width: 100%; height: 100%; display: flex; justify-content: end; position: relative;">
@@ -83,8 +83,8 @@
         <Transition name="slide-from-top">
           <FloatingPanel v-if="data.openMainMenu" :loc="'bottom'" :match-parent-width="false">
             <div class="main-menu">
-              <a @click="mutate(); toggleMainMenu();">Mutate</a>
-              <a @click="onSelected(); toggleMainMenu();">Select Flower</a>
+              <a data-testid="flower-mutate" @click="mutate(); toggleMainMenu();">Mutate</a>
+              <a data-testid="flower-select" @click="onSelected(); toggleMainMenu();">Select Flower</a>
               <a @click="addToLocal(); toggleMainMenu();">Add to local</a>
               <a @click="describe(); toggleMainMenu();">Describe</a>
               <a @click="downloadGenome(); toggleMainMenu();">Download Genome</a>
@@ -114,6 +114,7 @@
 <script setup>
     import { onMounted, ref, reactive, inject, onUnmounted } from "vue";
     import { useFlowerStore } from '../stores/FlowerStore';
+    import { getFlowerEvolver } from '../services/flowerEvolver';
     import { useCaptionerStore } from '../stores/CaptionerStore';
     import { useErrorStore } from '../stores/ErrorStore';
     import { useRouter } from 'vue-router';
@@ -215,14 +216,16 @@
             if(CaptionerStore.localDescriptions.has(props.id)){
                 data.description = "Flower " + props.id + " - " + CaptionerStore.getLocalDescription(props.id);
             }
-            setTimeout(() => {
-                data.stats = FlowerStore.fe.getFlowerStats(props.genome, 0.3, 23, 1000, 0);
+            setTimeout(async () => {
+                const fe = await getFlowerEvolver();
+                data.stats = fe.getFlowerStats(props.genome, 0.3, 23, 1000, 0);
             }, 100);
         }else{
             setTimeout(async () => {
                 let blob = await fetch(data.DOWNLOAD_URL + props.genome);
                 let genome = await blob.text();
-                data.stats = FlowerStore.fe.getFlowerStats(genome, 0.3, 23, 1000, 0);
+                const fe = await getFlowerEvolver();
+                data.stats = fe.getFlowerStats(genome, 0.3, 23, 1000, 0);
             }, 100);
         }
         CaptionerStore.channel.on('captioner#done', (e) => {
@@ -392,8 +395,9 @@
     };
     const downloadPetalsImpl = async (genome) => {
             const zip = new JSZip();
+            const fe = await getFlowerEvolver();
             for(let i = FlowerStore.settings.params.numLayers; i >= 0; --i){
-                let f = await FlowerStore.fe.drawPetalLayer(genome, i);
+                let f = await fe.drawPetalLayer(genome, i);
                 zip.file(
                   `Flower_${props.id}_PetalLayer_${i}.png`,
                   f.image.split(",")[1],
@@ -417,14 +421,15 @@
     };
     const download3DModelImpl = async (genome, type) => {
         let model;
+        const fe = await getFlowerEvolver();
         if(type === "emissive"){
-            model = await FlowerStore.fe.drawEmissive3DFlower(
+            model = await fe.drawEmissive3DFlower(
                 genome,
                 props.id.toString(),
                 "both"
           );
         }else{
-          model = await FlowerStore.fe.draw3DFlower(
+          model = await fe.draw3DFlower(
             genome,
             props.id.toString(),
             "both"

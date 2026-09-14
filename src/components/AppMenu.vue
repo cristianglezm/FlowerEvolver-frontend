@@ -1,7 +1,7 @@
 <template>
   <div>
     <div v-if="isMobile()" class="appMenu" style="margin-top: 1em;">
-      <img class="pointer" alt="menuIcon" src="@/assets/x32/menu.png" @click="toggleMenu()">
+      <img class="pointer" alt="menuIcon" src="@/assets/x32/menu.png" data-testid="menu-toggle" @click="toggleMenu()">
       <div v-if="data.showMenu" class="mobileMenu">
         <nav v-if="isPaginated()" class="tabs" alt="tabs" @click="toggleMenu()">
           <router-link to="/Local?page=0"> Local </router-link>
@@ -23,16 +23,16 @@
         </nav>
         <div class="actions" alt="actions">
           <nav v-if="props.isLocal">
-            <button class="safe-button" @click="FlowerStore.makeLocalFlower(); toggleMenu()"> New Local Flower</button>
-            <button class="safe-button" @click="FlowerStore.localReproduce(); toggleMenu()"> Local Reproduce Selected</button>
-            <button class="safe-button" @click="showAncestors(); toggleMenu()"> Show Local Selected Descendants</button>
-            <button class="safe-button" @click="toggleChatBot(); toggleMenu()">{{ toggleButtonMessage }}</button>
+            <button class="safe-button" data-testid="menu-new-local-flower" @click="FlowerStore.makeLocalFlower(); toggleMenu()"> New Local Flower</button>
+            <button class="safe-button" data-testid="menu-local-reproduce" @click="FlowerStore.localReproduce(); toggleMenu()"> Local Reproduce Selected</button>
+            <button class="safe-button" data-testid="menu-show-local-descendants" @click="showAncestors(); toggleMenu()"> Show Local Selected Descendants</button>
+            <button class="safe-button" data-testid="menu-toggle-chatbot" @click="toggleChatBot(); toggleMenu()">{{ toggleButtonMessage }}</button>
           </nav>
           <nav v-else>
-            <button class="safe-button" :class="{'disabled': data.blocked}" @click="block(FlowerStore.makeRemoteFlower); toggleMenu()"> New Remote Flower</button>
-            <button class="safe-button" :class="{'disabled': data.blocked}" @click="block(FlowerStore.remoteReproduce); toggleMenu()"> Remote Reproduce Selected</button>
-            <button class="safe-button" :class="{'disabled': data.blocked}" @click="block(showAncestors); toggleMenu()"> Show Remote Selected Descendants</button>
-            <button class="safe-button" @click="toggleChatBot(); toggleMenu()">{{ toggleButtonMessage }}</button>
+            <button class="safe-button" data-testid="menu-new-remote-flower" :class="{'disabled': data.blocked}" @click="block(FlowerStore.makeRemoteFlower); toggleMenu()"> New Remote Flower</button>
+            <button class="safe-button" data-testid="menu-remote-reproduce" :class="{'disabled': data.blocked}" @click="block(FlowerStore.remoteReproduce); toggleMenu()"> Remote Reproduce Selected</button>
+            <button class="safe-button" data-testid="menu-show-remote-descendants" :class="{'disabled': data.blocked}" @click="block(showAncestors); toggleMenu()"> Show Remote Selected Descendants</button>
+            <button class="safe-button" data-testid="menu-toggle-chatbot" @click="toggleChatBot(); toggleMenu()">{{ toggleButtonMessage }}</button>
           </nav>
         </div>
       </div>
@@ -61,17 +61,17 @@
     </div>
     <div v-if="!isMobile()" class="floating-actions" alt="floating-actions">
       <div class="floating-actions-left">
-        <button class="fixed-button left-fixed-button" @click="toggleChatBot()">{{ toggleButtonMessage }}</button>
+        <button class="fixed-button left-fixed-button" data-testid="menu-toggle-chatbot" @click="toggleChatBot()">{{ toggleButtonMessage }}</button>
       </div>
       <div v-if="props.isLocal" class="floating-actions-right">
-        <button class="fixed-button right-fixed-button" @click="FlowerStore.makeLocalFlower()"> New Local Flower</button>
-        <button class="fixed-button right-fixed-button" @click="FlowerStore.localReproduce()"> Local Reproduce Selected</button>
-        <button class="fixed-button right-fixed-button" @click="showAncestors()"> Show Local Selected Descendants</button>
+        <button class="fixed-button right-fixed-button" data-testid="menu-new-local-flower" @click="FlowerStore.makeLocalFlower()"> New Local Flower</button>
+        <button class="fixed-button right-fixed-button" data-testid="menu-local-reproduce" @click="FlowerStore.localReproduce()"> Local Reproduce Selected</button>
+        <button class="fixed-button right-fixed-button" data-testid="menu-show-local-descendants" @click="showAncestors()"> Show Local Selected Descendants</button>
       </div>
       <div v-else class="floating-actions-right">
-        <button class="fixed-button right-fixed-button" :class="{'disabled': data.blocked}" @click="block(FlowerStore.makeRemoteFlower)"> New Remote Flower</button>
-        <button class="fixed-button right-fixed-button" :class="{'disabled': data.blocked}" @click="block(FlowerStore.remoteReproduce)"> Remote Reproduce Selected</button>
-        <button class="fixed-button right-fixed-button" :class="{'disabled': data.blocked}" @click="block(showAncestors)"> Show Remote Selected Descendants</button>
+        <button class="fixed-button right-fixed-button" data-testid="menu-new-remote-flower" :class="{'disabled': data.blocked}" @click="block(FlowerStore.makeRemoteFlower)"> New Remote Flower</button>
+        <button class="fixed-button right-fixed-button" data-testid="menu-remote-reproduce" :class="{'disabled': data.blocked}" @click="block(FlowerStore.remoteReproduce)"> Remote Reproduce Selected</button>
+        <button class="fixed-button right-fixed-button" data-testid="menu-show-remote-descendants" :class="{'disabled': data.blocked}" @click="block(showAncestors)"> Show Remote Selected Descendants</button>
       </div>
     </div>
     <ErrorModal />

@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia';
-import { markRaw } from 'vue';
 import { db as ddb } from './db';
-import axios from 'axios';
-import { FEParams, FEService } from '@cristianglezm/flower-evolver-wasm';
+import { FEParams } from '@cristianglezm/flower-evolver-wasm';
+import { getFlowerEvolver } from '../../services/flowerEvolver';
+import * as flowerRepository from '../../services/flowerRepository';
+import * as flowerApiClient from '../../services/flowerApiClient';
 import { useErrorStore } from '../ErrorStore';
 
-export { FEParams, FEService };
 export const API = import.meta.env.VITE_APP_API_URL;
 export const URL = import.meta.env.VITE_APP_DOWNLOAD_URL;
 export const STORAGE_KEY = 'FlowerEvolverSettings';
@@ -13,7 +13,6 @@ export const STORAGE_KEY_GARDEN = "FlowerEvolverGarden";
 
 export const useFlowerStore = defineStore('FlowerStore', {
 	state: () => ({
-		fe: null,
 		db: ddb,
 		remoteFlowers: [],
 		localFlowers: [],
@@ -68,10 +67,6 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		}
 	},
 	actions: {
-		async loadFE(){
-			this.fe = markRaw(new FEService());
-			await this.fe.init();
-		},
 		increaseOffset(offset){
 			return offset + this.settings.limit;
 		},
@@ -80,8 +75,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		},
 		async getRemoteFlowersCount(){
 			try{
-				const response = await axios.get(API + 'flowers?count=1');
-				return response.data.count;
+				return await flowerApiClient.getFlowersCount();
 			}catch(e){
 				const ErrorStore = useErrorStore();
 				ErrorStore.push(e);
@@ -89,20 +83,14 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			return 0;
 		},
 		async getLocalFlowersCount(){
-			return await this.db.flowers.count();
+			return await flowerRepository.countFlowers();
 		},
 		async getFavouritesCount(){
-			return await this.db.favourites.count();
+			return await flowerRepository.countFavourites();
 		},
 		async getRemoteMutationsCount(original){
 			try{
-				if(original === undefined || original === null){
-					const response = await axios.get(API + 'mutations?count=1');
-					return response.data.count;
-				}else{
-					const response = await axios.get(API + 'mutations/' + original + '?count=1');
-					return response.data.count;
-				}
+				return await flowerApiClient.getMutationsCount(original);
 			}catch(e){
 				const ErrorStore = useErrorStore();
 				ErrorStore.push(e);
@@ -110,21 +98,11 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			return 0;
 		},
 		async getLocalMutationsCount(original){
-			if(original === undefined || original === null){
-				return await this.db.mutations.count();
-			}else{
-				return await this.db.mutations.where("original").equals(original).count();
-			}
+			return await flowerRepository.countMutations(original);
 		},
 		async getRemoteAncestorsCount(fatherID, motherID){
 			try{
-				if(motherID == undefined || motherID == null){
-					const response = await axios.get(API + 'ancestors/' + fatherID + '?count=1');
-					return response.data.count;
-				}else{
-					const response = await axios.get(API + 'ancestors/' + fatherID + '/' + motherID + '?count=1');
-					return response.data.count;
-				}
+				return await flowerApiClient.getAncestorsCount(fatherID, motherID);
 			}catch(e){
 				const ErrorStore = useErrorStore();
 				ErrorStore.push(e);
@@ -132,9 +110,9 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		},
 		async getLocalAncestorsCount(fatherID, motherID){
 			if(motherID === undefined || motherID === null){
-				return this.db.descendants.where("father").equals(fatherID).or("mother").equals(fatherID).count();
+				return flowerRepository.countDescendantsByParent(fatherID);
 			}else{
-				return this.db.descendants.where("father").equals(fatherID).and(d => d.mother == motherID).count();
+				return flowerRepository.countDescendantsByParents(fatherID, motherID);
 			}
 		},
 		async setLoadDemoFlowers(load){
@@ -151,37 +129,30 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					return response.text();
 				})
 				.then(async (genome) => {
-					if(this.fe){
-						if(!this.db.isOpen()){
-							this.db.open();
-						}
-						let localFlower;
-						try{
-							this.fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
-								this.settings.params.P, this.settings.params.bias));
-							localFlower = await this.fe.drawFlower(genome);
-						}catch(e){
-							const ErrorStore = useErrorStore();
-							ErrorStore.push(e);
-							return;
-						}
-						let f = {
-							genome: localFlower.genome,
-							image: localFlower.image
-						};
-						this.db.flowers.add(f)
-						.then((id) => {
-							f.id = id;
-							this.localFlowers.unshift(f);
-						}).catch(e => {
-							const ErrorStore = useErrorStore();
-							ErrorStore.push(e);
-						});
-					}else{
+					flowerRepository.ensureOpen();
+					let localFlower;
+					try{
+						const fe = await getFlowerEvolver();
+						fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
+							this.settings.params.P, this.settings.params.bias));
+						localFlower = await fe.drawFlower(genome);
+					}catch(e){
 						const ErrorStore = useErrorStore();
-						ErrorStore.push("wasm Module for Flowers is not loaded. (try again)");
-						this.loadFE();
+						ErrorStore.push(e);
+						return;
 					}
+					let f = {
+						genome: localFlower.genome,
+						image: localFlower.image
+					};
+					flowerRepository.addFlower(f)
+					.then((id) => {
+						f.id = id;
+						this.localFlowers.unshift(f);
+					}).catch(e => {
+						const ErrorStore = useErrorStore();
+						ErrorStore.push(e);
+					});
 				});
 			}catch(e){
 				const ErrorStore = useErrorStore();
@@ -189,18 +160,17 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			}
 		},
 		async isFavourited(id){
-			return this.db.favourites.where(":id").equals(id).toArray()
-						.then((flowers) => {
-							return flowers.length > 0;
-						}).catch(e => {
-							const ErrorStore = useErrorStore();
-							ErrorStore.push(e);
-						});
+			try{
+				return await flowerRepository.isFavourited(id);
+			}catch(e){
+				const ErrorStore = useErrorStore();
+				ErrorStore.push(e);
+			}
 		},
 		async addFlowerToFav(id){
-			this.db.favourites.add(id, id)
+			flowerRepository.addFavourite(id)
 				.then(ID => {
-					this.db.flowers.get(ID)
+					flowerRepository.getFlower(ID)
 						.then((f) => {
 							this.favourites.unshift(f);
 						})
@@ -215,7 +185,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				});
 		},
 		removeFlowerFromFav(id){
-			this.db.favourites.where(":id").equals(id).delete();
+			flowerRepository.removeFavourite(id);
 			this.favourites = this.favourites.filter(f => f.id != id);
 		},
 		selectRemoteFlower(flower){
@@ -234,8 +204,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		},
 		async updateRemoteFlowers({limit, offset}){
 			try{
-				const response = await axios.get(API + 'flowers?limit=' + limit + '&offset=' + offset)
-				this.remoteFlowers = response.data.flowers;
+				this.remoteFlowers = await flowerApiClient.getFlowers({limit, offset});
 			}catch(_){
 				//const ErrorStore = useErrorStore();
 				//ErrorStore.push(_);
@@ -243,7 +212,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		},
 		async updateLocalFlowers({limit, offset}){
 			try{
-				const flowers = await this.db.flowers.reverse().offset(offset).limit(limit).toArray();
+				const flowers = await flowerRepository.listFlowers({limit, offset});
 				this.localFlowers = flowers;
 			}catch(e){
 				const ErrorStore = useErrorStore();
@@ -252,8 +221,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		},
 		async updateAndConcatRemoteFlowers({limit, offset}){
 			try{
-				const response = await axios.get(API + 'flowers?limit=' + limit + '&offset=' + offset)
-				this.remoteFlowers = this.remoteFlowers.concat(response.data.flowers);
+				const flowers = await flowerApiClient.getFlowers({limit, offset});
+				this.remoteFlowers = this.remoteFlowers.concat(flowers);
 			}catch(_){
 				//const ErrorStore = useErrorStore();
 				//ErrorStore.push(e);
@@ -261,7 +230,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		},
 		async updateAndConcatLocalFlowers({limit, offset}){
 			try{
-				const flowers = await this.db.flowers.reverse().offset(offset).limit(limit).toArray();
+				const flowers = await flowerRepository.listFlowers({limit, offset});
 				this.localFlowers = this.localFlowers.concat(flowers);
 			}catch(e){
 				const ErrorStore = useErrorStore();
@@ -270,8 +239,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		},
 		async updateLastAdded({limit, offset}){
 			try{
-				const response = await axios.get(API + 'flowers?limit=' + limit + '&offset=' + offset)
-				this.lastAdded = response.data.flowers;
+				this.lastAdded = await flowerApiClient.getFlowers({limit, offset});
 			}catch(_){
 				//const ErrorStore = useErrorStore();
 				//ErrorStore.push(e);
@@ -279,8 +247,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		},
 		async updateRemoteMutations({flower, limit, offset}){
 			try{
-				const response = await axios.get(API + 'mutations/' + flower.id + '?limit=' + limit + '&offset=' + offset)
-				this.mutations = response.data;
+				this.mutations = await flowerApiClient.getMutations(flower.id, {limit, offset});
 			}catch(_){
 				//const ErrorStore = useErrorStore();
 				//ErrorStore.push(_);
@@ -289,10 +256,9 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		async updateLocalMutations({flower, limit, offset}){
 			try{
 				this.mutations = [];
-				const mutations = await this.db.mutations.where("original")
-									.equals(flower.id).offset(offset).limit(limit).reverse().toArray();
+				const mutations = await flowerRepository.listMutationsByOriginal({original: flower.id, limit, offset});
 				for(const m of mutations){
-					this.db.flowers.get(m.id).then((f) => {
+					flowerRepository.getFlower(m.id).then((f) => {
 						this.mutations.push(f);
 					});
 				}
@@ -303,8 +269,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		},
 		async updateAndConcatRemoteMutations({flower, limit, offset}){
 			try{
-				const response = await axios.get(API + 'mutations/' + flower.id +'?limit=' + limit + '&offset=' + offset)
-				this.mutations = this.mutations.concat(response.data);
+				const mutations = await flowerApiClient.getMutations(flower.id, {limit, offset});
+				this.mutations = this.mutations.concat(mutations);
 			}catch(_){
 				//const ErrorStore = useErrorStore();
 				//ErrorStore.push(_);
@@ -312,11 +278,9 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		},
 		async updateAndConcatLocalMutations({flower, limit, offset}){
 			try{
-				const mutations = await this.db.mutations.where("original")
-											.equals(flower.id).offset(offset)
-											.limit(limit).reverse().toArray();
+				const mutations = await flowerRepository.listMutationsByOriginal({original: flower.id, limit, offset});
 				for(const m of mutations){
-					this.db.flowers.get(m.id).then((f) => {
+					flowerRepository.getFlower(m.id).then((f) => {
 						this.mutations.push(f);
 					});
 				}
@@ -328,11 +292,9 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		async updateRemoteAncestors({flower1, flower2, limit, offset}){
 			try{
 				if(flower2 === undefined || flower2 === null){
-					const response = await axios.get(API + 'ancestors/' + flower1.id + '?limit=' + limit + '&offset=' + offset)
-					this.ancestors = response.data;
+					this.ancestors = await flowerApiClient.getAncestors(flower1.id, undefined, {limit, offset});
 				}else{
-					const response = await axios.get(API + 'ancestors/' + flower1.id + '/' + flower2.id + '?limit=' + limit + '&offset=' + offset)
-					this.ancestors = response.data;
+					this.ancestors = await flowerApiClient.getAncestors(flower1.id, flower2.id, {limit, offset});
 				}
 			}catch(_){
 				//const ErrorStore = useErrorStore();
@@ -343,20 +305,17 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			try{
 				this.ancestors = [];
 				if(flower2 === undefined || flower2 === null){
-					const descendants = await this.db.descendants.where("father")
-											.equals(flower1.id).or("mother").equals(flower1.id)
-											.offset(offset).limit(limit).reverse().toArray();
+					const descendants = await flowerRepository.listDescendantsByParent({fatherID: flower1.id, limit, offset});
 					for(const d of descendants){
-						this.db.flowers.get(d.id)
+						flowerRepository.getFlower(d.id)
 							.then((f) => {
 								this.ancestors.push(f);
 						});
 					}
 				}else{
-					const descendants = await this.db.descendants.where("father").equals(flower1.id)
-						.and(ds => ds.mother == flower2.id).offset(offset).limit(limit).reverse().toArray();
+					const descendants = await flowerRepository.listDescendantsByParents({fatherID: flower1.id, motherID: flower2.id, limit, offset});
 					for(const d of descendants){
-						this.db.flowers.get(d.id)
+						flowerRepository.getFlower(d.id)
 							.then((f) => {
 								this.ancestors.push(f);
 						});
@@ -370,11 +329,11 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		async updateAndConcatRemoteAncestors({flower1, flower2, limit, offset}){
 			try{
 				if(flower2 === undefined || flower2 === null){
-					const response = await axios.get(API + 'ancestors/' + flower1.id + '?limit=' + limit + '&offset=' + offset)
-					this.ancestors = this.ancestors.concat(response.data);
+					const ancestors = await flowerApiClient.getAncestors(flower1.id, undefined, {limit, offset});
+					this.ancestors = this.ancestors.concat(ancestors);
 				}else{
-					const response = await axios.get(API + 'ancestors/' + flower1.id + '/' + flower2.id + '?limit=' + limit + '&offset=' + offset)
-					this.ancestors = this.ancestors.concat(response.data);
+					const ancestors = await flowerApiClient.getAncestors(flower1.id, flower2.id, {limit, offset});
+					this.ancestors = this.ancestors.concat(ancestors);
 				}
 			}catch(_){
 				//const ErrorStore = useErrorStore();
@@ -384,19 +343,17 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		async updateAndConcatLocalAncestors({flower1, flower2, limit, offset}){
 			try{
 				if(flower2 === undefined || flower2 === null){
-					const descendants = await this.db.descendants.where("father").equals(flower1.id).or("mother").equals(flower1.id)
-											.offset(offset).limit(limit).reverse().toArray();
+					const descendants = await flowerRepository.listDescendantsByParent({fatherID: flower1.id, limit, offset});
 					for(const d of descendants){
-						this.db.flowers.get(d.id)
+						flowerRepository.getFlower(d.id)
 							.then((f) => {
 								this.ancestors.push(f);
 						});
 					}
 				}else{
-					const descendants = await this.db.descendants.where("father").equals(flower1.id)
-						.and(ds => ds.mother == flower2.id).offset(offset).limit(limit).reverse().toArray();
+					const descendants = await flowerRepository.listDescendantsByParents({fatherID: flower1.id, motherID: flower2.id, limit, offset});
 					for(const d of descendants){
-						this.db.flowers.get(d.id)
+						flowerRepository.getFlower(d.id)
 							.then((f) => {
 								this.ancestors.push(f);
 						});
@@ -408,65 +365,44 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			}
 		},
 		async shareFlower(genome){
-		    await axios.post(API + 'flowers', genome, {
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			}).catch(e => {
+			try{
+				await flowerApiClient.shareFlower(genome);
+			}catch(e){
 				const ErrorStore = useErrorStore();
-				if(e.response === undefined){
-					ErrorStore.push("cannot share flower, server offline");
-				}else{
-					ErrorStore.push(e.response.data);
-				}
-		    });
+				ErrorStore.push(flowerApiClient.mapAxiosError(e, "cannot share flower, server offline"));
+			}
 		},
 		async makeRemoteFlower(){
-			await axios.post(API + 'flowers', {}, {
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			}).then(async response => {
-				let flower = response.data;
+			try{
+				const flower = await flowerApiClient.createFlower();
 				this.remoteFlowers.unshift(flower);
 				this.lastAdded.unshift(flower);
-			}).catch(e => {
+			}catch(e){
 				const ErrorStore = useErrorStore();
-				if(e.response === undefined){
-					ErrorStore.push("cannot make a remote flower, server offline");
-				}else{
-					ErrorStore.push(e.response.data);
-				}
-			});
+				ErrorStore.push(flowerApiClient.mapAxiosError(e, "cannot make a remote flower, server offline"));
+			}
 		},
 		async makeLocalFlower(){
 			try{
-				if(this.fe){
-					if(!this.db.isOpen()){
-						this.db.open();
-					}
-					let flower;
-					try{
-						this.fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
-														this.settings.params.P, this.settings.params.bias));
-						flower = await this.fe.makeFlower();
-					}catch(_){
-						const ErrorStore = useErrorStore();
-						//ErrorStore.push(_);
-						ErrorStore.push("couldn't make a local flower");
-						return;
-					}
-					let id = await this.db.flowers.add({
-						genome: flower.genome,
-						image: flower.image
-					});
-					let f = await this.db.flowers.get(id);
-					this.localFlowers.unshift(f);
-				}else{
+				flowerRepository.ensureOpen();
+				let flower;
+				try{
+					const fe = await getFlowerEvolver();
+					fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
+													this.settings.params.P, this.settings.params.bias));
+					flower = await fe.makeFlower();
+				}catch(_){
 					const ErrorStore = useErrorStore();
-					ErrorStore.push("FlowerEvolver WASM module not loaded, try again.");
-					this.loadFE();
+					//ErrorStore.push(_);
+					ErrorStore.push("couldn't make a local flower");
+					return;
 				}
+				let id = await flowerRepository.addFlower({
+					genome: flower.genome,
+					image: flower.image
+				});
+				let f = await flowerRepository.getFlower(id);
+				this.localFlowers.unshift(f);
 			}catch(e){
 				const ErrorStore = useErrorStore();
 				ErrorStore.push(e);
@@ -474,34 +410,27 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		},
 		async redrawFlower(flower){
 			try{
-				if(this.fe){
-					if(!this.db.isOpen()){
-						this.db.open();
-					}
-					let f;
-					try{
-						this.fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
-							this.settings.params.P, this.settings.params.bias));
-						f = await this.fe.drawFlower(flower.genome);
-					}catch(_){
-						const ErrorStore = useErrorStore();
-						// ErrorStore.push(_);
-						ErrorStore.push("couldn't redraw a local flower.");
-						return;
-					}
-					flower.image = f.image;
-					delete flower.id;
-					flower.id = await this.db.flowers.add(flower)
-					.catch(e => {
-						const ErrorStore = useErrorStore();
-						ErrorStore.push(e);
-					});
-					this.localFlowers.unshift(flower);
-				}else{
+				flowerRepository.ensureOpen();
+				let f;
+				try{
+					const fe = await getFlowerEvolver();
+					fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
+						this.settings.params.P, this.settings.params.bias));
+					f = await fe.drawFlower(flower.genome);
+				}catch(_){
 					const ErrorStore = useErrorStore();
-					ErrorStore.push("FlowerEvolver WASM module not loaded, try again.");
-					this.loadFE();
+					// ErrorStore.push(_);
+					ErrorStore.push("couldn't redraw a local flower.");
+					return;
 				}
+				flower.image = f.image;
+				delete flower.id;
+				flower.id = await flowerRepository.addFlower(flower)
+				.catch(e => {
+					const ErrorStore = useErrorStore();
+					ErrorStore.push(e);
+				});
+				this.localFlowers.unshift(flower);
 			}catch(e){
 				const ErrorStore = useErrorStore();
 				ErrorStore.push(e);
@@ -510,17 +439,16 @@ export const useFlowerStore = defineStore('FlowerStore', {
         async deleteAllFlowers(){
             this.localSelected.flowers = [];
             this.localSelected.index = 0;
-            await this.db.delete();
-            this.db.open();
+            await flowerRepository.wipeDatabase();
 			this.localFlowers = []
 		},
         async deleteNonFavourites(){
-            let ids = await this.db.favourites.toArray();
-            let flowers = await this.db.flowers.bulkGet(ids);
+            let ids = await flowerRepository.listFavouriteIds();
+            let flowers = await flowerRepository.bulkGetFlowers(ids);
 			for(const f of flowers){
 				this.localFlowers.unshift(f);
 			}
-            let descs = await this.db.descriptions.bulkGet(ids);
+            let descs = await flowerRepository.bulkGetDescriptions(ids);
             for(let id = 0;id < flowers.length; ++id){
                 ids[id] = id + 1;
                 flowers[id].id = id + 1;
@@ -533,11 +461,10 @@ export const useFlowerStore = defineStore('FlowerStore', {
             });
             this.localSelected.flowers = [];
             this.localSelected.index = 0;
-            this.db.delete();
-            this.db.open();
-            this.db.flowers.bulkAdd(flowers);
-            await this.db.favourites.bulkAdd(ids, ids);
-            await this.db.descriptions.bulkAdd(descs);
+            await flowerRepository.wipeDatabase();
+            flowerRepository.bulkAddFlowers(flowers);
+            await flowerRepository.bulkAddFavourites(ids);
+            await flowerRepository.bulkAddDescriptions(descs);
 		},
 		async deleteLocalFlower(id){
 			this.localSelected.flowers = [];
@@ -546,149 +473,124 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				const ErrorStore = useErrorStore();
 				ErrorStore.push(e);
 			};
-			await this.db.favourites.delete(id).catch(handleError);
-			await this.db.descriptions.delete(id).catch(handleError);
-			await this.db.descendants.delete(id).catch(handleError);
-			await this.db.flowers.delete(id).catch(handleError);
-			this.db.mutations.where("original").equals(id).or(":id").equals(id).toArray()
+			await flowerRepository.removeFavourite(id).catch(handleError);
+			await flowerRepository.deleteDescription(id).catch(handleError);
+			await flowerRepository.deleteDescendant(id).catch(handleError);
+			await flowerRepository.deleteFlower(id).catch(handleError);
+			flowerRepository.findMutationsByOriginalOrId(id)
 				.then((ms) => {
 					let ids = ms.map(m => m.id);
-					this.db.mutations.bulkDelete(ids).catch(handleError);
+					flowerRepository.bulkDeleteMutations(ids).catch(handleError);
 				}).catch(handleError);
 			this.localFlowers = this.localFlowers.filter(f => f.id != id);
 			this.favourites = this.favourites.filter(f => f.id != id);
 			this.ancestors = this.ancestors.filter(f => f.id != id);
 			this.mutations = this.mutations.filter(f => f.id != id);
 		},
-		remoteReproduce(){
+		async remoteReproduce(){
 			if(this.remoteSelected.flowers.length > 1){
-				let postData = { father: this.remoteSelected.flowers[0], mother: this.remoteSelected.flowers[1]}
-				axios.post(API + 'ancestors', postData)
-				.then(response => {
-					this.remoteFlowers.unshift(response.data);
-					this.lastAdded.unshift(response.data);
-					this.ancestors.unshift(response.data);
-				})
-				.catch(_ => {
+				try{
+					const flower = await flowerApiClient.reproduceRemote(this.remoteSelected.flowers[0], this.remoteSelected.flowers[1]);
+					this.remoteFlowers.unshift(flower);
+					this.lastAdded.unshift(flower);
+					this.ancestors.unshift(flower);
+				}catch(_){
 					const ErrorStore = useErrorStore();
-					if(_.response === undefined){
-						ErrorStore.push("cannot reproduce remote flowers, server offline.");
-					}else{
-						ErrorStore.push(_.response.data);
-					}
-				});
+					ErrorStore.push(flowerApiClient.mapAxiosError(_, "cannot reproduce remote flowers, server offline."));
+				}
 			}else{
 				const ErrorStore = useErrorStore();
 				ErrorStore.push("There are no flowers selected");
 			}
 		},
 		async localReproduce(){
-			if(this.fe){
-				if(this.localSelected.flowers.length > 1){
-					if(!this.db.isOpen()){
-						this.db.open();
-					}
-					let f1 = await this.db.flowers.get(this.localSelected.flowers[0]);
-					let f2 = await this.db.flowers.get(this.localSelected.flowers[1]);
-					let flower;
-					try{
-						this.fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
-							this.settings.params.P, this.settings.params.bias));
-						flower = await this.fe.reproduce(f1.genome, f2.genome);
-					}catch(_){
-						const ErrorStore = useErrorStore();
-						//ErrorStore.push(_);
-						ErrorStore.push("couldn't reproduce some local flowers");
-						return;
-					}
-					let id = await this.db.flowers.add({
-						genome: flower.genome,
-						image: flower.image
-					});
-					this.db.descendants.add({
-						id: id,
-						father: f1.id, 
-						mother: f2.id
-						}).catch(e => {
-							const ErrorStore = useErrorStore();
-							ErrorStore.push(e);
-						});
-					let f = await this.db.flowers.get(id);
-					this.localFlowers.unshift(f);
-					this.ancestors.unshift(f);
-				}else{
-					const ErrorStore = useErrorStore();
-					ErrorStore.push("There are no flowers selected.");
-				}
-			}else{
-				const ErrorStore = useErrorStore();
-				ErrorStore.push("FlowerEvolver WASM module not laoded, try again.");
-				this.loadFE();
-			}
-		},
-		async makeRemoteMutation(flower){
-			await axios.post(API + 'mutations', {original:flower.id})
-			.then(response => {
-				this.remoteFlowers.unshift(response.data);
-				this.lastAdded.unshift(response.data);
-				this.mutations.unshift(response.data);
-			})
-			.catch(_ => {
-				const ErrorStore = useErrorStore();
-				if(_.response === undefined){
-					ErrorStore.push("cannot mutate a remote flower, server offline.");
-				}else{
-					ErrorStore.push(_.response.data);
-				}
-			});
-		},
-		async makeLocalMutation(original){
-			if(this.fe){
+			if(this.localSelected.flowers.length > 1){
+				flowerRepository.ensureOpen();
+				let f1 = await flowerRepository.getFlower(this.localSelected.flowers[0]);
+				let f2 = await flowerRepository.getFlower(this.localSelected.flowers[1]);
+				let flower;
 				try{
-					if(!this.db.isOpen()){
-						this.db.open();
-					}
-					let flower;
-					try{
-						this.fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
-							this.settings.params.P, this.settings.params.bias));
-						flower = await this.fe.mutate(original.genome, 
-                                                    this.settings.mutationRates.addNodeRate, 
-                                                    this.settings.mutationRates.addConnRate, 
-                                                    this.settings.mutationRates.removeConnRate, 
-                                                    this.settings.mutationRates.perturbWeightsRate, 
-                                                    this.settings.mutationRates.enableRate, 
-                                                    this.settings.mutationRates.disableRate, 
-                                                    this.settings.mutationRates.actTypeRate
-                                                );
-					}catch(_){
-						const ErrorStore = useErrorStore();
-						//ErrorStore.push(_);
-						ErrorStore.push("couldn't mutate a local flower.");
-						return;
-					}
-					let id = await this.db.flowers.add({
-						genome: flower.genome, 
-						image: flower.image
-					});
-					this.db.mutations.add({
-						id: id, 
-						original: original.id
+					const fe = await getFlowerEvolver();
+					fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
+						this.settings.params.P, this.settings.params.bias));
+					flower = await fe.reproduce(f1.genome, f2.genome);
+				}catch(_){
+					const ErrorStore = useErrorStore();
+					//ErrorStore.push(_);
+					ErrorStore.push("couldn't reproduce some local flowers");
+					return;
+				}
+				let id = await flowerRepository.addFlower({
+					genome: flower.genome,
+					image: flower.image
+				});
+				flowerRepository.addDescendant({
+					id: id,
+					father: f1.id, 
+					mother: f2.id
 					}).catch(e => {
 						const ErrorStore = useErrorStore();
 						ErrorStore.push(e);
 					});
-					let f = await this.db.flowers.get(id);
-					this.localFlowers.unshift(f);
-					this.mutations.unshift(f);
-				}catch(e){
-					const ErrorStore = useErrorStore();
-					ErrorStore.push(e);
-				}
+				let f = await flowerRepository.getFlower(id);
+				this.localFlowers.unshift(f);
+				this.ancestors.unshift(f);
 			}else{
 				const ErrorStore = useErrorStore();
-				ErrorStore.push("FlowerEvolver WASM module not loaded, try again.");
-				this.loadFE();
+				ErrorStore.push("There are no flowers selected.");
+			}
+		},
+		async makeRemoteMutation(flower){
+			try{
+				const mutation = await flowerApiClient.mutateRemote(flower.id);
+				this.remoteFlowers.unshift(mutation);
+				this.lastAdded.unshift(mutation);
+				this.mutations.unshift(mutation);
+			}catch(_){
+				const ErrorStore = useErrorStore();
+				ErrorStore.push(flowerApiClient.mapAxiosError(_, "cannot mutate a remote flower, server offline."));
+			}
+		},
+		async makeLocalMutation(original){
+			try{
+				flowerRepository.ensureOpen();
+				let flower;
+				try{
+					const fe = await getFlowerEvolver();
+					fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
+						this.settings.params.P, this.settings.params.bias));
+					flower = await fe.mutate(original.genome, 
+                                                this.settings.mutationRates.addNodeRate, 
+                                                this.settings.mutationRates.addConnRate, 
+                                                this.settings.mutationRates.removeConnRate, 
+                                                this.settings.mutationRates.perturbWeightsRate, 
+                                                this.settings.mutationRates.enableRate, 
+                                                this.settings.mutationRates.disableRate, 
+                                                this.settings.mutationRates.actTypeRate
+                                            );
+				}catch(_){
+					const ErrorStore = useErrorStore();
+					//ErrorStore.push(_);
+					ErrorStore.push("couldn't mutate a local flower.");
+					return;
+				}
+				let id = await flowerRepository.addFlower({
+					genome: flower.genome, 
+					image: flower.image
+				});
+				flowerRepository.addMutation({
+					id: id, 
+					original: original.id
+				}).catch(e => {
+					const ErrorStore = useErrorStore();
+					ErrorStore.push(e);
+				});
+				let f = await flowerRepository.getFlower(id);
+				this.localFlowers.unshift(f);
+				this.mutations.unshift(f);
+			}catch(e){
+				const ErrorStore = useErrorStore();
+				ErrorStore.push(e);
 			}
 		},
 	},

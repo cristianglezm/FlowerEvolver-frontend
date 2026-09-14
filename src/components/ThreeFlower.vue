@@ -10,7 +10,9 @@ import { onMounted, onUnmounted, ref } from "vue";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/Addons.js";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
-import { useFlowerStore, FEParams } from "../stores/FlowerStore";
+import { useFlowerStore } from "../stores/FlowerStore";
+import { FEParams } from '@cristianglezm/flower-evolver-wasm';
+import { getFlowerEvolver } from "../services/flowerEvolver";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -185,7 +187,7 @@ onMounted(async () => {
     scene.add(gridHelper);
 
     threeCVS.value.appendChild(renderer.domElement);
-    let fe = flowerStore.fe;
+    let fe = await getFlowerEvolver();
     fe.setParams(
       new FEParams(
           flowerStore.settings.params.radius,
