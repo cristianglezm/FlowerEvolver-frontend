@@ -29,9 +29,8 @@
  *   });
  */
 import { db } from  '../stores/FlowerStore/db';
-import { FEParams, FEService } from '@cristianglezm/flower-evolver-wasm';
-
-let FE;
+import { FEParams } from '@cristianglezm/flower-evolver-wasm';
+import { getFlowerEvolver } from '../services/flowerEvolver';
 
 const addFlowers = async (flowers, toFavs) => {
     if(toFavs){
@@ -44,7 +43,7 @@ const addFlowers = async (flowers, toFavs) => {
 const clamp = (val, min, max) => {
     return Math.min(max, Math.max(val, min));
 }
-const importFlower = async (self, json, toFavs) => {
+const importFlower = async (self, FE, json, toFavs) => {
     let flower = {};
     let params = json.Flower.petals;
     params.radius = clamp(params.radius, 4, 256);
@@ -70,7 +69,7 @@ const importFlower = async (self, json, toFavs) => {
         progress: 1,
     });
 };
-const importGeneration = async (self, batchSize, json, toFavs) => {
+const importGeneration = async (self, FE, batchSize, json, toFavs) => {
     let flowers = [];
     let progress = 1;
     for(const f of json.Generation){
@@ -107,7 +106,7 @@ const importGeneration = async (self, batchSize, json, toFavs) => {
         await addFlowers(flowers, toFavs);
     }
 };
-const importSession = async (self, batchSize, json, toFavs) => {
+const importSession = async (self, FE, batchSize, json, toFavs) => {
     let flowers = [];
     let progress = 1;
     for(const g of json.Session.generations){
@@ -154,10 +153,7 @@ self.onmessage = async (e) => {
     if(!db.isOpen()){
         db.open();
     }
-    if(!FE){
-        FE = new FEService();
-        await FE.init();
-    }
+    const FE = await getFlowerEvolver();
     let fr = new FileReaderSync();
     for(let i=0;i<files.length;++i){
         if(files[i].type != 'application/json'){
@@ -175,7 +171,7 @@ self.onmessage = async (e) => {
                 progress: 0,
                 total: 1
             });
-            await importFlower(self, json, toFavs);
+            await importFlower(self, FE, json, toFavs);
         }else if(Object.hasOwn(json, "Generation")){
             self.postMessage({
                 type: "showProgress",
@@ -183,7 +179,7 @@ self.onmessage = async (e) => {
                 progress: 0,
                 total: json.Generation.length
             });
-            await importGeneration(self, batchSize, json, toFavs);
+            await importGeneration(self, FE, batchSize, json, toFavs);
         }else if(Object.hasOwn(json, "Session")){
             let total = json.Session.generations.reduce((acc, gen) => acc + gen.length, 0);
             self.postMessage({
@@ -192,7 +188,7 @@ self.onmessage = async (e) => {
                 progress: 0,
                 total: total
             });
-            await importSession(self, batchSize, json, toFavs);
+            await importSession(self, FE, batchSize, json, toFavs);
         }
     }
     self.postMessage({

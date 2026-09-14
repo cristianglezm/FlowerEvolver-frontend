@@ -28,7 +28,9 @@
 <script setup>
 import { reactive } from 'vue';
 import ToolTip from '../components/ToolTip.vue';
-import { useFlowerStore, FEParams, STORAGE_KEY } from '../stores/FlowerStore';
+import { useFlowerStore, STORAGE_KEY } from '../stores/FlowerStore';
+import { FEParams } from '@cristianglezm/flower-evolver-wasm';
+import { getFlowerEvolver } from '../services/flowerEvolver';
 
 const FlowerStore = useFlowerStore();
 
@@ -61,8 +63,9 @@ const getTimesDivisibleBy = (val, divisor) => {
     }
     return count;
 };
-const saveSettings = () => {
-    FlowerStore.fe.setParams(new FEParams(params.radius, params.numLayers, params.P, params.bias));
+const saveSettings = async () => {
+    const fe = await getFlowerEvolver();
+    fe.setParams(new FEParams(params.radius, params.numLayers, params.P, params.bias));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(FlowerStore.settings));
 };
 

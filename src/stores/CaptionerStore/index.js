@@ -1,10 +1,10 @@
 import mitt from 'mitt';
 import { defineStore } from 'pinia';
-import { useFlowerStore } from '../FlowerStore/index';
 import WorkerManager from '../WorkerManager';
 import captioner from '../../workers/captioner.worker?worker';
 import { toRaw } from 'vue';
 import { useErrorStore } from '../ErrorStore';
+import * as flowerRepository from '../../services/flowerRepository';
 
 let channel = new mitt();
 const wm = new WorkerManager(channel);
@@ -14,7 +14,6 @@ wm.onError('captioner', (e) => {
     ErrorStore.push(e);
 });
 wm.onResponse('captioner', (data) => {
-    const FlowerStore = useFlowerStore();
     const CaptionerStore = useCaptionerStore();
     const jobType = data.jobType;
     switch(jobType){
@@ -39,7 +38,7 @@ wm.onResponse('captioner', (data) => {
             };
             if(data.isLocal){
                 CaptionerStore.localDescriptions.set(desc.id, desc.description);
-                FlowerStore.db.descriptions.add(desc);
+                flowerRepository.addDescription(desc);
             }else{
                 CaptionerStore.remoteDescriptions.set(desc.id, desc.description);
             }
@@ -52,8 +51,6 @@ wm.onResponse('captioner', (data) => {
 export const STORAGE_KEY_CAPTIONER_MODEL_OPTIONS = "FlowerEVolverCaptionerModelOptions";
 export const useCaptionerStore = defineStore('CaptionerStore', {
     state: () => ({
-        wm,
-        channel,
         isModelLoaded: false,
         remoteDescriptions: new Map(),
         localDescriptions: new Map(),
@@ -67,6 +64,8 @@ export const useCaptionerStore = defineStore('CaptionerStore', {
         oldModelOptions: null
     }),
     getters: {
+        channel: () => channel,
+        wm: () => wm,
         getLocalDescription: (state) => (id) => {
             return state.localDescriptions.get(id);
         },
@@ -88,8 +87,7 @@ export const useCaptionerStore = defineStore('CaptionerStore', {
     actions: {
         async loadLocalDescriptions(offset, limit){
             this.localDescriptions = new Map();
-            const FlowerStore = useFlowerStore();
-            FlowerStore.db.descriptions.offset(offset).limit(limit).toArray()
+            flowerRepository.listDescriptions({offset, limit})
             .then((descriptions) => {
                 descriptions.forEach((desc) => {
                     this.localDescriptions.set(desc.id, desc.description);
@@ -101,9 +99,8 @@ export const useCaptionerStore = defineStore('CaptionerStore', {
             });
         },
         async loadAndConcatLocalDescriptions(offset, limit){
-            const FlowerStore = useFlowerStore();
             let newMap = new Map();
-            FlowerStore.db.descriptions.offset(offset).limit(limit).toArray()
+            flowerRepository.listDescriptions({offset, limit})
             .then((descriptions) => {
                 descriptions.forEach((desc) => {
                     newMap.set(desc.id, desc.description);
@@ -116,7 +113,7 @@ export const useCaptionerStore = defineStore('CaptionerStore', {
             });
         },
         async requestDescription(Flower){
-            this.wm.sendRequest('captioner', {
+            wm.sendRequest('captioner', {
                 jobType: "describe",
                 FlowerID: Flower.id,
                 urlOrDataURL: Flower.image,
@@ -125,13 +122,13 @@ export const useCaptionerStore = defineStore('CaptionerStore', {
         },
         async requestModelLoad(){
             this.oldModelOptions = structuredClone(toRaw(this.modelOptions))
-            this.wm.sendRequest('captioner', {
+            wm.sendRequest('captioner', {
                 jobType: "loadModel",
                 modelOptions: structuredClone(toRaw(this.modelOptions))
             });
         },
         async requestReset(){
-            this.wm.sendRequest('captioner', {
+            wm.sendRequest('captioner', {
                 jobType: "reset",
             });
         },

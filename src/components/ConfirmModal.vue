@@ -7,8 +7,8 @@
       </div>
       <p style="text-align: center;">{{ data.message }}</p>
       <div>
-        <button @click="nextItem()">{{ data.btnNo }}</button>
-        <button @click="data.accept(); nextItem()">{{ data.btnYes }}</button>
+        <button data-testid="confirm-no" @click="nextItem()">{{ data.btnNo }}</button>
+        <button data-testid="confirm-yes" @click="data.accept(); nextItem()">{{ data.btnYes }}</button>
       </div>
     </div>
   </dialog>

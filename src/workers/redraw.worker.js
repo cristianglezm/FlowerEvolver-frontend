@@ -14,13 +14,12 @@
  *   });
  */
 import { db } from  '../stores/FlowerStore/db';
-import { FEParams, FEService } from '@cristianglezm/flower-evolver-wasm';
+import { FEParams } from '@cristianglezm/flower-evolver-wasm';
+import { getFlowerEvolver } from '../services/flowerEvolver';
 
 const updateFlowers = (flowers) => {
     db.flowers.bulkPut(flowers);
 };
-
-let FE;
 
 self.onmessage = async (e) => {
     let params = e.data.params;
@@ -28,10 +27,7 @@ self.onmessage = async (e) => {
     if(!db.isOpen()){
         db.open();
     }
-    if(!FE){
-        FE = new FEService();
-        await FE.init();
-    }
+    const FE = await getFlowerEvolver();
     FE.setParams(new FEParams(params.radius, params.numLayers, params.P, params.bias));
     let totalCount = await db.flowers.count();
     let totalBatches = Math.ceil(totalCount / batchSize);

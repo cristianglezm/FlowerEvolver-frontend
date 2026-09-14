@@ -21,16 +21,13 @@ import DescriptionModal from './components/DescriptionModal.vue';
 import AppTitle from './components/AppTitle.vue';
 import AppMenu from './components/AppMenu.vue';
 import AppFooter from './components/AppFooter.vue';
-import ChatBotWidget from './components/ChatBotWidget.vue';
 import { useRoute } from 'vue-router';
 import { useFlowerStore } from './stores/FlowerStore';
-import { useCaptionerStore } from './stores/CaptionerStore';
-import { chat_template, tools, documents,  execCommand, initRouter, initEmitter } from './stores/ChatBotConfig';
+import { ChatBotWidget, chat_template, tools, documents, execCommand, registerChatBot, unregisterChatBot } from './chatBotIntegration';
 
 const routes = useRoute();
 const emitter = inject('emitter');
 const FlowerStore = useFlowerStore();
-const CaptionerStore = useCaptionerStore();
 
 const isChatBotOpened = computed(() => {
   return FlowerStore.settings.showChatBot;
@@ -42,37 +39,10 @@ const isLocal = () => {
           routes.path === '/Settings';
 };
 onMounted(() => {
-  // we call this for execCommand goto fn
-  initRouter();
-  // we call this for execCommand describe fn
-  initEmitter(emitter);
-  emitter.on('App#loadCaptionerModel', () => {
-    setTimeout(() => {
-        emitter.emit('requestMultiProgressBar', {
-              status: "setup",
-              title: "downloading or loading captioner model",
-              onLoad: async () => {
-                  CaptionerStore.requestModelLoad();
-              }
-        });
-      }, 2000);
-  });
-  CaptionerStore.channel.on('App#ToEmitter', (e) => {
-    emitter.emit(e.eventName, e.event);
-  });
-  if(FlowerStore.settings.loadCaptionerModel){
-    emitter.emit('App#loadCaptionerModel');
-  }
-  if(FlowerStore.settings.loadChatBotModel){
-    emitter.emit('ChatBotWidget#loadChatBotModel');
-  }
-  if(FlowerStore.settings.loadKokoroModel){
-    emitter.emit('ChatBotWidget#loadKokoroModel');
-  }
+  registerChatBot(emitter, FlowerStore.settings);
 });
 onUnmounted(() => {
-  CaptionerStore.channel.off('App#ToEmitter');
-  emitter.off("App#loadCaptionerModel");
+  unregisterChatBot(emitter);
 });
 
   /*!

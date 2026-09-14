@@ -1,6 +1,7 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import { useFlowerStore} from './stores/FlowerStore';
+import { getFlowerEvolver } from './services/flowerEvolver';
 import router from './router';
 import App from './App.vue';
 import mitt from 'mitt';
@@ -18,8 +19,8 @@ const pinia = createPinia();
 app.use(pinia);
 app.use(updateSW);
 const FlowerStore = useFlowerStore(pinia);
-// this will load the FlowerEvolver WASM module into state.fe
-FlowerStore.loadFE();
+// pre-warm the FlowerEvolver WASM module so it's ready by the time it's first needed
+getFlowerEvolver();
 app.use(FlowerStore);
 app.config.globalProperties.$store = FlowerStore;
 app.use(router);

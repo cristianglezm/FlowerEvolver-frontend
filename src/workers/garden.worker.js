@@ -21,9 +21,8 @@
  *       garden: JSON.stringify(garden)
  *   });
  */
-import { FEParams, FEService } from '@cristianglezm/flower-evolver-wasm';
-
-let FE;
+import { FEParams } from '@cristianglezm/flower-evolver-wasm';
+import { getFlowerEvolver } from '../services/flowerEvolver';
 
 self.onmessage = async (e) => {
     let params = {
@@ -37,10 +36,7 @@ self.onmessage = async (e) => {
     let garden = {
         Generation: []
     };
-    if(!FE){
-        FE = new FEService();
-        await FE.init();
-    }
+    const FE = await getFlowerEvolver();
     for(let i=0;i<numFlowers;++i){
         try{
             let flower;
