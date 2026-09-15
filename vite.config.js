@@ -38,7 +38,7 @@ export default defineConfig({
     build: {
         target: 'esnext',
         sourcemap: process.env.NODE_ENV === 'development',
-        chunkSizeWarningLimit: 2500,
+        chunkSizeWarningLimit: 3000,
         rollupOptions: {
              output: {
                 format: 'esm',
