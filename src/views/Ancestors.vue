@@ -34,10 +34,10 @@
     import FlowerCard from '../components/FlowerCard.vue';
     import FlowersTable from '../components/FlowersTable.vue';
     import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
-    import { useFlowersStore } from '../store';
+    import { useFlowerStore } from '../stores/FlowerStore';
     import { useRoute, useRouter } from 'vue-router';
 
-    const store = useFlowersStore();
+    const FlowerStore = useFlowerStore();
     const routes = useRoute();
     const router = useRouter();
     let data = reactive({
@@ -52,7 +52,7 @@
         Init();
     });
     const ancestors = computed(() => {
-        return store.getAncestors();
+        return FlowerStore.getAncestors;
     });
     const hasFatherOnly = () => {
         return routes.params.mother === undefined;
@@ -60,10 +60,10 @@
     const Init = async () => {
         if(data.isLocal){
             let dadID = parseInt(routes.params.father);
-            await store.db.flowers.get(dadID).then((f) => data.flower1 = f);
+            await FlowerStore.db.flowers.get(dadID).then((f) => data.flower1 = f);
             if(!hasFatherOnly()){
                 let momID = parseInt(routes.params.mother);
-                await store.db.flowers.get(momID).then((f) => data.flower2 = f);
+                await FlowerStore.db.flowers.get(momID).then((f) => data.flower2 = f);
             }
         }else{
             let dadID = parseInt(routes.params.father);
@@ -76,41 +76,41 @@
         if(isPaginated()){
             if(data.isLocal){
                 if(hasFatherOnly()){
-                    store.getLocalAncestorsCount(data.flower1.id)
-                        .then(c => data.totalPages = Math.round(c / store.settings.limit));
+                    FlowerStore.getLocalAncestorsCount(data.flower1.id)
+                        .then(c => data.totalPages = Math.round(c / FlowerStore.settings.limit));
                 }else{
-                    store.getLocalAncestorsCount(data.flower1.id, data.flower2.id)
-                        .then(c => data.totalPages = Math.round(c / store.settings.limit));
+                    FlowerStore.getLocalAncestorsCount(data.flower1.id, data.flower2.id)
+                        .then(c => data.totalPages = Math.round(c / FlowerStore.settings.limit));
                 }
             }else{
                 if(hasFatherOnly()){
-                    store.getRemoteAncestorsCount(data.flower1.id)
-                        .then(c => data.totalPages = Math.round(c /  store.settings.limit));
+                    FlowerStore.getRemoteAncestorsCount(data.flower1.id)
+                        .then(c => data.totalPages = Math.round(c /  FlowerStore.settings.limit));
                 }else{
-                    store.getRemoteAncestorsCount(data.flower1.id, data.flower2.id)
-                        .then(c => data.totalPages = Math.round(c / store.settings.limit));
+                    FlowerStore.getRemoteAncestorsCount(data.flower1.id, data.flower2.id)
+                        .then(c => data.totalPages = Math.round(c / FlowerStore.settings.limit));
                 }
             }
             getAncestorsFrom(data.page);
         }else{
-            store.ancestors = [];
+            FlowerStore.ancestors = [];
             updateAncestors();
         }
     };
     const getAncestorsFrom = (page) => {
         nextTick(() => {
-            data.offset = store.calcOffset(page);
+            data.offset = FlowerStore.calcOffset(page);
             if(data.isLocal){
                 if(hasFatherOnly()){
-                    store.updateLocalAncestors({flower1: data.flower1, flower2: null, limit: store.settings.limit, offset: data.offset});
+                    FlowerStore.updateLocalAncestors({flower1: data.flower1, flower2: null, limit: FlowerStore.settings.limit, offset: data.offset});
                 }else{
-                    store.updateLocalAncestors({flower1: data.flower1, flower2: data.flower2, limit: store.settings.limit, offset: data.offset});
+                    FlowerStore.updateLocalAncestors({flower1: data.flower1, flower2: data.flower2, limit: FlowerStore.settings.limit, offset: data.offset});
                 }
             }else{
                 if(hasFatherOnly()){
-                    store.updateRemoteAncestors({flower1: data.flower1, flower2: null, limit: store.settings.limit, offset: data.offset});
+                    FlowerStore.updateRemoteAncestors({flower1: data.flower1, flower2: null, limit: FlowerStore.settings.limit, offset: data.offset});
                 }else{
-                    store.updateRemoteAncestors({flower1: data.flower1, flower2: data.flower2, limit: store.settings.limit, offset: data.offset});
+                    FlowerStore.updateRemoteAncestors({flower1: data.flower1, flower2: data.flower2, limit: FlowerStore.settings.limit, offset: data.offset});
                 }
             }
         });
@@ -119,18 +119,18 @@
         nextTick(() => {
             if(data.isLocal){
                 if(hasFatherOnly()){
-                    store.updateAndConcatLocalAncestors({flower1: data.flower1, flower2: null, limit: store.settings.limit, offset: data.offset});
+                    FlowerStore.updateAndConcatLocalAncestors({flower1: data.flower1, flower2: null, limit: FlowerStore.settings.limit, offset: data.offset});
                 }else{
-                    store.updateAndConcatLocalAncestors({flower1: data.flower1, flower2: data.flower2,limit: store.settings.limit, offset: data.offset});
+                    FlowerStore.updateAndConcatLocalAncestors({flower1: data.flower1, flower2: data.flower2,limit: FlowerStore.settings.limit, offset: data.offset});
                 }
             }else{
                 if(hasFatherOnly()){
-                    store.updateAndConcatRemoteAncestors({flower1: data.flower1, flower2: null, limit: store.settings.limit, offset: data.offset});
+                    FlowerStore.updateAndConcatRemoteAncestors({flower1: data.flower1, flower2: null, limit: FlowerStore.settings.limit, offset: data.offset});
                 }else{
-                    store.updateAndConcatRemoteAncestors({flower1: data.flower1, flower2: data.flower2, limit: store.settings.limit, offset: data.offset});
+                    FlowerStore.updateAndConcatRemoteAncestors({flower1: data.flower1, flower2: data.flower2, limit: FlowerStore.settings.limit, offset: data.offset});
                 }
             }
-            data.offset = store.increaseOffset(data.offset);
+            data.offset = FlowerStore.increaseOffset(data.offset);
         });
     };
     const prevPage = () => {
@@ -154,7 +154,7 @@
         }
     };
     const isPaginated = () => {
-        return store.settings.pagination;
+        return FlowerStore.settings.pagination;
     };
 
 </script>
@@ -180,5 +180,10 @@
         grid-template-columns: 15% 15%;
         grid-gap: 0.6rem;
         justify-content: center;
+    }
+    @media only screen and (max-width: 1280px){
+        .gridFlowers{
+            grid-template-columns: 35% 35%;
+        }
     }
 </style>

@@ -1,12 +1,12 @@
 <template>
-  <div v-if="props.errors.length" class="ErrorModal center">
+  <div v-if="ErrorStore.getLength" class="ErrorModal center">
     <span class="close" @click="clearErrors()">&times;</span>
-    <div v-for="(error, id) in props.errors" :key="id">
-      <div v-if="id === (props.errors.length - 1)" class="ErrorModal-content">
+    <div v-for="(error, id) in errors" :key="id">
+      <div v-if="id === (ErrorStore.getLength - 1)" class="ErrorModal-content">
         <p>
-          {{ error.message }}
+          {{ error }}
           <span style="border-radius: 128px; background-color: red; padding: 2px;">
-            {{ props.errors.length }}
+            {{ ErrorStore.getLength }}
           </span>
         </p>
         <button @click="popError()">Ok.</button>
@@ -19,34 +19,31 @@
 /**
  * ErrorModal Component
  * 
- * @prop {Array} errors - The array of error objects to be displayed in the modal.
- *
  * @example
  * // usage in a parent component:
  * <template>
- *   <ErrorModal :errors="errorList" />
+ *   <ErrorModal />
  * </template>
  *
  * @example
  * // usage in another component, view or store actions.
- * const store = useFlowerStore();
- * store.$state.errors.push({message: "error 1"});
- * store.$state.errors.push({message: "error 2"});
+ * const ErrorStore = useErrorStore();
+ * ErrorStore.push("error 1");
+ * ErrorStore.push("error 2");
  */
-import { useFlowersStore } from '../store';
+import { computed } from 'vue';
+import { useErrorStore } from '../stores/ErrorStore';
 
-const store = useFlowersStore();
-const props = defineProps({
-    errors:{
-        type: Array,
-        required: true,
-    }
-});
+const ErrorStore = useErrorStore();
+
+const errors = computed(() => {
+    return ErrorStore.getErrors;
+})
 const clearErrors = () => {
-    store.errors = [];
+    ErrorStore.clear();
 };
 const popError = () => {
-    store.errors.pop();
+    ErrorStore.pop();
 };
 
 </script>
@@ -67,11 +64,18 @@ const popError = () => {
         border-radius: 0.31rem;
         box-shadow: 0rem 1rem 2rem 0rem black;
         overflow: auto;
-        z-index: 1;
+        z-index: 11;
+        margin: auto;
+        box-sizing: content-box;
     }
     p{
         font-size: 1.6rem;
         overflow: auto;
+    }
+    @media only screen and (max-width: 1280px){
+        p{
+            font-size: 0.9rem;
+        }
     }
     .ErrorModal-content{
         margin: 15% auto;
