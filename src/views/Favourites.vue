@@ -14,12 +14,12 @@
     import { onMounted, reactive, computed, nextTick } from 'vue';
     import FlowersTable from '../components/FlowersTable.vue';
     import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
-    import { useFlowersStore } from '../store';
-    import { useAIStore } from '../store/AIStore';
+    import { useFlowerStore } from '../stores/FlowerStore';
+    import { useCaptionerStore } from '../stores/CaptionerStore';
     import { useRoute, useRouter } from 'vue-router';
 
-    const store = useFlowersStore();
-    const AIStore = useAIStore();
+    const FlowerStore = useFlowerStore();
+    const CaptionerStore = useCaptionerStore();
     const routes = useRoute();
     const router = useRouter();
 
@@ -29,14 +29,14 @@
         totalPages: 0
     });
     let favourites = computed(() => {
-        return store.favourites;
+        return FlowerStore.favourites;
     });
     onMounted(() => {
-        store.favourites = [];
+        FlowerStore.favourites = [];
         data.offset = 0;
         if(isPaginated()){
             getFlowersFrom(data.page);
-            store.getFavouritesCount().then(c => data.totalPages = Math.round(c / store.settings.limit));
+            FlowerStore.getFavouritesCount().then(c => data.totalPages = Math.round(c / FlowerStore.settings.limit));
         }else{
             updateFlowers();
         }
@@ -55,29 +55,29 @@
         }
     };
     const isPaginated = () => {
-        return store.settings.pagination;
+        return FlowerStore.settings.pagination;
     };
     const updateFlowers = () => {
         nextTick(() => {
             loadFavourites();
-            data.offset = store.increaseOffset(data.offset);
+            data.offset = FlowerStore.increaseOffset(data.offset);
         });
     };
     const getFlowersFrom = (page) => {
-        store.favourites = [];
+        FlowerStore.favourites = [];
         nextTick(() => {
-            data.offset = store.calcOffset(page);
+            data.offset = FlowerStore.calcOffset(page);
             loadFavourites();
         });
     };
     const loadFavourites = async () => {
-        let ids = await store.db.favourites.reverse().offset(data.offset)
-                                .limit(store.settings.limit).toArray();
+        let ids = await FlowerStore.db.favourites.reverse().offset(data.offset)
+                                .limit(FlowerStore.settings.limit).toArray();
         for(const id of ids){
-            let f = await store.db.flowers.get(id);
-            store.favourites.push(f);
+            let f = await FlowerStore.db.flowers.get(id);
+            FlowerStore.favourites.push(f);
         }
-        AIStore.loadLocalDescriptions(data.offset, store.settings.limit);
+        CaptionerStore.loadLocalDescriptions(data.offset, FlowerStore.settings.limit);
     };
     
 </script>

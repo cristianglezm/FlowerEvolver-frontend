@@ -1,22 +1,32 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
-import { useFlowersStore} from './store';
+import { useFlowerStore} from './stores/FlowerStore';
+import { getFlowerEvolver } from './services/flowerEvolver';
 import router from './router';
 import App from './App.vue';
 import mitt from 'mitt';
+import { registerSW } from 'virtual:pwa-register';
+
+const updateSW = registerSW({
+    onNeedRefresh(){
+    },
+    onOfflineReady(){
+    }
+});
 
 const app = createApp(App);
 const pinia = createPinia();
 app.use(pinia);
-const store = useFlowersStore(pinia);
-// this will load the FlowerEvolver WASM module into state.fe
-store.loadFE();
-app.use(store);
-app.config.globalProperties.$store = store;
+app.use(updateSW);
+const FlowerStore = useFlowerStore(pinia);
+// pre-warm the FlowerEvolver WASM module so it's ready by the time it's first needed
+getFlowerEvolver();
+app.use(FlowerStore);
+app.config.globalProperties.$store = FlowerStore;
 app.use(router);
 const emitter = mitt();
 app.config.globalProperties.$emitter = emitter;
 // steps towards composition api
-app.provide('appStore', store);
+app.provide('appStore', FlowerStore);
 app.provide('emitter', emitter);
 app.mount('#app');

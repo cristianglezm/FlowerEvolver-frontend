@@ -20,9 +20,9 @@
     import FlowersTable from '../components/FlowersTable.vue';
     import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
     import { useRoute, useRouter } from 'vue-router';
-    import { useFlowersStore } from '../store';
+    import { useFlowerStore } from '../stores/FlowerStore';
 	
-    const store = useFlowersStore();
+    const FlowerStore = useFlowerStore();
     const routes = useRoute();
     const router = useRouter();
     let data = reactive({
@@ -36,46 +36,46 @@
         Init();
     });
     let mutations = computed(() => {
-        return store.getMutations();
+        return FlowerStore.getMutations;
     });
 
     const Init = async () => {
         let originalID = parseInt(routes.params.id);
         if(data.isLocal){
-            data.original = await store.db.flowers.get(originalID);
+            data.original = await FlowerStore.db.flowers.get(originalID);
         }else{
             data.original = { id: originalID, genome: originalID + '.json', image: originalID + '.png'};
         }
         if(isPaginated()){
             if(data.isLocal){
-                store.getLocalMutationsCount(data.original.id).then(c => data.totalPages = Math.round(c / store.settings.limit));
+                FlowerStore.getLocalMutationsCount(data.original.id).then(c => data.totalPages = Math.round(c / FlowerStore.settings.limit));
             }else{
-                store.getRemoteMutationsCount(data.original.id).then(c => data.totalPages = Math.round(c / store.settings.limit));
+                FlowerStore.getRemoteMutationsCount(data.original.id).then(c => data.totalPages = Math.round(c / FlowerStore.settings.limit));
             }
             getMutationsFrom(data.page);
         }else{
-            store.mutations = [];
+            FlowerStore.mutations = [];
             updateMutations();
         }
     };
     const getMutationsFrom = (page) => {
         nextTick(() => {
-            data.offset = store.calcOffset(page);
+            data.offset = FlowerStore.calcOffset(page);
             if(data.isLocal){
-                store.updateLocalMutations({flower: data.original, limit: store.settings.limit, offset: data.offset});
+                FlowerStore.updateLocalMutations({flower: data.original, limit: FlowerStore.settings.limit, offset: data.offset});
             }else{
-                store.updateRemoteMutations({flower: data.original, limit: store.settings.limit, offset: data.offset});
+                FlowerStore.updateRemoteMutations({flower: data.original, limit: FlowerStore.settings.limit, offset: data.offset});
             }
         });
     };
     const updateMutations = () => {
         nextTick(() => {
             if(data.isLocal){
-                store.updateAndConcatLocalMutations({flower: data.original, limit: store.settings.limit, offset: data.offset});
+                FlowerStore.updateAndConcatLocalMutations({flower: data.original, limit: FlowerStore.settings.limit, offset: data.offset});
             }else{
-                store.updateAndConcatRemoteMutations({flower: data.original, limit: store.settings.limit, offset: data.offset});
+                FlowerStore.updateAndConcatRemoteMutations({flower: data.original, limit: FlowerStore.settings.limit, offset: data.offset});
             }
-            data.offset = store.increaseOffset(data.offset);
+            data.offset = FlowerStore.increaseOffset(data.offset);
         });
     };
     const prevPage = () => {
@@ -95,7 +95,7 @@
         router.push({name:"Mutations", params: {id: data.original.id, isLocal: localOr}, query:{page: data.page}});
     };
     const isPaginated = () => {
-        return store.settings.pagination;
+        return FlowerStore.settings.pagination;
     };
 
 </script>

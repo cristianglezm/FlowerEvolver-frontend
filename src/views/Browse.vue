@@ -15,9 +15,9 @@
     import FlowersTable from '../components/FlowersTable.vue';
     import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
     import { useRoute, useRouter } from 'vue-router';
-    import { useFlowersStore } from '../store';
+    import { useFlowerStore } from '../stores/FlowerStore';
 
-    const store = useFlowersStore();
+    const FlowerStore = useFlowerStore();
     const routes = useRoute();
     const router = useRouter();
     let data = reactive({
@@ -29,28 +29,28 @@
         data.offset = 0;
         if(isPaginated()){
             getFlowersFrom(data.page);
-            store.getRemoteFlowersCount().then(c => data.totalPages = Math.round(c / store.settings.limit));
+            FlowerStore.getRemoteFlowersCount().then(c => data.totalPages = Math.round(c / FlowerStore.settings.limit));
         }else{
-            store.updateRemoteFlowers({limit: store.settings.limit, offset: data.offset});
-            data.offset = store.increaseOffset(data.offset);
+            FlowerStore.updateRemoteFlowers({limit: FlowerStore.settings.limit, offset: data.offset});
+            data.offset = FlowerStore.increaseOffset(data.offset);
         }
     });
     let flowers = computed(() => {
-        return store.getRemoteFlowers();
+        return FlowerStore.getRemoteFlowers;
     });
     const nextBatch = () => {
-        updateFlowers(store.settings.limit, data.offset);
+        updateFlowers(FlowerStore.settings.limit, data.offset);
     };
     const updateFlowers = (limit, offset) => {
         nextTick(() => {
-            store.updateAndConcatRemoteFlowers({limit: limit, offset: offset});
-            data.offset = store.increaseOffset(offset);
+            FlowerStore.updateAndConcatRemoteFlowers({limit: limit, offset: offset});
+            data.offset = FlowerStore.increaseOffset(offset);
         });
     };
     const getFlowersFrom = (page) => {
         nextTick(() => {
-            data.offset = store.calcOffset(page);
-            store.updateRemoteFlowers({limit: store.settings.limit, offset: data.offset});
+            data.offset = FlowerStore.calcOffset(page);
+            FlowerStore.updateRemoteFlowers({limit: FlowerStore.settings.limit, offset: data.offset});
         });
     };
     const prevPage = () => {
@@ -66,7 +66,7 @@
         }
     };
     const isPaginated = () => {
-        return store.settings.pagination;
+        return FlowerStore.settings.pagination;
     };
 </script>
 

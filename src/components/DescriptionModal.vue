@@ -157,9 +157,11 @@ const closeModal = () => {
         box-shadow: 0rem 2rem 4rem 0rem rgba(0,0,0,1);
         overflow: auto;
         overflow-wrap: break-word;
-        z-index: 1;
+        z-index: 11;
         padding: 0.125rem;
         width: 50%;
+        max-width: 90%;
+        max-height: 90%;
         display: flex;
         flex-flow: column nowrap;
         text-align: center;
