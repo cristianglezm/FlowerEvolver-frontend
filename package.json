@@ -27,12 +27,12 @@
         "jszip": "^3.10.2",
         "kokoro-js": "^1.2.1",
         "mitt": "^3.0.1",
-        "pinia": "^4.0.3",
+        "pinia": "^4.1.0",
         "three": "^0.186.0",
-        "vue": "^3.5.42",
+        "vue": "^3.5.44",
         "vue-axios": "^3.6.0",
         "vue-echarts": "^8.3.0",
-        "vue-router": "^5.3.1",
+        "vue-router": "^5.4.0",
         "waveform-data": "^4.5.2"
     },
     "devDependencies": {
