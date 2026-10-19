@@ -17,7 +17,7 @@
         "test:e2e": "npm run build && playwright test --update-snapshots"
     },
     "dependencies": {
-        "@cristianglezm/flower-evolver-wasm": "^4.0.0",
+        "@cristianglezm/flower-evolver-wasm": "^4.0.2",
         "@floating-ui/vue": "^2.0.1",
         "@huggingface/inference": "^4.13.28",
         "@huggingface/jinja": "^0.5.1",
