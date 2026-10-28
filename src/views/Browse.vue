@@ -29,7 +29,7 @@
         data.offset = 0;
         if(isPaginated()){
             getFlowersFrom(data.page);
-            FlowerStore.getRemoteFlowersCount().then(c => data.totalPages = Math.round(c / FlowerStore.settings.limit));
+            FlowerStore.getRemoteFlowersCount().then(c => data.totalPages = Math.ceil(c / FlowerStore.settings.limit));
         }else{
             FlowerStore.updateRemoteFlowers({limit: FlowerStore.settings.limit, offset: data.offset});
             data.offset = FlowerStore.increaseOffset(data.offset);
@@ -60,7 +60,7 @@
         }
     };
     const nextPage = () => {
-        if(data.page < data.totalPages){
+        if(data.page < data.totalPages - 1){
             data.page += 1;
             router.push({path:"Browse", query:{page: data.page}});
         }

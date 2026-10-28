@@ -62,7 +62,7 @@ const atStart = () => {
     return props.currentPage == 0;
 };
 const atEnd = () => {
-    return props.currentPage >= (props.totalPages);
+    return props.currentPage >= (props.totalPages - 1);
 };
 const nextPage = () => {
     if(!atEnd()){

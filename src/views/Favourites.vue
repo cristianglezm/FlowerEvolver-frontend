@@ -36,7 +36,7 @@
         data.offset = 0;
         if(isPaginated()){
             getFlowersFrom(data.page);
-            FlowerStore.getFavouritesCount().then(c => data.totalPages = Math.round(c / FlowerStore.settings.limit));
+            FlowerStore.getFavouritesCount().then(c => data.totalPages = Math.ceil(c / FlowerStore.settings.limit));
         }else{
             updateFlowers();
         }
@@ -49,7 +49,7 @@
         }
     };
     const nextPage = () => {
-        if(data.page < data.totalPages){
+        if(data.page < data.totalPages - 1){
             data.page += 1;
             router.push({path:"Favourites", query:{page: data.page}});
         }
