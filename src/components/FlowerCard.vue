@@ -55,6 +55,7 @@
       <p>
         <strong>{{ props.id }}</strong>
       </p>
+      <SpeciesBadge :id="props.id" />
     </div>
     <div v-else>
       <div class="flowerMenu" :class="{ Selected: data.selected }">
@@ -123,6 +124,7 @@
     import ZoomableImage from './ZoomableImage.vue';
     import FloatingPanel from "./FloatingPanel.vue";
     import ThreeFlower from "./ThreeFlower.vue";
+    import SpeciesBadge from "./species/SpeciesBadge.vue";
     import JSZip from "jszip";
 
     const props = defineProps({

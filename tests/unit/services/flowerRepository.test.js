@@ -1,3 +1,4 @@
+// tests/unit/setup/jsdom.js
 import 'fake-indexeddb/auto';
 import { describe, test, expect, beforeEach, afterAll } from 'vitest';
 import { db } from '../../../src/stores/FlowerStore/db';
@@ -52,6 +53,19 @@ describe('flowerRepository (real Dexie semantics via fake-indexeddb)', () => {
 
 			await flowerRepository.deleteFlower(1);
 			expect(await flowerRepository.getFlower(1)).toBeUndefined();
+		});
+
+		test('listFlowerIds has the id of every flower, oldest first, and not the deleted ones', async () => {
+			expect(await flowerRepository.listFlowerIds()).toEqual([]);
+
+			await flowerRepository.bulkAddFlowers([
+				{ id: 3, genome: 'g3', image: 'i3' },
+				{ id: 1, genome: 'g1', image: 'i1' },
+				{ id: 2, genome: 'g2', image: 'i2' },
+			]);
+			await flowerRepository.deleteFlower(2);
+
+			expect(await flowerRepository.listFlowerIds()).toEqual([1, 3]);
 		});
 	});
 
@@ -168,6 +182,38 @@ describe('flowerRepository (real Dexie semantics via fake-indexeddb)', () => {
 			await flowerRepository.wipeDatabase();
 			expect(await flowerRepository.countFlowers()).toBe(0);
 			expect(db.isOpen()).toBe(true);
+		});
+
+		test('removes the species rows, they are derived from the flowers', async () => {
+			await db.species.put({ id: 1, x: 0, y: 0, d: 0.5, fp: 'a' });
+			await flowerRepository.wipeDatabase();
+			expect(await db.species.count()).toBe(0);
+		});
+
+		test('keeps the classifier table, it is a user setting and not flower data', async () => {
+			await db.classifier.bulkPut([
+				{ id: 'tuned', json: '{"tuned":true}' },
+				{ id: 'sub:abc:1,2', json: '{"sub":true}' },
+			]);
+			await flowerRepository.addFlower({ genome: 'g', image: 'i' });
+			await flowerRepository.wipeDatabase();
+			expect(await flowerRepository.countFlowers()).toBe(0);
+			expect((await db.classifier.toArray()).map((r) => r.id).sort()).toEqual(['sub:abc:1,2', 'tuned']);
+			expect((await db.classifier.get('tuned')).json).toBe('{"tuned":true}');
+		});
+
+		test('works when there is no classifier to keep', async () => {
+			await flowerRepository.wipeDatabase();
+			expect(await db.classifier.count()).toBe(0);
+		});
+
+		// deleteNonFavourites gives the flowers it keeps the ids 1..n after the wipe, so the next
+		// flower must not continue from where the old ones were.
+		test('restarts the flower ids from 1', async () => {
+			await flowerRepository.addFlower({ genome: 'g1', image: 'i1' });
+			await flowerRepository.addFlower({ genome: 'g2', image: 'i2' });
+			await flowerRepository.wipeDatabase();
+			expect(await flowerRepository.addFlower({ genome: 'g', image: 'i' })).toBe(1);
 		});
 	});
 });

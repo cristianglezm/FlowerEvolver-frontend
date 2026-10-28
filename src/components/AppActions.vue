@@ -21,12 +21,13 @@
       <h2 style="color:red;">Danger Zone</h2>
       <button class="unsafe-button" @click="deleteAllFlowers()"> Delete All Flowers </button>
       <button class="unsafe-button" @click="deleteNonFavourites()"> Delete non Favourites </button>
+      <button class="unsafe-button" :disabled="!canReset" data-testid="remove-classifier" @click="askReset()"> Remove fine-tuned classifier </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { inject, toRaw, onBeforeUnmount } from 'vue';
+import { inject, toRaw, onBeforeUnmount, onMounted } from 'vue';
 import { useFlowerStore, STORAGE_KEY_GARDEN } from '../stores/FlowerStore';
 import UploadFileModal from '../components/UploadFileModal.vue';
 import redrawWorker from '../workers/redraw.worker?worker';
@@ -35,9 +36,15 @@ import importWorker from '../workers/import.worker?worker';
 import WorkerManager from '../stores/WorkerManager';
 import mitt from 'mitt';
 import { useErrorStore } from '../stores/ErrorStore';
+import { useSpeciesStore } from '../stores/SpeciesStore';
+import { useClassifierReset } from '../composables/useClassifierReset';
 
 const FlowerStore = useFlowerStore();
 const ErrorStore = useErrorStore();
+const SpeciesStore = useSpeciesStore();
+const { canReset, askReset } = useClassifierReset();
+// whether there is a fine-tuned classifier is saved, it does not need the classifier to start
+onMounted(() => SpeciesStore.loadSaved());
 
 let emitter = inject('emitter');
 let channel = mitt();
@@ -329,6 +336,15 @@ const exportFlowers = (type) => {
         border-color: red;
         background-color: whitesmoke;
         color: red;
+    }
+    /* what cannot be done now looks the same when the pointer is over it */
+    .unsafe-button:disabled,
+    .unsafe-button:disabled:hover{
+        opacity: 0.5;
+        cursor: not-allowed;
+        border-color: whitesmoke;
+        background-color: red;
+        color: whitesmoke;
     }
     @media only screen and (max-width: 1280px){
         #actions-settings{

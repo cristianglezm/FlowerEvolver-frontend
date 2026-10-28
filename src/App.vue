@@ -35,6 +35,7 @@ const isChatBotOpened = computed(() => {
 const isLocal = () => {
   return routes.path === '/Local' || 
           routes.path === '/Favourites' || 
+          routes.path === '/Species' ||
           routes.params.isLocal === 'local' || 
           routes.path === '/Settings';
 };
