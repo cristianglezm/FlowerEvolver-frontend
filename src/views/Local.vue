@@ -54,7 +54,7 @@ onMounted(() => {
     data.page = parseInt(routes.query.page, 10) || 0;
     if(isPaginated()){
         getFlowersFrom(data.page);
-        FlowerStore.getLocalFlowersCount().then(c => data.totalPages = Math.round(c / FlowerStore.settings.limit));
+        FlowerStore.getLocalFlowersCount().then(c => data.totalPages = Math.ceil(c / FlowerStore.settings.limit));
     }else{
         FlowerStore.updateLocalFlowers({limit: FlowerStore.settings.limit, offset: data.offset});
         CaptionerStore.loadLocalDescriptions(data.offset, FlowerStore.settings.limit);
@@ -108,7 +108,7 @@ const prevPage = () => {
     }
 };
 const nextPage = () => {
-    if(data.page < data.totalPages){
+    if(data.page < data.totalPages - 1){
         data.page += 1;
         router.push({path:"Local", query:{page: data.page}});
     }

@@ -77,18 +77,18 @@
             if(data.isLocal){
                 if(hasFatherOnly()){
                     FlowerStore.getLocalAncestorsCount(data.flower1.id)
-                        .then(c => data.totalPages = Math.round(c / FlowerStore.settings.limit));
+                        .then(c => data.totalPages = Math.ceil(c / FlowerStore.settings.limit));
                 }else{
                     FlowerStore.getLocalAncestorsCount(data.flower1.id, data.flower2.id)
-                        .then(c => data.totalPages = Math.round(c / FlowerStore.settings.limit));
+                        .then(c => data.totalPages = Math.ceil(c / FlowerStore.settings.limit));
                 }
             }else{
                 if(hasFatherOnly()){
                     FlowerStore.getRemoteAncestorsCount(data.flower1.id)
-                        .then(c => data.totalPages = Math.round(c /  FlowerStore.settings.limit));
+                        .then(c => data.totalPages = Math.ceil(c /  FlowerStore.settings.limit));
                 }else{
                     FlowerStore.getRemoteAncestorsCount(data.flower1.id, data.flower2.id)
-                        .then(c => data.totalPages = Math.round(c / FlowerStore.settings.limit));
+                        .then(c => data.totalPages = Math.ceil(c / FlowerStore.settings.limit));
                 }
             }
             getAncestorsFrom(data.page);
@@ -140,7 +140,7 @@
         }
     };
     const nextPage = () => {
-        if(data.page < data.totalPages){
+        if(data.page < data.totalPages - 1){
             data.page += 1;
             pushRoute();
         }

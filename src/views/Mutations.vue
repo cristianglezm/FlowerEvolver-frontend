@@ -48,9 +48,9 @@
         }
         if(isPaginated()){
             if(data.isLocal){
-                FlowerStore.getLocalMutationsCount(data.original.id).then(c => data.totalPages = Math.round(c / FlowerStore.settings.limit));
+                FlowerStore.getLocalMutationsCount(data.original.id).then(c => data.totalPages = Math.ceil(c / FlowerStore.settings.limit));
             }else{
-                FlowerStore.getRemoteMutationsCount(data.original.id).then(c => data.totalPages = Math.round(c / FlowerStore.settings.limit));
+                FlowerStore.getRemoteMutationsCount(data.original.id).then(c => data.totalPages = Math.ceil(c / FlowerStore.settings.limit));
             }
             getMutationsFrom(data.page);
         }else{
@@ -85,7 +85,7 @@
         }
     };
     const nextPage = () => {
-        if(data.page < data.totalPages){
+        if(data.page < data.totalPages - 1){
             data.page += 1;
             pushRoute();
         }
