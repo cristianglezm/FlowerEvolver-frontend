@@ -4,7 +4,9 @@ import { FEParams } from '@cristianglezm/flower-evolver-wasm';
 import { getFlowerEvolver } from '../../services/flowerEvolver';
 import * as flowerRepository from '../../services/flowerRepository';
 import * as flowerApiClient from '../../services/flowerApiClient';
+import * as speciesRepository from '../../services/speciesRepository';
 import { useErrorStore } from '../ErrorStore';
+import { useSpeciesStore } from '../SpeciesStore';
 
 export const API = import.meta.env.VITE_APP_API_URL;
 export const URL = import.meta.env.VITE_APP_DOWNLOAD_URL;
@@ -149,6 +151,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					.then((id) => {
 						f.id = id;
 						this.localFlowers.unshift(f);
+						useSpeciesStore().classifyLater(id);
 					}).catch(e => {
 						const ErrorStore = useErrorStore();
 						ErrorStore.push(e);
@@ -403,6 +406,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				});
 				let f = await flowerRepository.getFlower(id);
 				this.localFlowers.unshift(f);
+				useSpeciesStore().classifyLater(id);
 			}catch(e){
 				const ErrorStore = useErrorStore();
 				ErrorStore.push(e);
@@ -431,6 +435,9 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					ErrorStore.push(e);
 				});
 				this.localFlowers.unshift(flower);
+				if(flower.id !== undefined){
+					useSpeciesStore().classifyLater(flower.id);
+				}
 			}catch(e){
 				const ErrorStore = useErrorStore();
 				ErrorStore.push(e);
@@ -440,6 +447,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
             this.localSelected.flowers = [];
             this.localSelected.index = 0;
             await flowerRepository.wipeDatabase();
+			useSpeciesStore().invalidate();
 			this.localFlowers = []
 		},
         async deleteNonFavourites(){
@@ -449,22 +457,31 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				this.localFlowers.unshift(f);
 			}
             let descs = await flowerRepository.bulkGetDescriptions(ids);
+            let species = await speciesRepository.bulkGetSpecies(ids);
             for(let id = 0;id < flowers.length; ++id){
                 ids[id] = id + 1;
                 flowers[id].id = id + 1;
                 if(descs[id] !== undefined){
                     descs[id].id = id + 1;
                 }
+                if(species[id] !== undefined){
+                    species[id].id = id + 1;
+                }
             }
             descs = descs.filter((d) => {
                 return d !== undefined;
             });
+            species = species.filter((s) => {
+                return s !== undefined;
+            });
             this.localSelected.flowers = [];
             this.localSelected.index = 0;
             await flowerRepository.wipeDatabase();
-            flowerRepository.bulkAddFlowers(flowers);
+            await flowerRepository.bulkAddFlowers(flowers);
             await flowerRepository.bulkAddFavourites(ids);
             await flowerRepository.bulkAddDescriptions(descs);
+            await speciesRepository.bulkPutSpecies(species);
+            useSpeciesStore().invalidate();
 		},
 		async deleteLocalFlower(id){
 			this.localSelected.flowers = [];
@@ -476,6 +493,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			await flowerRepository.removeFavourite(id).catch(handleError);
 			await flowerRepository.deleteDescription(id).catch(handleError);
 			await flowerRepository.deleteDescendant(id).catch(handleError);
+			await useSpeciesStore().removeFlower(id).catch(handleError);
 			await flowerRepository.deleteFlower(id).catch(handleError);
 			flowerRepository.findMutationsByOriginalOrId(id)
 				.then((ms) => {
@@ -535,6 +553,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				let f = await flowerRepository.getFlower(id);
 				this.localFlowers.unshift(f);
 				this.ancestors.unshift(f);
+				useSpeciesStore().classifyLater(id);
 			}else{
 				const ErrorStore = useErrorStore();
 				ErrorStore.push("There are no flowers selected.");
@@ -588,6 +607,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				let f = await flowerRepository.getFlower(id);
 				this.localFlowers.unshift(f);
 				this.mutations.unshift(f);
+				useSpeciesStore().classifyLater(id);
 			}catch(e){
 				const ErrorStore = useErrorStore();
 				ErrorStore.push(e);

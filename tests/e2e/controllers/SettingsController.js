@@ -25,6 +25,15 @@ export class SettingsController {
 		await this.#confirm();
 	}
 
+	removeClassifierButton(){
+		return this.page.getByTestId('remove-classifier');
+	}
+
+	async removeClassifier(){
+		await this.removeClassifierButton().click();
+		await this.#confirm();
+	}
+
 	async deleteAllFlowers(){
 		await this.page.getByRole('button', { name: 'Delete All Flowers' }).click();
 		await this.#confirm();

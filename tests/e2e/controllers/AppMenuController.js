@@ -48,6 +48,10 @@ export class AppMenuController {
 	async toggleChatBot(){
 		await this.#click('menu-toggle-chatbot');
 	}
+	async openSpecies(){
+		await this.#openMobileMenuIfPresent();
+		await this.page.getByRole('link', { name: 'Species' }).click();
+	}
 	async openSettings(){
 		await this.#openMobileMenuIfPresent();
 		await this.page.getByRole('link', { name: 'Settings' }).click();

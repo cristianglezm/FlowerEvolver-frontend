@@ -6,6 +6,7 @@ import Mutations from '../views/Mutations.vue';
 import Ancestors from '../views/Ancestors.vue';
 import Browse from '../views/Browse.vue';
 import Favourites from '../views/Favourites.vue';
+import Species from '../views/Species.vue';
 import Charts from '../views/Charts.vue';
 import Downloads from '../views/Downloads.vue';
 import Settings from '../views/Settings.vue';
@@ -16,6 +17,7 @@ const routes = [
   { path: '/LastAdded', name: 'LastAdded', component: LastAdded },
   { path: '/Browse', name: 'Browse', component: Browse },
   { path: '/Favourites', name: 'Favourites', component: Favourites },
+  { path: '/Species', name: 'Species', component: Species },
   { path: '/Charts', name: 'Charts', component: Charts },
   { path: '/Downloads', name: 'Downloads', component: Downloads },
   { path: '/Settings', name: 'Settings', component: Settings },

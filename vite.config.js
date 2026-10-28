@@ -43,11 +43,14 @@ export default defineConfig({
              output: {
                 format: 'esm',
                 manualChunks(id) {
-                    if (['vue', 'vue-router', '@cristianglezm/flower-evolver-wasm', '@huggingface/transformers'].some(pkg => id.includes(pkg))) {
+                    if (['vue', 'vue-router', '@huggingface/transformers'].some(pkg => id.includes(pkg))) {
                         return 'vendor';
                     }
                     if (id.includes('kokoro-js')) {
                         return 'kokoro';
+                    }
+                    if (id.includes('@cristianglezm/flower-evolver-wasm')) {
+                        return 'fe-wasm';
                     }
                  },
              }

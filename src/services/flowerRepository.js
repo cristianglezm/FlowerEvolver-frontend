@@ -105,7 +105,13 @@ export async function bulkAddDescriptions(descs){
 	return db.descriptions.bulkAdd(descs);
 }
 
+export async function listFlowerIds(){
+	return db.flowers.toCollection().primaryKeys();
+}
 export async function wipeDatabase(){
+	// the classifier table is a user setting, not flower data, so it survives a wipe
+	const classifier = await db.classifier.toArray();
 	await db.delete();
-	db.open();
+	await db.open();
+	await db.classifier.bulkAdd(classifier);
 }
