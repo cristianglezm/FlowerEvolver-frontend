@@ -19,9 +19,9 @@
     "dependencies": {
         "@cristianglezm/flower-evolver-wasm": "^4.1.0",
         "@floating-ui/vue": "^2.0.1",
-        "@huggingface/inference": "^4.13.28",
-        "@huggingface/jinja": "^0.5.1",
-        "@huggingface/transformers": "^3.8.1",
+        "@huggingface/inference": "^4.13.32",
+        "@huggingface/jinja": "^0.5.11",
+        "@huggingface/transformers": "^4.3.2",
         "axios": "^1.21.0",
         "dexie": "^4.4.7",
         "jszip": "^3.10.2",
