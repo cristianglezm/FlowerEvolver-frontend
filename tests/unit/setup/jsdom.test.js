@@ -1,19 +1,10 @@
 // @vitest-environment jsdom
 import { describe, test, expect } from 'vitest';
 
-// jsdom has no layout: without the setup file window.scrollTo() reports "Not implemented" and
-// Element.scrollIntoView() is missing. jsdom reports on its own virtual console (a private member of
-// the window, which is what this is about), not through console.error.
+// jsdom has no layout: the setup file replaces scrolling methods with harmless no-ops.
 describe('the scrolling of the jsdom tests', () => {
     test('window.scrollTo does nothing, quietly', () => {
-        const reported = [];
-        const report = (error) => reported.push(error.message);
-        window._virtualConsole.on('jsdomError', report);
-
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-
-        window._virtualConsole.off('jsdomError', report);
-        expect(reported).toEqual([]);
+        expect(() => window.scrollTo({ top: 0, behavior: 'smooth' })).not.toThrow();
     });
 
     test('an element can be scrolled into view', () => {

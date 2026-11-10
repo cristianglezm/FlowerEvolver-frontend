@@ -34,7 +34,9 @@ describe('SpeciesMap', () => {
     });
 
     test('is as many columns as the classifier has', () => {
-        expect(mountMap().get('[data-testid="species-map"]').attributes('style')).toContain('repeat(2, minmax(0, 1fr))');
+        const columns = mountMap().get('[data-testid="species-map"]').attributes('style');
+        // jsdom 31 serializes the unitless CSS zero as 0px, while other versions keep it as 0.
+        expect(columns).toMatch(/repeat\(2, minmax\(0(?:px)?, 1fr\)\)/);
     });
 
     test('leaves out the species with no flowers when asked, and lets the cards flow', () => {
