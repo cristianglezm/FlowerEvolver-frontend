@@ -1,0 +1,1 @@
+{"name":"FlowerEvolver","short_name":"flower-evolver","description":"An application to make, mutate and reproduce flowers.","start_url":"/FlowerEvolver-frontend/","display":"standalone","background_color":"green","theme_color":"lightgreen","lang":"en","scope":"/FlowerEvolver-frontend/","icons":[{"src":"favicon.ico","sizes":"32x32","type":"image/x-icon"}]}
