@@ -19,8 +19,8 @@
     "dependencies": {
         "@cristianglezm/flower-evolver-wasm": "^4.1.0",
         "@floating-ui/vue": "^2.0.1",
-        "@huggingface/inference": "^4.13.28",
-        "@huggingface/jinja": "^0.5.1",
+        "@huggingface/inference": "^4.13.32",
+        "@huggingface/jinja": "^0.5.11",
         "@huggingface/transformers": "^3.8.1",
         "axios": "^1.21.0",
         "dexie": "^4.4.7",
@@ -38,7 +38,7 @@
     "devDependencies": {
         "@eslint/js": "^10.0.1",
         "@pinia/testing": "^2.0.1",
-        "@playwright/test": "^1.63.0",
+        "@playwright/test": "^1.65.0",
         "@vitejs/plugin-vue": "^6.0.10",
         "@vitest/ui": "^5.0.5",
         "@vue/test-utils": "^2.5.1",
