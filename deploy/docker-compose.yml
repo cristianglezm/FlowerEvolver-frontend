@@ -1,0 +1,282 @@
+# The whole stack: nginx with the frontend, backend, describe, MySQL, Redis, Kafka and (profile monitoring) Prometheus
+# and Grafana. Variables come from deploy/.env, make it with ./init.sh. Only nginx is open to the outside.
+name: flowerevolver
+
+services:
+  frontend:
+    # built here and not pulled: the urls of the api are compiled into the bundle, one image per address
+    build:
+      context: ..
+      dockerfile: dockerfile.alpine
+      args:
+        REWRITE_ENV: "true"
+        BACKEND: ${PUBLIC_URL:-https://localhost}
+        BASE_URL: /
+    image: ${FRONTEND_IMAGE:-flowerevolver-frontend}
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+      API: backend:5000
+      HSTS: ${HSTS:-}
+      # the published port: the http to https redirect has to send the browser there
+      HTTPS_PORT: ${HTTPS_PORT:-443}
+    volumes:
+      - certbot_www:/var/www/certbot:ro
+      - certbot_certs:/etc/letsencrypt:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # certificates from Let's Encrypt, only with COMPOSE_PROFILES=letsencrypt. Without it nginx serves a self-signed one.
+  certbot:
+    profiles: [letsencrypt]
+    image: ${CERTBOT_IMAGE:-certbot/certbot:v5.1.0}
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "-c"]
+    # `certonly` again and again is the renewal too: it keeps the certificate until it is due. A failure (the domain
+    # does not point here yet, say) is retried sooner than a success is checked, Let's Encrypt limits failed attempts.
+    command:
+      - |
+        trap 'exit 0' TERM
+        [ -n "$$DOMAIN" ] && [ -n "$$LETSENCRYPT_EMAIL" ] || { echo "set DOMAIN and LETSENCRYPT_EMAIL in .env"; exit 1; }
+        while :; do
+          if certbot certonly --webroot -w /var/www/certbot -d "$$DOMAIN" --email "$$LETSENCRYPT_EMAIL" \
+              --agree-tos --no-eff-email --non-interactive --keep-until-expiring $$CERTBOT_ARGS; then
+            wait_for=12h
+          else
+            echo "certbot failed, trying again in 1h"
+            wait_for=1h
+          fi
+          sleep $$wait_for & wait $$!
+        done
+    environment:
+      DOMAIN: ${DOMAIN:-}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:-}
+      CERTBOT_ARGS: ${CERTBOT_ARGS:-}
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_certs:/etc/letsencrypt
+    depends_on:
+      - frontend
+
+  backend:
+    # BACKEND_IMAGE lets the CI run the image it just built; without it the published image is used
+    image: ${BACKEND_IMAGE:-docker.io/cristianglezm/fe:backend-alpine-dev}
+    restart: unless-stopped
+    environment:
+      ENV: production
+      DB_HOST: db
+      DB_NAME: ${DB_NAME:-flowerevolver}
+      DB_USER: ${DB_USER:-fe}
+      DB_PASSWD: ${DB_PASSWD:?run ./init.sh}
+      SECRET_KEY: ${SECRET_KEY:?run ./init.sh}
+      METRICS_API_KEY: ${METRICS_API_KEY:?run ./init.sh}
+      ORIGINS: ${PUBLIC_URL:-https://localhost}
+      FLOWER_LIMIT: ${FLOWER_LIMIT:-5000}
+      DOCS_ENABLED: "false"
+      KAFKA_ENABLED: "true"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      REDIS_ENABLED: "true"
+      REDIS_URL: redis://redis:6379
+      RATE_LIMIT_TIMES: ${RATE_LIMIT_TIMES:-5}
+      RATE_LIMIT_SECONDS: ${RATE_LIMIT_SECONDS:-10}
+      # every request comes from the nginx container, the real address is the one nginx puts in this header
+      CLIENT_IP_HEADER: X-Real-IP
+      WEB_CONCURRENCY: ${BACKEND_WORKERS:-2}
+      PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
+    volumes:
+      - generated_data:/app/generated
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka_init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/healthz', timeout=4)"]
+      interval: 15s
+      timeout: 6s
+      retries: 5
+      # reset.sh waits for MySQL and applies the migrations before gunicorn starts
+      start_period: 90s
+
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      # the mysql image creates this user with ALL privileges on MYSQL_DATABASE, nothing else to set up
+      MYSQL_DATABASE: ${DB_NAME:-flowerevolver}
+      MYSQL_USER: ${DB_USER:-fe}
+      MYSQL_PASSWORD: ${DB_PASSWD:?run ./init.sh}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWD:?run ./init.sh}
+    volumes:
+      - db_data:/var/lib/mysql:Z
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p\"$$MYSQL_ROOT_PASSWORD\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  describe:
+    image: ${DESCRIBE_IMAGE:-docker.io/cristianglezm/fe:describe}
+    restart: unless-stopped
+    environment:
+      # every worker loads its own models (~800 MB of RAM), see "Workers" in the README of FlowerEvolver-describe
+      NWORKERS: ${DESCRIBE_WORKERS:-1}
+      ORIGINS: ${PUBLIC_URL:-https://localhost}
+      ONNX_PROVIDERS: CPUExecutionProvider
+      KAFKA_ENABLED: "true"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      REDIS_ENABLED: "true"
+      REDIS_URL: redis://redis:6379
+      METRICS_API_KEY: ${METRICS_API_KEY:?run ./init.sh}
+    depends_on:
+      redis:
+        condition: service_healthy
+      kafka_init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=4)"]
+      interval: 15s
+      timeout: 6s
+      retries: 5
+      start_period: 120s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # only the rate limit counters live here, they are worth nothing after a restart
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  kafka:
+    image: apache/kafka:3.7.1
+    restart: unless-stopped
+    # a work queue of descriptions in flight, it is not persisted: after a restart the topics are made again by
+    # kafka_init and a description that was waiting is lost, the flower is not
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: controller,broker
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      # a single node cannot replicate its internal topics
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # One partition is read by one consumer of a group, and describe's workers are one group: with a topic of a single
+  # partition (what Kafka makes on its own) only one worker would ever get a request and the others would hold their
+  # models for nothing. The topic gets one partition per worker. Partitions can be added later but not removed.
+  kafka_init:
+    image: apache/kafka:3.7.1
+    restart: "no"
+    environment:
+      DESCRIBE_WORKERS: ${DESCRIBE_WORKERS:-1}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        kt=/opt/kafka/bin/kafka-topics.sh
+        for topic in descRequests descResponses; do
+          n=1; [ "$$topic" = descRequests ] && n=$$DESCRIBE_WORKERS
+          $$kt --bootstrap-server kafka:9092 --create --if-not-exists --topic $$topic --partitions $$n --replication-factor 1
+          $$kt --bootstrap-server kafka:9092 --alter --topic $$topic --partitions $$n 2>/dev/null || true
+        done
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  # --- monitoring: COMPOSE_PROFILES=monitoring. Both are published on 127.0.0.1 only, see README-Docker.md ---
+  prometheus:
+    profiles: [monitoring]
+    image: prom/prometheus:v3.5.0
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=${PROMETHEUS_RETENTION:-15d}
+    volumes:
+      # :z relabels the files for SELinux hosts (Fedora/RHEL podman), ignored elsewhere
+      - ../docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro,z
+      - ../docker/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro,z
+      - prometheus_data:/prometheus
+    secrets:
+      - metrics_api_key
+    depends_on:
+      - backend
+
+  grafana:
+    profiles: [monitoring]
+    image: grafana/grafana:12.2.0-17630182352
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3000}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?run ./init.sh}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+    volumes:
+      - ../docker/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro,z
+      - ../docker/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro,z
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+  redis_exporter:
+    profiles: [monitoring]
+    image: oliver006/redis_exporter:v1.76.0-alpine
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: redis:6379
+    depends_on:
+      - redis
+
+  kafka_exporter:
+    profiles: [monitoring]
+    image: danielqsj/kafka-exporter:v1.9.0
+    restart: unless-stopped
+    environment:
+      KAFKA_SERVER: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+secrets:
+  # prometheus cannot read environment variables, so it takes the key of /metrics from a file that init.sh writes
+  # from the same .env value the backend and describe get
+  metrics_api_key:
+    file: ./secrets/metrics_api_key
+
+volumes:
+  db_data:
+  generated_data:
+  prometheus_data:
+  grafana_data:
+  certbot_www:
+  certbot_certs:

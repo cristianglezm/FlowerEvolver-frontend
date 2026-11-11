@@ -9,17 +9,17 @@ the Backend is found [here](https://github.com/cristianglezm/FlowerEvolver-backe
 
 ## Docker
 
-The frontend image must be built as it is a SPA and it needs to be configured.
-
-You can build the image running the following command after cloning the repo, change the environment variables as needed.
+The whole stack (frontend, backend, describe, MySQL, Redis, Kafka and optionally Prometheus and Grafana) runs with
+one compose file:
 
 ```bash
-docker build -t cristianglezm/fe:frontend-alpine-dev -f dockerfile.alpine \
-    --build-arg "REWRITE_ENV=TRUE" --build-arg "BASE_URL='/'" --build-arg BACKEND="http://localhost" .
-docker run -dp 80:80 -v logs:/var/log/nginx cristianglezm/fe:frontend-alpine-dev -e "API=localhost:5000"
-````
+cd deploy
+./init.sh                      # makes .env and the secrets
+docker compose up -d --build   # https://localhost, with a self-signed certificate
+```
 
-more info [here](README-Docker.md)
+The frontend image is built for the address it will be served from, because the api urls are compiled into the
+bundle. More info, a server with a real domain and monitoring: [README-Docker.md](README-Docker.md)
 
 ## Running
 
