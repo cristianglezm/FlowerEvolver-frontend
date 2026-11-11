@@ -55,28 +55,28 @@ describe('flowerApiClient', () => {
 			expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('mutations/7?limit=5&offset=0'));
 		});
 
-		test('getAncestorsCount with just a father', async () => {
+		test('getDescendantsCount with just a father', async () => {
 			axios.get.mockResolvedValue({ data: { count: 1 } });
-			await expect(flowerApiClient.getAncestorsCount(1)).resolves.toBe(1);
-			expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('ancestors/1?count=1'));
+			await expect(flowerApiClient.getDescendantsCount(1)).resolves.toBe(1);
+			expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('descendants/1?count=1'));
 		});
 
-		test('getAncestorsCount with a father and mother', async () => {
+		test('getDescendantsCount with a father and mother', async () => {
 			axios.get.mockResolvedValue({ data: { count: 1 } });
-			await expect(flowerApiClient.getAncestorsCount(1, 2)).resolves.toBe(1);
-			expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('ancestors/1/2?count=1'));
+			await expect(flowerApiClient.getDescendantsCount(1, 2)).resolves.toBe(1);
+			expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('descendants/1/2?count=1'));
 		});
 
-		test('getAncestors with just a father', async () => {
+		test('getDescendants with just a father', async () => {
 			axios.get.mockResolvedValue({ data: [{ id: 1 }] });
-			await expect(flowerApiClient.getAncestors(1, undefined, { limit: 5, offset: 0 })).resolves.toEqual([{ id: 1 }]);
-			expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('ancestors/1?limit=5&offset=0'));
+			await expect(flowerApiClient.getDescendants(1, undefined, { limit: 5, offset: 0 })).resolves.toEqual([{ id: 1 }]);
+			expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('descendants/1?limit=5&offset=0'));
 		});
 
-		test('getAncestors with a father and mother', async () => {
+		test('getDescendants with a father and mother', async () => {
 			axios.get.mockResolvedValue({ data: [{ id: 1 }] });
-			await expect(flowerApiClient.getAncestors(1, 2, { limit: 5, offset: 0 })).resolves.toEqual([{ id: 1 }]);
-			expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('ancestors/1/2?limit=5&offset=0'));
+			await expect(flowerApiClient.getDescendants(1, 2, { limit: 5, offset: 0 })).resolves.toEqual([{ id: 1 }]);
+			expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('descendants/1/2?limit=5&offset=0'));
 		});
 	});
 
@@ -96,7 +96,7 @@ describe('flowerApiClient', () => {
 		test('reproduceRemote posts father/mother and returns the child', async () => {
 			axios.post.mockResolvedValue({ data: { id: 3 } });
 			await expect(flowerApiClient.reproduceRemote(1, 2)).resolves.toEqual({ id: 3 });
-			expect(axios.post).toHaveBeenCalledWith(expect.stringContaining('ancestors'), { father: 1, mother: 2 });
+			expect(axios.post).toHaveBeenCalledWith(expect.stringContaining('descendants'), { father: 1, mother: 2 });
 		});
 
 		test('mutateRemote posts the original id and returns the mutation', async () => {

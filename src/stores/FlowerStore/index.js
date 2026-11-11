@@ -104,7 +104,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		},
 		async getRemoteAncestorsCount(fatherID, motherID){
 			try{
-				return await flowerApiClient.getAncestorsCount(fatherID, motherID);
+				return await flowerApiClient.getDescendantsCount(fatherID, motherID);
 			}catch(e){
 				const ErrorStore = useErrorStore();
 				ErrorStore.push(e);
@@ -295,9 +295,9 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		async updateRemoteAncestors({flower1, flower2, limit, offset}){
 			try{
 				if(flower2 === undefined || flower2 === null){
-					this.ancestors = await flowerApiClient.getAncestors(flower1.id, undefined, {limit, offset});
+					this.ancestors = await flowerApiClient.getDescendants(flower1.id, undefined, {limit, offset});
 				}else{
-					this.ancestors = await flowerApiClient.getAncestors(flower1.id, flower2.id, {limit, offset});
+					this.ancestors = await flowerApiClient.getDescendants(flower1.id, flower2.id, {limit, offset});
 				}
 			}catch(_){
 				//const ErrorStore = useErrorStore();
@@ -332,10 +332,10 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		async updateAndConcatRemoteAncestors({flower1, flower2, limit, offset}){
 			try{
 				if(flower2 === undefined || flower2 === null){
-					const ancestors = await flowerApiClient.getAncestors(flower1.id, undefined, {limit, offset});
+					const ancestors = await flowerApiClient.getDescendants(flower1.id, undefined, {limit, offset});
 					this.ancestors = this.ancestors.concat(ancestors);
 				}else{
-					const ancestors = await flowerApiClient.getAncestors(flower1.id, flower2.id, {limit, offset});
+					const ancestors = await flowerApiClient.getDescendants(flower1.id, flower2.id, {limit, offset});
 					this.ancestors = this.ancestors.concat(ancestors);
 				}
 			}catch(_){
