@@ -1,48 +1,89 @@
-upstream backend{
-    server ${API};
+# Rendered by the entrypoint of the nginx image: ${DOMAIN}, ${API}, ${HSTS}, ${HTTPS_PORT_SUFFIX} and
+# ${NGINX_LOCAL_RESOLVERS} are replaced (NGINX_ENVSUBST_FILTER in the dockerfile), the $nginx variables are not.
+
+server {
+    listen 80;
+    server_name ${DOMAIN};
+    server_tokens off;
+
+    # certbot (webroot) proves the domain here
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location = /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    location / {
+        return 301 https://${DOMAIN}${HTTPS_PORT_SUFFIX}$request_uri;
+    }
 }
 
 server {
-    listen   80;
-    #listen	 443;
-    server_name  ${NGINX_HOST};
-    #return 301 https://$host$request_uri;
+    listen 443 ssl;
+    http2 on;
+    server_name ${DOMAIN};
+    server_tokens off;
 
-    # Configuration for SSL/TLS certificates
-    #ssl_certificate /etc/certs/${NGINX_HOST}.crt;
-    #ssl_certificate_key /etc/certs/${NGINX_HOST}.key;
+    # /etc/nginx/ssl/current points to the certbot certificate when there is one and to a self-signed one
+    # otherwise, see docker-entrypoint.d/40-certificates.sh (it also reloads nginx after a renewal)
+    ssl_certificate     /etc/nginx/ssl/current/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/current/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
 
-    # Disable insecure TLS versions
-    #ssl_protocols TLSv1.2 TLSv1.3;
-    #ssl_prefer_server_ciphers on;
-    #ssl_ciphers HIGH:!aNULL:!MD5;
+    # An empty HSTS adds no header. Set it (max-age=31536000) once the real certificate works: browsers
+    # remember it, and a self-signed localhost would be locked out.
+    add_header Strict-Transport-Security "${HSTS}" always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options SAMEORIGIN always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
 
-    access_log  /var/log/nginx/host.access.log  main;
-    #set dns resolver as docker internal dns
-    resolver ${NGINX_RESOLVER} valid=10s;
+    # the docker (or podman) DNS: the backend is looked up on each request, so nginx neither fails to start
+    # nor keeps an old address when the backend container is recreated
+    resolver ${NGINX_LOCAL_RESOLVERS} valid=10s ipv6=off;
     resolver_timeout 5s;
-    #error_page  404              /404.html;
 
-    # redirect server error pages to the static page /50x.html
-    #
-    error_page   500 502 503 504  /50x.html;
-    location = /50x.html {
-        root   /usr/share/nginx/html;
-    }
+    client_max_body_size 2m;
 
-    # Proxy headers
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    location ~ /(api|download|generated)/.*$ {
-        proxy_pass http://backend;
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/css application/javascript application/json application/wasm image/svg+xml
+               application/manifest+json font/otf;
+
+    root /usr/share/nginx/html;
+
+    # The browser talks to this origin only (no CORS). X-Real-IP is what the backend uses to tell the clients
+    # apart (CLIENT_IP_HEADER=X-Real-IP): both headers are set here, never taken from the client.
+    location ~ ^/(api|download|generated)/ {
+        set $backend_upstream http://${API};
+        proxy_pass $backend_upstream;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
         proxy_set_header Host $host;
-        add_header 'Access-Control-Allow-Origin' '${NGINX_HOST}';
-        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,access-control-allow-origin';
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
     }
+
+    # the files of /assets have the hash of their content in the name
+    location /assets/ {
+        expires 1y;
+    }
+
+    # the page and the service worker must be revalidated, or an old version stays installed
+    location ~ ^/(index\.html|sw\.js|registerSW\.js|manifest\.webmanifest|workbox-.*\.js)$ {
+        expires -1;
+    }
+
     location / {
-        root   /usr/share/nginx/html;
         try_files $uri $uri/ /index.html;
     }
 }

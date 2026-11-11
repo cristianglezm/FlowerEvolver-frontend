@@ -1,16 +1,31 @@
-FROM node:20-alpine3.17 as builder
-COPY . /app/
-WORKDIR /app
-ARG REWRITE_ENV
-ARG BACKEND
-ARG BASE_URL
-RUN sh rewrite_env.sh && \ 
- npm ci && \
- npm run build
+# syntax=docker/dockerfile:1
 
-FROM nginx:stable-alpine as frontend
-ENV NGINX_HOST="localhost"
-ENV NGINX_RESOLVER="127.0.0.11"
-ENV API="backend:5000"
+# Stage 1: the bundle. The urls of the api are part of it (see rewrite_env.sh), so build it for the address it
+# will be served from:
+#   docker build -f dockerfile.alpine --build-arg REWRITE_ENV=true --build-arg BACKEND=https://example.org .
+# vite 8 needs node 20.19+ or 22.12+
+FROM node:22-alpine AS builder
+WORKDIR /app
+# the dependencies first: a change in src/ does not install them again
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY . .
+ARG REWRITE_ENV=false
+ARG BACKEND
+ARG BASE_URL=/
+RUN sh rewrite_env.sh && npm run build
+
+# Stage 2: nginx with the bundle. TLS comes from /etc/nginx/ssl/current, which docker-entrypoint.d/40-certificates.sh
+# points at the certbot certificate or, until there is one, at a self-signed one (that is why openssl is here).
+FROM nginx:stable-alpine AS frontend
+RUN apk add --no-cache openssl
+ENV DOMAIN="localhost" \
+    API="backend:5000" \
+    HSTS="" \
+    HTTPS_PORT="443" \
+    NGINX_ENTRYPOINT_LOCAL_RESOLVERS="1" \
+    NGINX_ENVSUBST_FILTER="^(DOMAIN|API|HSTS|HTTPS_PORT_SUFFIX|NGINX_LOCAL_RESOLVERS)$"
 COPY --from=builder --chown=nginx /app/dist/ /usr/share/nginx/html/
-COPY nginx/default.conf.template /etc/nginx/templates/
+COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
+COPY --chmod=755 nginx/docker-entrypoint.d/ /docker-entrypoint.d/
+EXPOSE 80 443
