@@ -28,4 +28,4 @@
               BASE_URL: ${{ secrets.BASE_URL }}
           run: |
             git config user.name "Cristian Gonzalez" && git config user.email "cristian.glez.m@gmail.com"
-            sh deployToGithub.sh $BACKEND $BASE_URL
+            sh .devops/deployToGithub.sh $BACKEND $BASE_URL
