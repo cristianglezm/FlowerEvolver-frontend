@@ -42,7 +42,7 @@ export async function shareFlower(genome){
 }
 
 export async function reproduceRemote(fatherID, motherID){
-	const response = await axios.post(API + 'ancestors', { father: fatherID, mother: motherID });
+	const response = await axios.post(API + 'descendants', { father: fatherID, mother: motherID });
 	return response.data;
 }
 
@@ -65,20 +65,20 @@ export async function mutateRemote(original){
 	return response.data;
 }
 
-export async function getAncestorsCount(fatherID, motherID){
+export async function getDescendantsCount(fatherID, motherID){
 	if(motherID === undefined || motherID === null){
-		const response = await axios.get(API + 'ancestors/' + fatherID + '?count=1');
+		const response = await axios.get(API + 'descendants/' + fatherID + '?count=1');
 		return response.data.count;
 	}
-	const response = await axios.get(API + 'ancestors/' + fatherID + '/' + motherID + '?count=1');
+	const response = await axios.get(API + 'descendants/' + fatherID + '/' + motherID + '?count=1');
 	return response.data.count;
 }
 
-export async function getAncestors(flower1ID, flower2ID, {limit, offset}){
+export async function getDescendants(flower1ID, flower2ID, {limit, offset}){
 	if(flower2ID === undefined || flower2ID === null){
-		const response = await axios.get(API + 'ancestors/' + flower1ID + '?limit=' + limit + '&offset=' + offset);
+		const response = await axios.get(API + 'descendants/' + flower1ID + '?limit=' + limit + '&offset=' + offset);
 		return response.data;
 	}
-	const response = await axios.get(API + 'ancestors/' + flower1ID + '/' + flower2ID + '?limit=' + limit + '&offset=' + offset);
+	const response = await axios.get(API + 'descendants/' + flower1ID + '/' + flower2ID + '?limit=' + limit + '&offset=' + offset);
 	return response.data;
 }

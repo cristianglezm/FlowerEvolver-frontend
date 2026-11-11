@@ -51,8 +51,8 @@ vi.mock('../../../src/services/flowerApiClient', () => ({
 	getMutationsCount: vi.fn(),
 	getMutations: vi.fn(),
 	mutateRemote: vi.fn(),
-	getAncestorsCount: vi.fn(),
-	getAncestors: vi.fn(),
+	getDescendantsCount: vi.fn(),
+	getDescendants: vi.fn(),
 }));
 
 // The species of the flowers is the business of SpeciesStore, what matters here is when this store
