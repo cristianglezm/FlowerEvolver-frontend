@@ -1,8 +1,9 @@
 #!/bin/sh
-# Makes .env from .env.example and fills the secrets that are empty with random values, then writes the key that
-# Prometheus reads from a file. Run it again after editing METRICS_API_KEY in .env. Existing values are kept.
+# Makes docker/.env from docker/.env.example and fills the secrets that are empty with random values, then writes
+# the key that Prometheus reads from a file. Run it again after editing METRICS_API_KEY in docker/.env. Existing
+# values are kept. It works from any directory: the files it makes belong next to docker-compose.yml.
 set -eu
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/../docker"
 
 command -v openssl > /dev/null 2>&1 || { echo "init.sh: openssl is needed to make the secrets" >&2; exit 1; }
 
@@ -29,4 +30,4 @@ mkdir -p secrets
 grep '^METRICS_API_KEY=' .env | cut -d= -f2- | tr -d '\n' > secrets/metrics_api_key
 chmod 644 secrets/metrics_api_key
 
-echo "init.sh: ready, edit .env (DOMAIN and PUBLIC_URL for a server) and run: docker compose up -d --build"
+echo "init.sh: ready, edit docker/.env (DOMAIN and PUBLIC_URL for a server) and run: cd docker && docker compose up -d --build"

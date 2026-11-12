@@ -29,7 +29,7 @@ server {
     server_tokens off;
 
     # /etc/nginx/ssl/current points to the certbot certificate when there is one and to a self-signed one
-    # otherwise, see docker-entrypoint.d/40-certificates.sh (it also reloads nginx after a renewal)
+    # otherwise, see .devops/docker-entrypoint.d/40-certificates.sh (it also reloads nginx after a renewal)
     ssl_certificate     /etc/nginx/ssl/current/fullchain.pem;
     ssl_certificate_key /etc/nginx/ssl/current/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;

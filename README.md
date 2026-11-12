@@ -13,13 +13,13 @@ The whole stack (frontend, backend, describe, MySQL, Redis, Kafka and optionally
 one compose file:
 
 ```bash
-cd deploy
-./init.sh                      # makes .env and the secrets
+.devops/init.sh                # makes docker/.env and the secrets
+cd docker
 docker compose up -d --build   # https://localhost, with a self-signed certificate
 ```
 
 The frontend image is built for the address it will be served from, because the api urls are compiled into the
-bundle. More info, a server with a real domain and monitoring: [README-Docker.md](README-Docker.md)
+bundle. More info, a server with a real domain and monitoring: [docker/README.md](docker/README.md)
 
 ## Running
 
