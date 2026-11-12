@@ -24,6 +24,7 @@ docker/                        everything that configures the images and the sta
 .devops/                       the scripts
   init.sh                      makes docker/.env and the secrets
   rewrite_env.sh               writes the .env of vite when the image is built
+  deployToGithub.sh            builds the site for GitHub Pages (the deploy-gh-pages workflow runs it)
   docker-entrypoint.d/         run by the nginx container when it starts (certificates)
 ```
 
@@ -36,7 +37,7 @@ docker compose up -d --build
 ```
 
 Open https://localhost and accept the self-signed certificate. `.devops/init.sh` makes `docker/.env` from `docker/.env.example` and fills
-the passwords and keys with random values (it never overwrites a value that is set). The first start is slow: the
+the passwords and keys with random values (it never overwrites a value that is set). Run it again if you delete `docker/secrets`: without the key file the engine makes a directory in its place. The first start is slow: the
 frontend is built and the models of describe are loaded, `docker compose ps` shows when everything is healthy.
 
 If your system does not let you use ports below 1024 (rootless podman), set in `docker/.env`:

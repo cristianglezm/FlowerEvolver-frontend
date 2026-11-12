@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# everything below (.env, dist, npm, git) refers to the root of the repository
+cd "$(dirname "$0")/.." || exit 1
+
 BACKEND=$1
 BASE_URL=$2
 # backup .env
