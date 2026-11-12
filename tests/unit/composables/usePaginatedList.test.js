@@ -423,6 +423,64 @@ describe('usePaginatedList', () => {
             expect(ids(list)).toEqual([1, 2, 3]);
         });
 
+        describe('that is about something', () => {
+            // the mutations of the flower 7: the ones that are announced with another original are not its own
+            const mutationsOf = (original) => usePaginatedList({
+                ...makeFlowers(2), list: 'mutations', accepts: (_, relation) => relation?.original === original,
+            });
+
+            test('shows the flowers that belong to it and not the others', async () => {
+                const list = mutationsOf(7);
+                await list.init();
+
+                flowerAdded('mutations', { id: 50 }, { original: 7 });
+                flowerAdded('mutations', { id: 51 }, { original: 8 });
+                flowerAdded('mutations', { id: 52 });
+
+                expect(ids(list)).toEqual([50, 1, 2]);
+            });
+
+            test('is given the flower and its relation', async () => {
+                const accepts = vi.fn(() => true);
+                const list = usePaginatedList({ ...makeFlowers(1), list: 'mutations', accepts });
+                await list.init();
+
+                flowerAdded('mutations', { id: 50 }, { original: 7 });
+
+                expect(accepts).toHaveBeenCalledExactlyOnceWith({ id: 50 }, { original: 7 });
+            });
+
+            test('does not ask about what it reads: the query chose that', async () => {
+                const accepts = vi.fn(() => false);
+                const list = usePaginatedList({ ...makeFlowers(3), list: 'mutations', accepts });
+
+                await list.init();
+
+                expect(ids(list)).toEqual([1, 2, 3]);
+                expect(accepts).not.toHaveBeenCalled();
+            });
+
+            test('a deletion and a reset reach it whatever the filter says', async () => {
+                const list = mutationsOf(7);
+                await list.init();
+
+                flowerRemoved('mutations', 1);
+                expect(ids(list)).toEqual([2]);
+
+                listReset('mutations');
+                await vi.waitFor(() => expect(ids(list)).toEqual([1, 2]));
+            });
+
+            test('without a filter every flower that is announced is shown', async () => {
+                const list = usePaginatedList({ ...makeFlowers(1), list: 'mutations' });
+                await list.init();
+
+                flowerAdded('mutations', { id: 50 }, { original: 99 });
+
+                expect(ids(list)).toEqual([50, 1]);
+            });
+        });
+
         test('a list without a name listens to nothing', async () => {
             const list = usePaginatedList(makeFlowers(3));
             await list.init();

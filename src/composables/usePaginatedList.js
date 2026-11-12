@@ -17,6 +17,9 @@ import { listenToList } from '../services/listEvents';
  * @param {Function} fetchPage - ({ limit, offset }) => Promise<Array>, the items of a page or a batch.
  * @param {String} [list] - the name of the list (see listEvents.js). A flower added to it while the view is on
  *     screen is shown at the top, one that was deleted goes away, and a reset reads the list again.
+ * @param {Function} [accepts] - (flower, relation) => boolean, for a list that is about something: of the flowers that
+ *     are announced to it only those that it returns true for are shown (see `relation` in listEvents.js).
+ *     All of them are shown when there is none. What is read with fetchPage is not asked, the query chose it.
  * @param {Function} [onLoaded] - ({ items, offset, limit, append }) => any, called after items are shown, for what
  *     has to be loaded for them too. `append` is false for a page and for the first batch (they start the list, what
  *     was loaded for the list before is not wanted) and true for the batches that follow. It is not waited for, and a
@@ -32,7 +35,7 @@ import { listenToList } from '../services/listEvents';
  * //     :current-page="state.page" :total-pages="state.totalPages"
  * //     @next-page="nextPage" @prev-page="prevPage" @update-page="nextBatch">
  */
-export const usePaginatedList = ({ fetchCount, fetchPage, list, onLoaded }) => {
+export const usePaginatedList = ({ fetchCount, fetchPage, list, accepts, onLoaded }) => {
     const FlowerStore = useFlowerStore();
     const ErrorStore = useErrorStore();
     const state = reactive({
@@ -141,7 +144,15 @@ export const usePaginatedList = ({ fetchCount, fetchPage, list, onLoaded }) => {
     };
 
     if(list){
-        const stop = listenToList(list, { added: prepend, removed: remove, reset: () => init() });
+        const stop = listenToList(list, {
+            added: (item, relation) => {
+                if(!accepts || accepts(item, relation)){
+                    prepend(item);
+                }
+            },
+            removed: remove,
+            reset: () => init()
+        });
         if(getCurrentScope()){
             onScopeDispose(stop);
         }

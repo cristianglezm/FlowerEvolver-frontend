@@ -20,9 +20,19 @@ describe('listEvents', () => {
         flowerRemoved('local', 1);
         listReset('local');
 
-        expect(handlers.added).toHaveBeenCalledExactlyOnceWith({ id: 1 });
+        expect(handlers.added).toHaveBeenCalledExactlyOnceWith({ id: 1 }, undefined);
         expect(handlers.removed).toHaveBeenCalledExactlyOnceWith(1);
         expect(handlers.reset).toHaveBeenCalledTimes(1);
+    });
+
+    test('an added flower says what it is to others', () => {
+        const added = vi.fn();
+        listen('mutations', { added });
+
+        flowerAdded('mutations', { id: 5 }, { original: 2 });
+        flowerAdded('mutations', { id: 6 });
+
+        expect(added.mock.calls).toEqual([[{ id: 5 }, { original: 2 }], [{ id: 6 }, undefined]]);
     });
 
     test('and nothing about the other lists', () => {
@@ -50,8 +60,8 @@ describe('listEvents', () => {
             flowerRemoved('local', 2);
             listReset('local');
         }).not.toThrow();
-        expect(first).toHaveBeenCalledExactlyOnceWith({ id: 2 });
-        expect(second).toHaveBeenCalledExactlyOnceWith({ id: 2 });
+        expect(first).toHaveBeenCalledExactlyOnceWith({ id: 2 }, undefined);
+        expect(second).toHaveBeenCalledExactlyOnceWith({ id: 2 }, undefined);
     });
 
     test('stopping a listener stops only that one', () => {
