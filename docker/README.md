@@ -18,7 +18,7 @@ browser --https--> nginx (frontend + proxy of /api /download /generated) --> bac
 ```
 .dockerignore                  the build context is the root of the repository, so it has to be there
 docker/                        everything that configures the images and the stack
-  docker-compose.yml  .env.example  dockerfile.alpine
+  docker-compose.yml  docker-compose.podman.yml  .env.example  dockerfile.alpine
   nginx/default.conf.template
   prometheus/  grafana/        monitoring, see the end of this file
 .devops/                       the scripts
@@ -79,6 +79,31 @@ When the real certificate works you can set `HSTS=max-age=31536000`. Do not set 
 
 If something in front of nginx (a CDN, another proxy) makes every request come from its own address, the rate limit of
 the backend will count all the clients as one: it reads the address from the `X-Real-IP` header that nginx sets.
+
+## Podman ##
+
+Rootless podman needs a few things that docker does not. `docker-compose.podman.yml` has the one that is a compose
+setting (MySQL, which is what the backend's `docker-compose.podman.yml` fixes too), the rest are about the machine:
+
+```bash
+cd docker
+podman compose -f docker-compose.yml -f docker-compose.podman.yml up -d --build
+```
+
+or uncomment `COMPOSE_FILE=docker-compose.yml:docker-compose.podman.yml` in `.env` and run `podman compose up -d --build`.
+
+* **MySQL**: its user is uid 27, which in a rootless container cannot write to a volume; `keep-id` maps it to you. Use it from
+  the first start, a volume that mysql created the other way keeps its owners (`podman volume rm flowerevolver_db_data`).
+* **Ports below 1024** are not available to rootless podman: set `HTTP_PORT=8080`, `HTTPS_PORT=8443` and
+  `PUBLIC_URL=https://localhost:8443` in `.env` (the frontend is built for that address), or allow them once with
+  `sudo sysctl net.ipv4.ip_unprivileged_port_start=80`.
+* **Image names** are fully qualified (`docker.io/...`): podman does not guess the registry without a terminal.
+* **SELinux** (Fedora, RHEL): the bind mounts and volumes carry `:z`/`:Z`, including the metrics key file of Prometheus.
+* **Names between containers** (`backend`, `kafka`...) need the netavark network backend (the default from podman 4). nginx
+  takes its resolver from the container, so it works with the DNS of podman as it is.
+* **The client address**: depending on the podman version and its rootless networking, nginx may see the gateway address
+  instead of the one of the browser. Then the rate limit of the backend counts every client as one. `podman compose logs
+  frontend` shows which address nginx sees; for a single tester it does not matter.
 
 ## Updating ##
 

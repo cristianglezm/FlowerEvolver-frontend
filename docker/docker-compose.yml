@@ -38,7 +38,7 @@ services:
   # certificates from Let's Encrypt, only with COMPOSE_PROFILES=letsencrypt. Without it nginx serves a self-signed one.
   certbot:
     profiles: [letsencrypt]
-    image: ${CERTBOT_IMAGE:-certbot/certbot:v5.1.0}
+    image: ${CERTBOT_IMAGE:-docker.io/certbot/certbot:v5.1.0}
     restart: unless-stopped
     entrypoint: ["/bin/sh", "-c"]
     # `certonly` again and again is the renewal too: it keeps the certificate until it is due. A failure (the domain
@@ -110,7 +110,7 @@ services:
       start_period: 90s
 
   db:
-    image: mysql:8.4
+    image: docker.io/library/mysql:8.4
     restart: unless-stopped
     environment:
       # the mysql image creates this user with ALL privileges on MYSQL_DATABASE, nothing else to set up
@@ -153,7 +153,7 @@ services:
       start_period: 120s
 
   redis:
-    image: redis:7-alpine
+    image: docker.io/library/redis:7-alpine
     restart: unless-stopped
     # only the rate limit counters live here, they are worth nothing after a restart
     command: ["redis-server", "--save", "", "--appendonly", "no"]
@@ -164,7 +164,7 @@ services:
       retries: 5
 
   kafka:
-    image: apache/kafka:3.7.1
+    image: docker.io/apache/kafka:3.7.1
     restart: unless-stopped
     # a work queue of descriptions in flight, it is not persisted: after a restart the topics are made again by
     # kafka_init and a description that was waiting is lost, the flower is not
@@ -192,7 +192,7 @@ services:
   # partition (what Kafka makes on its own) only one worker would ever get a request and the others would hold their
   # models for nothing. The topic gets one partition per worker. Partitions can be added later but not removed.
   kafka_init:
-    image: apache/kafka:3.7.1
+    image: docker.io/apache/kafka:3.7.1
     restart: "no"
     environment:
       DESCRIBE_WORKERS: ${DESCRIBE_WORKERS:-1}
@@ -213,7 +213,7 @@ services:
   # --- monitoring: COMPOSE_PROFILES=monitoring. Both are published on 127.0.0.1 only, see README.md ---
   prometheus:
     profiles: [monitoring]
-    image: prom/prometheus:v3.5.0
+    image: docker.io/prom/prometheus:v3.5.0
     restart: unless-stopped
     ports:
       - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
@@ -225,14 +225,16 @@ services:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro,z
       - ./prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro,z
       - prometheus_data:/prometheus
-    secrets:
-      - metrics_api_key
+      # prometheus cannot read environment variables, so it takes the key of /metrics from a file that
+      # .devops/init.sh writes from the same .env value the backend and describe get. A plain bind mount and not
+      # a compose `secrets:` entry: that one is mounted without the :z label and SELinux hosts deny the read
+      - ./secrets/metrics_api_key:/run/secrets/metrics_api_key:ro,z
     depends_on:
       - backend
 
   grafana:
     profiles: [monitoring]
-    image: grafana/grafana:12.2.0-17630182352
+    image: docker.io/grafana/grafana:12.2.0-17630182352
     restart: unless-stopped
     ports:
       - "127.0.0.1:${GRAFANA_PORT:-3000}:3000"
@@ -250,7 +252,7 @@ services:
 
   redis_exporter:
     profiles: [monitoring]
-    image: oliver006/redis_exporter:v1.76.0-alpine
+    image: docker.io/oliver006/redis_exporter:v1.76.0-alpine
     restart: unless-stopped
     environment:
       REDIS_ADDR: redis:6379
@@ -259,19 +261,13 @@ services:
 
   kafka_exporter:
     profiles: [monitoring]
-    image: danielqsj/kafka-exporter:v1.9.0
+    image: docker.io/danielqsj/kafka-exporter:v1.9.0
     restart: unless-stopped
     environment:
       KAFKA_SERVER: kafka:9092
     depends_on:
       kafka:
         condition: service_healthy
-
-secrets:
-  # prometheus cannot read environment variables, so it takes the key of /metrics from a file that .devops/init.sh writes
-  # from the same .env value the backend and describe get
-  metrics_api_key:
-    file: ./secrets/metrics_api_key
 
 volumes:
   db_data:

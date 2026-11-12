@@ -1,0 +1,9 @@
+# Extra file for rootless podman, together with docker-compose.yml:
+#   podman compose -f docker-compose.yml -f docker-compose.podman.yml up -d --build
+# or COMPOSE_FILE=docker-compose.yml:docker-compose.podman.yml in .env. Not for docker: it has no keep-id.
+services:
+  db:
+    # mysqld runs as uid 27 in this image. In a rootless container that uid is a sub-uid of yours, which cannot write
+    # to the volume; keep-id maps it to your own user. Choose it before the first start: a volume that mysql
+    # initialised the other way has other owners (podman volume rm flowerevolver_db_data to start again).
+    userns_mode: "keep-id:uid=27,gid=27"

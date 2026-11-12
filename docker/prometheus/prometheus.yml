@@ -11,7 +11,7 @@ scrape_configs:
     static_configs:
       - targets: ['backend:5000']
     authorization:
-      # the key is not read from the environment: docker-compose.yml mounts the file ./secrets/metrics_api_key
+      # the key is not read from the environment: docker-compose.yml mounts the file secrets/metrics_api_key
       # here and gives the same value to the backend and describe as METRICS_API_KEY
       credentials_file: /run/secrets/metrics_api_key
 

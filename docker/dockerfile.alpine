@@ -4,7 +4,7 @@
 # will be served from:
 #   docker build -f docker/dockerfile.alpine --build-arg REWRITE_ENV=true --build-arg BACKEND=https://example.org .
 # vite 8 needs node 20.19+ or 22.12+
-FROM node:22-alpine AS builder
+FROM docker.io/library/node:22-alpine AS builder
 WORKDIR /app
 # the dependencies first: a change in src/ does not install them again
 COPY package.json package-lock.json ./
@@ -17,7 +17,7 @@ RUN sh .devops/rewrite_env.sh && npm run build
 
 # Stage 2: nginx with the bundle. TLS comes from /etc/nginx/ssl/current, which .devops/docker-entrypoint.d/40-certificates.sh
 # points at the certbot certificate or, until there is one, at a self-signed one (that is why openssl is here).
-FROM nginx:stable-alpine AS frontend
+FROM docker.io/library/nginx:stable-alpine AS frontend
 RUN apk add --no-cache openssl
 ENV DOMAIN="localhost" \
     API="backend:5000" \
