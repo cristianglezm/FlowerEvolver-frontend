@@ -71,14 +71,14 @@ import SplitModal from '../components/species/SplitModal.vue';
 import SubspeciesMap from '../components/species/SubspeciesMap.vue';
 import { usePaginatedList } from '../composables/usePaginatedList';
 import { useClassifierReset } from '../composables/useClassifierReset';
-import { useFlowerStore } from '../stores/FlowerStore';
+import { useLocalFlowerStore } from '../stores/LocalFlowerStore';
 import { useSpeciesStore } from '../stores/SpeciesStore';
 import { useErrorStore } from '../stores/ErrorStore';
 import * as speciesRepository from '../services/speciesRepository';
 import * as flowerRepository from '../services/flowerRepository';
 
 const routes = useRoute();
-const FlowerStore = useFlowerStore();
+const LocalFlowerStore = useLocalFlowerStore();
 const SpeciesStore = useSpeciesStore();
 const ErrorStore = useErrorStore();
 const { canReset, askReset } = useClassifierReset();
@@ -125,7 +125,7 @@ const summary = computed(() => {
 
 // "Parent 1: #12 (Spiral Iris (2, 3))", the flowers selected to reproduce, in the order they were chosen
 const parents = computed(() => {
-    return FlowerStore.localSelected.flowers.map((id, i) => {
+    return LocalFlowerStore.localSelected.flowers.map((id, i) => {
         const row = SpeciesStore.rowFor(id);
         const sub = row ? SpeciesStore.subLabelFor(row) : '';
         const species = row ? ` (${SpeciesStore.nameOf(row.x, row.y)} (${row.x}, ${row.y})${sub === '' ? '' : ' / ' + sub})` : '';
@@ -141,7 +141,7 @@ const useAsParent = async () => {
         if(id === null){
             return;
         }
-        FlowerStore.selectLocalFlower({ id });
+        LocalFlowerStore.selectLocalFlower({ id });
         await SpeciesStore.ensureFor([id]);
     }catch(e){
         ErrorStore.push(e);

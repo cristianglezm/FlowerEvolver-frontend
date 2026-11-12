@@ -39,9 +39,9 @@
               <a @click="download3DModel(); toggleMainMenu();">Download 3D</a>
               <a @click="downloadEmissive3DModel(); toggleMainMenu();">Download Emissive 3D</a>
               <a @click="showMutations(); toggleMainMenu();">Show Mutations</a>
-              <a @click="showAncestors(); toggleMainMenu();">Show Descendants</a>
+              <a @click="showDescendants(); toggleMainMenu();">Show Descendants</a>
               <a @click="deleteThisFlower(); toggleMainMenu();">Delete Flower</a>
-              <a @click="FlowerStore.redrawFlower({ genome: props.genome }); toggleMainMenu();">Redraw Flower</a>
+              <a @click="LocalFlowerStore.redrawFlower({ genome: props.genome }); toggleMainMenu();">Redraw Flower</a>
             </div>
           </FloatingPanel>
         </Transition>
@@ -50,7 +50,7 @@
         <ThreeFlower :id="props.id" :width="245" :height="350" :genome="props.genome" :emissive="emissive" />
       </div>
       <div v-else>
-        <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="FlowerStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
+        <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="SettingsStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
       </div>
       <p>
         <strong>{{ props.id }}</strong>
@@ -94,7 +94,7 @@
               <a @click="download3DModel(); toggleMainMenu();"> Download 3D </a>
               <a @click="downloadEmissive3DModel(); toggleMainMenu();">Download Emissive 3D </a>
               <a @click="showMutations(); toggleMainMenu();">Show Mutations</a>
-              <a @click="showAncestors(); toggleMainMenu();">Show Descendants</a>
+              <a @click="showDescendants(); toggleMainMenu();">Show Descendants</a>
             </div>
           </FloatingPanel>
         </Transition>
@@ -103,7 +103,7 @@
         <ThreeFlower :id="props.id" :width="245" :height="350" :genome="props.genome" :emissive="emissive" />
       </div>
       <div v-else>
-        <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="FlowerStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
+        <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="SettingsStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
       </div>
       <p>
         <strong>{{ props.id }}</strong>
@@ -114,7 +114,10 @@
 
 <script setup>
     import { onMounted, ref, reactive, inject, onUnmounted } from "vue";
-    import { useFlowerStore } from '../stores/FlowerStore';
+    import { useLocalFlowerStore } from '../stores/LocalFlowerStore';
+    import { useRemoteFlowerStore } from '../stores/RemoteFlowerStore';
+    import { useSettingsStore } from '../stores/SettingsStore';
+    import { useFavouritesStore } from '../stores/FavouritesStore';
     import { getFlowerEvolver } from '../services/flowerEvolver';
     import { useCaptionerStore } from '../stores/CaptionerStore';
     import { useErrorStore } from '../stores/ErrorStore';
@@ -202,14 +205,17 @@
         lensSize: { x: 100, y: 100 },
     });
     const router = useRouter();
-    const FlowerStore = useFlowerStore();
+    const LocalFlowerStore = useLocalFlowerStore();
+    const RemoteFlowerStore = useRemoteFlowerStore();
+    const SettingsStore = useSettingsStore();
+    const FavouritesStore = useFavouritesStore();
     const ErrorStore = useErrorStore();
     const CaptionerStore = useCaptionerStore();
     const emitter = inject('emitter');
     onMounted(() => {
         if(props.isLocal){
             parseParams();
-            FlowerStore.isFavourited(props.id)
+            FavouritesStore.isFavourited(props.id)
                 .then((isFav) => {
                     if(isFav){
                         data.heartIconSrc = loadImage("heart_full.png","x32");
@@ -261,7 +267,7 @@
             btnNo: 'No',
             btnYes: 'Delete Flower',
             onConfirm: () => {
-                FlowerStore.deleteLocalFlower(props.id);
+                LocalFlowerStore.deleteLocalFlower(props.id);
             },
         });
     };
@@ -274,14 +280,14 @@
     };
     const onSelected = () => {
         if(props.isLocal){
-            FlowerStore.selectLocalFlower({id: props.id, genome: props.genome,image: props.image});
+            LocalFlowerStore.selectLocalFlower({id: props.id, genome: props.genome,image: props.image});
         }else{
-            FlowerStore.selectRemoteFlower({id: props.id, genome: props.genome,image: props.image});
+            RemoteFlowerStore.selectRemoteFlower({id: props.id, genome: props.genome,image: props.image});
         }
         emitter.emit('checkSelected');
     };
     const shareFlower = () => {
-        FlowerStore.shareFlower(props.genome);
+        RemoteFlowerStore.shareFlower(props.genome);
     };
     const describe = () => {
         if(!CaptionerStore.hasModelLoaded){
@@ -332,27 +338,27 @@
         let localOr = props.isLocal ? "local":"remote";
         router.push({name:'Mutations', params:{id: props.id, isLocal: localOr}});
     };
-    const showAncestors = () => {
+    const showDescendants = () => {
         let localOr = props.isLocal ? "local":"remote";
         router.push({name:'DescendantsFatherOrMother', params:{father: props.id, isLocal: localOr}});
     };
     const isSelected = () => {
         if(props.isLocal){
-            return FlowerStore.isLocalFlowerSelected({id: props.id, genome: props.genome, image: props.image})
+            return LocalFlowerStore.isLocalFlowerSelected({id: props.id, genome: props.genome, image: props.image})
         }
-        return FlowerStore.isRemoteFlowerSelected({id: props.id, genome: props.genome, image: props.image})
+        return RemoteFlowerStore.isRemoteFlowerSelected({id: props.id, genome: props.genome, image: props.image})
     };
     const toggleFavourite = async (id) => {
         if(props.isLocal){
-            let isFav = await FlowerStore.isFavourited(id);
+            let isFav = await FavouritesStore.isFavourited(id);
             if(isFav){
                 data.index = 6;
                 setTimeout(changeHeartIcon, 50, true);
-                FlowerStore.removeFlowerFromFav(id);
+                FavouritesStore.removeFlowerFromFav(id);
             }else{
                 data.index = 0;
                 setTimeout(changeHeartIcon, 50, false);
-                await FlowerStore.addFlowerToFav(id);
+                await FavouritesStore.addFlowerToFav(id);
             }
         }else{
             ErrorStore.push("Add the flower to local first to add it to favourites.");
@@ -360,7 +366,7 @@
     };
     const addToLocal = () => {
         if(!props.isLocal){
-            FlowerStore.addRemoteFlowerToLocal({id: props.id, genome: props.genome, image: props.image});
+            LocalFlowerStore.addRemoteFlowerToLocal({id: props.id, genome: props.genome, image: props.image});
         }else{
             ErrorStore.push("This flower is a local flower already.");
         }
@@ -398,7 +404,7 @@
     const downloadPetalsImpl = async (genome) => {
             const zip = new JSZip();
             const fe = await getFlowerEvolver();
-            for(let i = FlowerStore.settings.params.numLayers; i >= 0; --i){
+            for(let i = SettingsStore.settings.params.numLayers; i >= 0; --i){
                 let f = await fe.drawPetalLayer(genome, i);
                 zip.file(
                   `Flower_${props.id}_PetalLayer_${i}.png`,
@@ -463,9 +469,9 @@
     };
     const mutate = () => {
         if(props.isLocal){
-            FlowerStore.makeLocalMutation({id: props.id, image: props.image, genome: props.genome});
+            LocalFlowerStore.makeLocalMutation({id: props.id, image: props.image, genome: props.genome});
         }else{
-            FlowerStore.makeRemoteMutation({id: props.id, image: props.image, genome: props.genome});
+            RemoteFlowerStore.makeRemoteMutation({id: props.id, image: props.image, genome: props.genome});
         }
     };
 </script>

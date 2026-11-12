@@ -10,7 +10,7 @@ import { onMounted, onUnmounted, ref } from "vue";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/Addons.js";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
-import { useFlowerStore } from "../stores/FlowerStore";
+import { useSettingsStore } from "../stores/SettingsStore";
 import { FEParams } from '@cristianglezm/flower-evolver-wasm';
 import { getFlowerEvolver } from "../services/flowerEvolver";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -53,7 +53,7 @@ let scene = null;
 
 let threeCVS = ref(null);
 let isLoading = ref(true);
-const flowerStore = useFlowerStore();
+const settingsStore = useSettingsStore();
 
 const _loadModel = async (gltfUrl) => {
   return new Promise((resolve, reject) => {
@@ -190,10 +190,10 @@ onMounted(async () => {
     let fe = await getFlowerEvolver();
     fe.setParams(
       new FEParams(
-          flowerStore.settings.params.radius,
-          flowerStore.settings.params.numLayers,
-          flowerStore.settings.params.P,
-          flowerStore.settings.params.bias,
+          settingsStore.settings.params.radius,
+          settingsStore.settings.params.numLayers,
+          settingsStore.settings.params.P,
+          settingsStore.settings.params.bias,
       ),
     );
     let genome = props.genome;

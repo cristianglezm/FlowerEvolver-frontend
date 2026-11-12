@@ -2,15 +2,16 @@
 import 'fake-indexeddb/auto';
 import { describe, test, expect, beforeEach, afterAll, vi } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
-import { db } from '../../../src/stores/FlowerStore/db';
-import { useFlowerStore } from '../../../src/stores/FlowerStore';
+import { db } from '../../../src/services/db';
+import { useLocalFlowerStore } from '../../../src/stores/LocalFlowerStore';
+import { useFavouritesStore } from '../../../src/stores/FavouritesStore';
 import { useSpeciesStore, _resetSpeciesStoreForTests } from '../../../src/stores/SpeciesStore';
 import { getSpeciesClient } from '../../../src/services/speciesWorker';
 import { getFlowerEvolver } from '../../../src/services/flowerEvolver';
 import * as flowerRepository from '../../../src/services/flowerRepository';
 import * as speciesRepository from '../../../src/services/speciesRepository';
 
-// FlowerStore and SpeciesStore, the repositories (Dexie on fake-indexeddb) and the wasm are the real
+// LocalFlowerStore and SpeciesStore, the repositories (Dexie on fake-indexeddb) and the wasm are the real
 // ones here: this is the seam the unit tests of each store cannot see. The worker is the only thing
 // that is not, the classifier runs on the same thread.
 vi.mock('../../../src/services/speciesWorker', async () => {
@@ -21,13 +22,14 @@ vi.mock('../../../src/services/speciesWorker', async () => {
 });
 
 // Drawing flowers and classifying them is real work, a loaded machine can take seconds for one test.
-describe('FlowerStore and SpeciesStore together', { timeout: 30000 }, () => {
-    let FlowerStore;
+describe('LocalFlowerStore and SpeciesStore together', { timeout: 30000 }, () => {
+    let LocalFlowerStore;
+    let FavouritesStore;
     let SpeciesStore;
 
     const makeFlowers = async (count) => {
         for(let i = 0; i < count; ++i){
-            await FlowerStore.makeLocalFlower();
+            await LocalFlowerStore.makeLocalFlower();
         }
         await SpeciesStore.whenIdle();
         return flowerRepository.listFlowerIds();
@@ -44,7 +46,8 @@ describe('FlowerStore and SpeciesStore together', { timeout: 30000 }, () => {
         // classifier of a test is not for the next one
         (await getFlowerEvolver()).loadSOM('');
         createTestingPinia({ stubActions: false, createSpy: vi.fn });
-        FlowerStore = useFlowerStore();
+        LocalFlowerStore = useLocalFlowerStore();
+        FavouritesStore = useFavouritesStore();
         SpeciesStore = useSpeciesStore();
     });
 
@@ -67,7 +70,7 @@ describe('FlowerStore and SpeciesStore together', { timeout: 30000 }, () => {
     test('deleting a flower deletes its species', async () => {
         const [first, second] = await makeFlowers(2);
 
-        await FlowerStore.deleteLocalFlower(first);
+        await LocalFlowerStore.deleteLocalFlower(first);
 
         expect(await speciesRepository.getSpecies(first)).toBeUndefined();
         expect(SpeciesStore.rowFor(first)).toBeUndefined();
@@ -85,11 +88,11 @@ describe('FlowerStore and SpeciesStore together', { timeout: 30000 }, () => {
                 { id: ids[2], x: 0, y: 1, d: 0.3, fp },
                 { id: ids[3], x: 1, y: 1, d: 0.4, fp },
             ]);
-            await FlowerStore.addFlowerToFav(ids[1]);
-            await FlowerStore.addFlowerToFav(ids[3]);
+            await FavouritesStore.addFlowerToFav(ids[1]);
+            await FavouritesStore.addFlowerToFav(ids[3]);
             const classify = vi.spyOn(getSpeciesClient(), 'classifyBatch');
 
-            await FlowerStore.deleteNonFavourites();
+            await LocalFlowerStore.deleteNonFavourites();
 
             expect(await flowerRepository.listFlowerIds()).toEqual([1, 2]);
             expect(await db.species.toArray()).toEqual([
@@ -108,9 +111,9 @@ describe('FlowerStore and SpeciesStore together', { timeout: 30000 }, () => {
             ]);
             await SpeciesStore.ensureFor(ids);
             expect(SpeciesStore.rowFor(1)).toMatchObject({ x: 0, y: 0 });
-            await FlowerStore.addFlowerToFav(ids[1]);
+            await FavouritesStore.addFlowerToFav(ids[1]);
 
-            await FlowerStore.deleteNonFavourites();
+            await LocalFlowerStore.deleteNonFavourites();
 
             expect(SpeciesStore.rowFor(1)).toBeUndefined();
             await SpeciesStore.ensureFor([1]);
@@ -124,11 +127,11 @@ describe('FlowerStore and SpeciesStore together', { timeout: 30000 }, () => {
             await speciesRepository.bulkPutSpecies([{ id: old, x: 99, y: 99, d: 9, fp: SpeciesStore.fp }]);
             expect(SpeciesStore.rowFor(old)).toBeDefined();
 
-            await FlowerStore.deleteAllFlowers();
+            await LocalFlowerStore.deleteAllFlowers();
             expect(await db.species.count()).toBe(0);
             expect(SpeciesStore.rowFor(old)).toBeUndefined();
 
-            await FlowerStore.makeLocalFlower();
+            await LocalFlowerStore.makeLocalFlower();
             const [id] = await flowerRepository.listFlowerIds();
             expect(id).toBe(old);
             await SpeciesStore.whenIdle();
@@ -142,8 +145,8 @@ describe('FlowerStore and SpeciesStore together', { timeout: 30000 }, () => {
             await speciesRepository.putClassifier({ id: 'tuned', json: '{"tuned":true}' });
             await speciesRepository.putClassifier({ id: 'sub:abc:1,0', json: '{"sub":true}' });
 
-            await FlowerStore.deleteAllFlowers();
-            await FlowerStore.deleteNonFavourites();
+            await LocalFlowerStore.deleteAllFlowers();
+            await LocalFlowerStore.deleteNonFavourites();
 
             expect((await speciesRepository.getClassifier('tuned')).json).toBe('{"tuned":true}');
             expect(await speciesRepository.listSubmaps('abc')).toHaveLength(1);
@@ -151,9 +154,9 @@ describe('FlowerStore and SpeciesStore together', { timeout: 30000 }, () => {
 
         test('a flower still being classified when everything is deleted leaves nothing behind, quietly', async () => {
             const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-            await FlowerStore.makeLocalFlower();
+            await LocalFlowerStore.makeLocalFlower();
             // its species is being worked out now
-            await FlowerStore.deleteAllFlowers();
+            await LocalFlowerStore.deleteAllFlowers();
             await SpeciesStore.whenIdle();
 
             expect(await db.species.count()).toBe(0);
@@ -202,7 +205,7 @@ describe('FlowerStore and SpeciesStore together', { timeout: 30000 }, () => {
             await tune();
             const tuned = SpeciesStore.fp;
 
-            await FlowerStore.deleteAllFlowers();
+            await LocalFlowerStore.deleteAllFlowers();
             const [id] = await makeFlowers(1);
 
             expect(await speciesRepository.getClassifier('tuned')).toBeDefined();

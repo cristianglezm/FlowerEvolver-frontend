@@ -25,15 +25,15 @@
         </nav>
         <div class="actions" alt="actions">
           <nav v-if="props.isLocal">
-            <button class="safe-button" data-testid="menu-new-local-flower" @click="FlowerStore.makeLocalFlower(); toggleMenu()"> New Local Flower</button>
-            <button class="safe-button" data-testid="menu-local-reproduce" @click="FlowerStore.localReproduce(); toggleMenu()"> Local Reproduce Selected</button>
-            <button class="safe-button" data-testid="menu-show-local-descendants" @click="showAncestors(); toggleMenu()"> Show Local Selected Descendants</button>
+            <button class="safe-button" data-testid="menu-new-local-flower" @click="LocalFlowerStore.makeLocalFlower(); toggleMenu()"> New Local Flower</button>
+            <button class="safe-button" data-testid="menu-local-reproduce" @click="LocalFlowerStore.localReproduce(); toggleMenu()"> Local Reproduce Selected</button>
+            <button class="safe-button" data-testid="menu-show-local-descendants" @click="showDescendants(); toggleMenu()"> Show Local Selected Descendants</button>
             <button class="safe-button" data-testid="menu-toggle-chatbot" @click="toggleChatBot(); toggleMenu()">{{ toggleButtonMessage }}</button>
           </nav>
           <nav v-else>
-            <button class="safe-button" data-testid="menu-new-remote-flower" :class="{'disabled': data.blocked}" @click="block(FlowerStore.makeRemoteFlower); toggleMenu()"> New Remote Flower</button>
-            <button class="safe-button" data-testid="menu-remote-reproduce" :class="{'disabled': data.blocked}" @click="block(FlowerStore.remoteReproduce); toggleMenu()"> Remote Reproduce Selected</button>
-            <button class="safe-button" data-testid="menu-show-remote-descendants" :class="{'disabled': data.blocked}" @click="block(showAncestors); toggleMenu()"> Show Remote Selected Descendants</button>
+            <button class="safe-button" data-testid="menu-new-remote-flower" :class="{'disabled': data.blocked}" @click="block(RemoteFlowerStore.makeRemoteFlower); toggleMenu()"> New Remote Flower</button>
+            <button class="safe-button" data-testid="menu-remote-reproduce" :class="{'disabled': data.blocked}" @click="block(RemoteFlowerStore.remoteReproduce); toggleMenu()"> Remote Reproduce Selected</button>
+            <button class="safe-button" data-testid="menu-show-remote-descendants" :class="{'disabled': data.blocked}" @click="block(showDescendants); toggleMenu()"> Show Remote Selected Descendants</button>
             <button class="safe-button" data-testid="menu-toggle-chatbot" @click="toggleChatBot(); toggleMenu()">{{ toggleButtonMessage }}</button>
           </nav>
         </div>
@@ -68,14 +68,14 @@
         <button class="fixed-button left-fixed-button" data-testid="menu-toggle-chatbot" @click="toggleChatBot()">{{ toggleButtonMessage }}</button>
       </div>
       <div v-if="props.isLocal" class="floating-actions-right">
-        <button class="fixed-button right-fixed-button" data-testid="menu-new-local-flower" @click="FlowerStore.makeLocalFlower()"> New Local Flower</button>
-        <button class="fixed-button right-fixed-button" data-testid="menu-local-reproduce" @click="FlowerStore.localReproduce()"> Local Reproduce Selected</button>
-        <button class="fixed-button right-fixed-button" data-testid="menu-show-local-descendants" @click="showAncestors()"> Show Local Selected Descendants</button>
+        <button class="fixed-button right-fixed-button" data-testid="menu-new-local-flower" @click="LocalFlowerStore.makeLocalFlower()"> New Local Flower</button>
+        <button class="fixed-button right-fixed-button" data-testid="menu-local-reproduce" @click="LocalFlowerStore.localReproduce()"> Local Reproduce Selected</button>
+        <button class="fixed-button right-fixed-button" data-testid="menu-show-local-descendants" @click="showDescendants()"> Show Local Selected Descendants</button>
       </div>
       <div v-else class="floating-actions-right">
-        <button class="fixed-button right-fixed-button" data-testid="menu-new-remote-flower" :class="{'disabled': data.blocked}" @click="block(FlowerStore.makeRemoteFlower)"> New Remote Flower</button>
-        <button class="fixed-button right-fixed-button" data-testid="menu-remote-reproduce" :class="{'disabled': data.blocked}" @click="block(FlowerStore.remoteReproduce)"> Remote Reproduce Selected</button>
-        <button class="fixed-button right-fixed-button" data-testid="menu-show-remote-descendants" :class="{'disabled': data.blocked}" @click="block(showAncestors)"> Show Remote Selected Descendants</button>
+        <button class="fixed-button right-fixed-button" data-testid="menu-new-remote-flower" :class="{'disabled': data.blocked}" @click="block(RemoteFlowerStore.makeRemoteFlower)"> New Remote Flower</button>
+        <button class="fixed-button right-fixed-button" data-testid="menu-remote-reproduce" :class="{'disabled': data.blocked}" @click="block(RemoteFlowerStore.remoteReproduce)"> Remote Reproduce Selected</button>
+        <button class="fixed-button right-fixed-button" data-testid="menu-show-remote-descendants" :class="{'disabled': data.blocked}" @click="block(showDescendants)"> Show Remote Selected Descendants</button>
       </div>
     </div>
     <ErrorModal />
@@ -89,7 +89,9 @@ import { reactive, inject, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import ErrorModal from './ErrorModal.vue';
 import ConfirmModal from './ConfirmModal.vue';
-import { useFlowerStore } from '../stores/FlowerStore';
+import { useLocalFlowerStore } from '../stores/LocalFlowerStore';
+import { useRemoteFlowerStore } from '../stores/RemoteFlowerStore';
+import { useSettingsStore } from '../stores/SettingsStore';
 import { useErrorStore } from '../stores/ErrorStore';
 
 const props = defineProps({
@@ -104,10 +106,12 @@ let data = reactive({
     showMenu: false
 });
 const emitter = inject('emitter');
-const FlowerStore = useFlowerStore();
+const LocalFlowerStore = useLocalFlowerStore();
+const RemoteFlowerStore = useRemoteFlowerStore();
+const SettingsStore = useSettingsStore();
 const ErrorStore = useErrorStore();
 const router = useRouter();
-const toggleButtonMessage = ref(FlowerStore.settings.showChatBot ? "Close ChatBot":"Open ChatBot");
+const toggleButtonMessage = ref(SettingsStore.settings.showChatBot ? "Close ChatBot":"Open ChatBot");
 
 const block = (Fn) => {
     if(!data.blocked){
@@ -118,16 +122,16 @@ const block = (Fn) => {
         }, 2000);
     }
 };
-const showAncestors = () => {
+const showDescendants = () => {
     if(props.isLocal){
-        let selected = FlowerStore.getLocalSelected;
+        let selected = LocalFlowerStore.getLocalSelected;
         if(selected.length < 1){
             ErrorStore.push('You need to select two flowers');
         }else{
             router.push({name:'DescendantsFatherAndMother', params:{father:selected[0], mother:selected[1], isLocal: "local"}});
         }
     }else{
-        let selected = FlowerStore.getRemoteSelected;
+        let selected = RemoteFlowerStore.getRemoteSelected;
         if(selected.length < 1){
             ErrorStore.push('You need to select two flowers');
         }else{
@@ -139,16 +143,16 @@ const toggleMenu = () => {
     data.showMenu = !data.showMenu;
 };
 const toggleChatBot = () => {
-    FlowerStore.settings.showChatBot = !FlowerStore.settings.showChatBot;
-    if(FlowerStore.settings.showChatBot){
+    SettingsStore.settings.showChatBot = !SettingsStore.settings.showChatBot;
+    if(SettingsStore.settings.showChatBot){
         toggleButtonMessage.value = "Close ChatBot";
     }else{
         toggleButtonMessage.value = "Open ChatBot";
     }
-    FlowerStore.saveSettings();
+    SettingsStore.saveSettings();
 };
 const isPaginated = () => {
-    return FlowerStore.settings.pagination;
+    return SettingsStore.settings.pagination;
 };
 const isMobile = () => {
     return window.innerWidth <= 1280;

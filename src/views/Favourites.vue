@@ -1,86 +1,46 @@
 <template>
   <div id="favourites">
     <PaginationOrInfiniteScroll
-      :pagination="isPaginated()" :itemsLength="favourites.length" :currentPage="data.page" :totalPages="data.totalPages"
-      @next-page="nextPage" @prev-page="prevPage" @update-page="updateFlowers"
+      :pagination="isPaginated" :items-length="state.items.length"
+      :current-page="state.page" :total-pages="state.totalPages"
+      @next-page="nextPage" @prev-page="prevPage" @update-page="nextBatch"
     >
-      <FlowersTable :flowers="favourites" :isLocal="true" :noFlowerMessage="'You don\'t have favourites.'" />
+      <FlowersTable :flowers="state.items" :is-local="true" :no-flower-message="'You don\'t have favourites.'" />
     </PaginationOrInfiniteScroll>
   </div>
 </template>
 
 <script setup>
 
-    import { onMounted, reactive, computed, nextTick } from 'vue';
-    import FlowersTable from '../components/FlowersTable.vue';
-    import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
-    import { useFlowerStore } from '../stores/FlowerStore';
-    import { useCaptionerStore } from '../stores/CaptionerStore';
-    import { useRoute, useRouter } from 'vue-router';
+import { onMounted } from 'vue';
+import FlowersTable from '../components/FlowersTable.vue';
+import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
+import { useCaptionerStore } from '../stores/CaptionerStore';
+import * as flowerRepository from '../services/flowerRepository';
+import { usePaginatedList } from '../composables/usePaginatedList';
+import { useRoute } from 'vue-router';
 
-    const FlowerStore = useFlowerStore();
-    const CaptionerStore = useCaptionerStore();
-    const routes = useRoute();
-    const router = useRouter();
+const routes = useRoute();
+const CaptionerStore = useCaptionerStore();
 
-    let data = reactive({
-        offset: 0,
-        page: parseInt(routes.query.page, 10) || 0,
-        totalPages: 0
-    });
-    let favourites = computed(() => {
-        return FlowerStore.favourites;
-    });
-    onMounted(() => {
-        FlowerStore.favourites = [];
-        data.offset = 0;
-        if(isPaginated()){
-            getFlowersFrom(data.page);
-            FlowerStore.getFavouritesCount().then(c => data.totalPages = Math.ceil(c / FlowerStore.settings.limit));
-        }else{
-            updateFlowers();
-        }
-    });
+const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginatedList({
+    list: 'favourites',
+    fetchCount: () => flowerRepository.countFavourites(),
+    fetchPage: ({ limit, offset }) => flowerRepository.listFavourites({ limit, offset }),
+    // the descriptions are paged like the flowers: a page replaces those of the page before, a batch adds to them
+    onLoaded: ({ offset, limit, append }) => {
+        return append ? CaptionerStore.loadAndConcatLocalDescriptions(offset, limit)
+                      : CaptionerStore.loadLocalDescriptions(offset, limit);
+    }
+});
 
-    const prevPage = () => {
-        if(data.page >= 1){
-            data.page -= 1;
-            router.push({path:"Favourites", query:{page: data.page}});
-        }
-    };
-    const nextPage = () => {
-        if(data.page < data.totalPages - 1){
-            data.page += 1;
-            router.push({path:"Favourites", query:{page: data.page}});
-        }
-    };
-    const isPaginated = () => {
-        return FlowerStore.settings.pagination;
-    };
-    const updateFlowers = () => {
-        nextTick(() => {
-            loadFavourites();
-            data.offset = FlowerStore.increaseOffset(data.offset);
-        });
-    };
-    const getFlowersFrom = (page) => {
-        FlowerStore.favourites = [];
-        nextTick(() => {
-            data.offset = FlowerStore.calcOffset(page);
-            loadFavourites();
-        });
-    };
-    const loadFavourites = async () => {
-        let ids = await FlowerStore.db.favourites.reverse().offset(data.offset)
-                                .limit(FlowerStore.settings.limit).toArray();
-        for(const id of ids){
-            let f = await FlowerStore.db.flowers.get(id);
-            FlowerStore.favourites.push(f);
-        }
-        CaptionerStore.loadLocalDescriptions(data.offset, FlowerStore.settings.limit);
-    };
-    
+onMounted(() => {
+    // ?page= is the page to start at, the pages after it are not a route each
+    init(parseInt(routes.query.page, 10) || 0);
+});
+
 </script>
+
 <style scoped>
     #favourites{
         background-color: rgb(37, 39, 41);;

@@ -51,7 +51,7 @@
 
 <script setup>
 import { reactive, ref, onMounted } from 'vue';
-import { useFlowerStore } from '../stores/FlowerStore';
+import * as flowerRepository from '../services/flowerRepository';
 import { getFlowerEvolver } from '../services/flowerEvolver';
 import VChart from 'vue-echarts';
 import { use } from 'echarts/core';
@@ -77,7 +77,6 @@ use([
   DataZoomComponent,
 ]);
 
-const FlowerStore = useFlowerStore();
 const loading = ref(true);
 
 const config = {
@@ -201,7 +200,7 @@ const processAndRenderData = async () => {
   const dataCounts = histKeys.reduce((acc, key) => ({ ...acc, [key]: {} }), {});
   const sexCounts = { male: 0, female: 0 };
   const fe = await getFlowerEvolver();
-  await FlowerStore.db.flowers.toCollection().each(f => {
+  await flowerRepository.forEachFlower(f => {
     const g = JSON.parse(f.genome);
     const p = g.Flower.petals;
     const s = fe.getFlowerStats(f.genome, 0.3, 23, 1000, 0);

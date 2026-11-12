@@ -28,7 +28,10 @@
 
 <script setup>
 import { inject, toRaw, onBeforeUnmount, onMounted } from 'vue';
-import { useFlowerStore, STORAGE_KEY_GARDEN } from '../stores/FlowerStore';
+import { useLocalFlowerStore } from '../stores/LocalFlowerStore';
+import { STORAGE_KEY_GARDEN } from '../services/gardenStorage';
+import { useSettingsStore } from '../stores/SettingsStore';
+import * as flowerRepository from '../services/flowerRepository';
 import UploadFileModal from '../components/UploadFileModal.vue';
 import redrawWorker from '../workers/redraw.worker?worker';
 import exportWorker from '../workers/export.worker?worker';
@@ -39,7 +42,8 @@ import { useErrorStore } from '../stores/ErrorStore';
 import { useSpeciesStore } from '../stores/SpeciesStore';
 import { useClassifierReset } from '../composables/useClassifierReset';
 
-const FlowerStore = useFlowerStore();
+const LocalFlowerStore = useLocalFlowerStore();
+const SettingsStore = useSettingsStore();
 const ErrorStore = useErrorStore();
 const SpeciesStore = useSpeciesStore();
 const { canReset, askReset } = useClassifierReset();
@@ -120,7 +124,7 @@ const deleteAllFlowers = () => {
         btnNo: 'no',
         btnYes: 'Delete all',
         onConfirm: async () => {
-            await FlowerStore.deleteAllFlowers();
+            await LocalFlowerStore.deleteAllFlowers();
             emitter.emit('AppOptions#recalcSpace');
         },
     });
@@ -132,15 +136,15 @@ const deleteNonFavourites = () => {
         btnNo: 'no',
         btnYes: 'Delete non favourites',
         onConfirm: async () => {
-            await FlowerStore.deleteNonFavourites();
+            await LocalFlowerStore.deleteNonFavourites();
             emitter.emit('AppOptions#recalcSpace');
         }
     });
 };
 const redrawLocalFlowers = async () => {
     wm.sendRequest('redraw', {
-        batchSize: FlowerStore.settings.limit,
-        params: structuredClone(toRaw(FlowerStore.settings.params))
+        batchSize: SettingsStore.settings.limit,
+        params: structuredClone(toRaw(SettingsStore.settings.params))
     });
 };
 const showRedrawFlowers = () => {
@@ -150,13 +154,13 @@ const showRedrawFlowers = () => {
         btnNo: 'no',
         btnYes: 'redraw local flowers',
         onConfirm: () => {
-            FlowerStore.db.flowers.count((totalFlowers) => {
+            flowerRepository.countFlowers().then((totalFlowers) => {
                 if(totalFlowers != 0){
                     showProgressBar('re-drawing flowers', totalFlowers, redrawLocalFlowers);   
                 }else{
                     ErrorStore.push("You have no local flowers to redraw.");
                 }
-            });
+            }).catch(onError);
         },
     });
 };
@@ -168,7 +172,7 @@ const showExport = (type) => {
             btnNo: 'no',
             btnYes: 'Export favourite flowers',
             onConfirm: () => {
-                FlowerStore.db.favourites.count((totalFlowers) => {
+                flowerRepository.countFavourites().then((totalFlowers) => {
                     if(totalFlowers != 0){
                         showProgressBar('exporting favourite flowers', totalFlowers, 
                             () => {
@@ -177,7 +181,7 @@ const showExport = (type) => {
                     }else{
                         ErrorStore.push("You have no favourites to export");
                     }
-                });
+                }).catch(onError);
             }
         });
     }else if(type == "all"){
@@ -187,7 +191,7 @@ const showExport = (type) => {
             btnNo: 'no',
             btnYes: 'Export all local flowers',
             onConfirm: () => {
-                FlowerStore.db.flowers.count((totalFlowers) => {
+                flowerRepository.countFlowers().then((totalFlowers) => {
                     if(totalFlowers != 0){
                         showProgressBar('exporting flowers', totalFlowers, 
                             () => {
@@ -196,7 +200,7 @@ const showExport = (type) => {
                     }else{
                         ErrorStore.push("You have no flowers to export");
                     }
-                });
+                }).catch(onError);
             }
         });
     }else if(type == "garden"){
@@ -219,7 +223,7 @@ const importFiles = async (files, toFavs) => {
     wm.sendRequest('importer', {
         files: files,
         toFavs: toFavs,
-        batchSize: FlowerStore.settings.limit
+        batchSize: SettingsStore.settings.limit
     });
 };
 const importGarden = async () => {
@@ -231,7 +235,7 @@ const importGarden = async () => {
     wm.sendRequest('importer', {
         files: files,
         toFavs: toFavs,
-        batchSize: FlowerStore.settings.limit
+        batchSize: SettingsStore.settings.limit
     });
 };
 const showImport = (toFavs) => {
@@ -263,7 +267,7 @@ const exportFlowers = (type) => {
     }
     wm.sendRequest('exporter', {
         type: type,
-        batchSize: FlowerStore.settings.limit
+        batchSize: SettingsStore.settings.limit
     });
 };
 

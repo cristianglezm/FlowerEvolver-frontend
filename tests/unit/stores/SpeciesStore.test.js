@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { describe, test, expect, beforeEach, afterAll, afterEach, vi } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
-import { db } from '../../../src/stores/FlowerStore/db';
+import { db } from '../../../src/services/db';
 import { useSpeciesStore, _resetSpeciesStoreForTests } from '../../../src/stores/SpeciesStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 import { getSpeciesClient } from '../../../src/services/speciesWorker';
