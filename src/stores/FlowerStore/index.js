@@ -7,6 +7,7 @@ import * as flowerApiClient from '../../services/flowerApiClient';
 import * as speciesRepository from '../../services/speciesRepository';
 import { useErrorStore } from '../ErrorStore';
 import { useSpeciesStore } from '../SpeciesStore';
+import { flowerAdded, flowerRemoved, listReset } from '../../services/listEvents';
 
 export const API = import.meta.env.VITE_APP_API_URL;
 export const URL = import.meta.env.VITE_APP_DOWNLOAD_URL;
@@ -17,7 +18,6 @@ export const useFlowerStore = defineStore('FlowerStore', {
 	state: () => ({
 		db: ddb,
 		remoteFlowers: [],
-		localFlowers: [],
 		lastAdded: [],
 		mutations: [],
 		ancestors: [],
@@ -57,9 +57,6 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		},
 		getRemoteFlowers: (state) => {
 			return state.remoteFlowers;
-		},
-		getLocalFlowers: (state) => {
-			return state.localFlowers;
 		},
 		getMutations: (state) => {
 			return state.mutations;
@@ -150,7 +147,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					flowerRepository.addFlower(f)
 					.then((id) => {
 						f.id = id;
-						this.localFlowers.unshift(f);
+						flowerAdded('local', f);
 						useSpeciesStore().classifyLater(id);
 					}).catch(e => {
 						const ErrorStore = useErrorStore();
@@ -213,15 +210,6 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				//ErrorStore.push(_);
 			}
 		},
-		async updateLocalFlowers({limit, offset}){
-			try{
-				const flowers = await flowerRepository.listFlowers({limit, offset});
-				this.localFlowers = flowers;
-			}catch(e){
-				const ErrorStore = useErrorStore();
-				ErrorStore.push(e);
-			}
-		},
 		async updateAndConcatRemoteFlowers({limit, offset}){
 			try{
 				const flowers = await flowerApiClient.getFlowers({limit, offset});
@@ -229,15 +217,6 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			}catch(_){
 				//const ErrorStore = useErrorStore();
 				//ErrorStore.push(e);
-			}
-		},
-		async updateAndConcatLocalFlowers({limit, offset}){
-			try{
-				const flowers = await flowerRepository.listFlowers({limit, offset});
-				this.localFlowers = this.localFlowers.concat(flowers);
-			}catch(e){
-				const ErrorStore = useErrorStore();
-				ErrorStore.push(e);
 			}
 		},
 		async updateLastAdded({limit, offset}){
@@ -405,7 +384,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					image: flower.image
 				});
 				let f = await flowerRepository.getFlower(id);
-				this.localFlowers.unshift(f);
+				flowerAdded('local', f);
 				useSpeciesStore().classifyLater(id);
 			}catch(e){
 				const ErrorStore = useErrorStore();
@@ -434,8 +413,9 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					const ErrorStore = useErrorStore();
 					ErrorStore.push(e);
 				});
-				this.localFlowers.unshift(flower);
+				// without an id it was not stored, and a flower that is not in the table is not for the list
 				if(flower.id !== undefined){
+					flowerAdded('local', flower);
 					useSpeciesStore().classifyLater(flower.id);
 				}
 			}catch(e){
@@ -448,14 +428,11 @@ export const useFlowerStore = defineStore('FlowerStore', {
             this.localSelected.index = 0;
             await flowerRepository.wipeDatabase();
 			useSpeciesStore().invalidate();
-			this.localFlowers = []
+			listReset('local');
 		},
         async deleteNonFavourites(){
             let ids = await flowerRepository.listFavouriteIds();
             let flowers = await flowerRepository.bulkGetFlowers(ids);
-			for(const f of flowers){
-				this.localFlowers.unshift(f);
-			}
             let descs = await flowerRepository.bulkGetDescriptions(ids);
             let species = await speciesRepository.bulkGetSpecies(ids);
             for(let id = 0;id < flowers.length; ++id){
@@ -482,6 +459,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
             await flowerRepository.bulkAddDescriptions(descs);
             await speciesRepository.bulkPutSpecies(species);
             useSpeciesStore().invalidate();
+			// the table was written again with other ids: whoever shows the flowers reads them again
+			listReset('local');
 		},
 		async deleteLocalFlower(id){
 			this.localSelected.flowers = [];
@@ -500,7 +479,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					let ids = ms.map(m => m.id);
 					flowerRepository.bulkDeleteMutations(ids).catch(handleError);
 				}).catch(handleError);
-			this.localFlowers = this.localFlowers.filter(f => f.id != id);
+			flowerRemoved('local', id);
 			this.favourites = this.favourites.filter(f => f.id != id);
 			this.ancestors = this.ancestors.filter(f => f.id != id);
 			this.mutations = this.mutations.filter(f => f.id != id);
@@ -551,7 +530,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 						ErrorStore.push(e);
 					});
 				let f = await flowerRepository.getFlower(id);
-				this.localFlowers.unshift(f);
+				flowerAdded('local', f);
 				this.ancestors.unshift(f);
 				useSpeciesStore().classifyLater(id);
 			}else{
@@ -605,7 +584,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					ErrorStore.push(e);
 				});
 				let f = await flowerRepository.getFlower(id);
-				this.localFlowers.unshift(f);
+				flowerAdded('local', f);
 				this.mutations.unshift(f);
 				useSpeciesStore().classifyLater(id);
 			}catch(e){
