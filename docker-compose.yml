@@ -1,12 +1,13 @@
 # The whole stack: nginx with the frontend, backend, describe, MySQL, Redis, Kafka and (profile monitoring) Prometheus
-# and Grafana. Variables come from docker/.env, make it with .devops/init.sh. Only nginx is open to the outside.
+# and Grafana. Only nginx is open to the outside. The variables come from docker/.env (make it with .devops/init.sh):
+# pass it with --env-file docker/.env, the .env of the root of the repository is the one of vite.
 name: flowerevolver
 
 services:
   frontend:
     # built here and not pulled: the urls of the api are compiled into the bundle, one image per address
     build:
-      context: ..
+      context: .
       dockerfile: docker/dockerfile.alpine
       args:
         REWRITE_ENV: "true"
@@ -76,9 +77,9 @@ services:
       DB_HOST: db
       DB_NAME: ${DB_NAME:-flowerevolver}
       DB_USER: ${DB_USER:-fe}
-      DB_PASSWD: ${DB_PASSWD:?run .devops/init.sh}
-      SECRET_KEY: ${SECRET_KEY:?run .devops/init.sh}
-      METRICS_API_KEY: ${METRICS_API_KEY:?run .devops/init.sh}
+      DB_PASSWD: ${DB_PASSWD:?run .devops/init.sh and pass --env-file docker/.env}
+      SECRET_KEY: ${SECRET_KEY:?run .devops/init.sh and pass --env-file docker/.env}
+      METRICS_API_KEY: ${METRICS_API_KEY:?run .devops/init.sh and pass --env-file docker/.env}
       ORIGINS: ${PUBLIC_URL:-https://localhost}
       FLOWER_LIMIT: ${FLOWER_LIMIT:-5000}
       DOCS_ENABLED: "false"
@@ -116,8 +117,8 @@ services:
       # the mysql image creates this user with ALL privileges on MYSQL_DATABASE, nothing else to set up
       MYSQL_DATABASE: ${DB_NAME:-flowerevolver}
       MYSQL_USER: ${DB_USER:-fe}
-      MYSQL_PASSWORD: ${DB_PASSWD:?run .devops/init.sh}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWD:?run .devops/init.sh}
+      MYSQL_PASSWORD: ${DB_PASSWD:?run .devops/init.sh and pass --env-file docker/.env}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWD:?run .devops/init.sh and pass --env-file docker/.env}
     volumes:
       - db_data:/var/lib/mysql:Z
     healthcheck:
@@ -139,7 +140,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       REDIS_ENABLED: "true"
       REDIS_URL: redis://redis:6379
-      METRICS_API_KEY: ${METRICS_API_KEY:?run .devops/init.sh}
+      METRICS_API_KEY: ${METRICS_API_KEY:?run .devops/init.sh and pass --env-file docker/.env}
     depends_on:
       redis:
         condition: service_healthy
@@ -210,7 +211,7 @@ services:
       kafka:
         condition: service_healthy
 
-  # --- monitoring: COMPOSE_PROFILES=monitoring. Both are published on 127.0.0.1 only, see README.md ---
+  # --- monitoring: COMPOSE_PROFILES=monitoring. Both are published on 127.0.0.1 only, see docker/README.md ---
   prometheus:
     profiles: [monitoring]
     image: docker.io/prom/prometheus:v3.5.0
@@ -222,13 +223,13 @@ services:
       - --storage.tsdb.retention.time=${PROMETHEUS_RETENTION:-15d}
     volumes:
       # :z relabels the files for SELinux hosts (Fedora/RHEL podman), ignored elsewhere
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro,z
-      - ./prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro,z
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro,z
+      - ./docker/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro,z
       - prometheus_data:/prometheus
       # prometheus cannot read environment variables, so it takes the key of /metrics from a file that
       # .devops/init.sh writes from the same .env value the backend and describe get. A plain bind mount and not
       # a compose `secrets:` entry: that one is mounted without the :z label and SELinux hosts deny the read
-      - ./secrets/metrics_api_key:/run/secrets/metrics_api_key:ro,z
+      - ./docker/secrets/metrics_api_key:/run/secrets/metrics_api_key:ro,z
     depends_on:
       - backend
 
@@ -240,12 +241,12 @@ services:
       - "127.0.0.1:${GRAFANA_PORT:-3000}:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?run .devops/init.sh}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?run .devops/init.sh and pass --env-file docker/.env}
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_ANALYTICS_REPORTING_ENABLED: "false"
     volumes:
-      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro,z
-      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro,z
+      - ./docker/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro,z
+      - ./docker/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro,z
       - grafana_data:/var/lib/grafana
     depends_on:
       - prometheus

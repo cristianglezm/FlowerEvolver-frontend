@@ -14,8 +14,7 @@ one compose file:
 
 ```bash
 .devops/init.sh                # makes docker/.env and the secrets
-cd docker
-docker compose up -d --build   # https://localhost, with a self-signed certificate
+docker compose --env-file docker/.env up -d --build   # https://localhost, with a self-signed certificate
 ```
 
 The frontend image is built for the address it will be served from, because the api urls are compiled into the

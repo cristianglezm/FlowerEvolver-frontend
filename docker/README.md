@@ -3,7 +3,11 @@
 [FlowerEvolver-frontend](https://github.com/cristianglezm/FlowerEvolver-frontend) with
 [FlowerEvolver-backend](https://github.com/cristianglezm/FlowerEvolver-backend) and
 [FlowerEvolver-describe](https://github.com/cristianglezm/FlowerEvolver-describe) (the service that writes the
-descriptions of the flowers), in `docker/docker-compose.yml`.
+descriptions of the flowers), in `docker-compose.yml` at the root of the repository.
+
+All the commands are run from the root of the repository, with `--env-file docker/.env`: the settings and secrets of the
+stack are in `docker/.env`, and the `.env` of the root is the one of vite. To not type it every time, set
+`COMPOSE_ENV_FILES=docker/.env` in your shell.
 
 Only nginx is open to the outside (80 and 443). The backend, describe, MySQL, Redis and Kafka are not published.
 
@@ -16,9 +20,11 @@ browser --https--> nginx (frontend + proxy of /api /download /generated) --> bac
 ## Files ##
 
 ```
+docker-compose.yml             the stack
+docker-compose.podman.yml      the extra file for rootless podman
 .dockerignore                  the build context is the root of the repository, so it has to be there
-docker/                        everything that configures the images and the stack
-  docker-compose.yml  docker-compose.podman.yml  .env.example  dockerfile.alpine
+docker/                        what the images and the stack are configured with
+  .env.example  dockerfile.alpine
   nginx/default.conf.template
   prometheus/  grafana/        monitoring, see the end of this file
 .devops/                       the scripts
@@ -32,8 +38,7 @@ docker/                        everything that configures the images and the sta
 
 ```bash
 .devops/init.sh
-cd docker
-docker compose up -d --build
+docker compose --env-file docker/.env up -d --build
 ```
 
 Open https://localhost and accept the self-signed certificate. `.devops/init.sh` makes `docker/.env` from `docker/.env.example` and fills
@@ -60,19 +65,19 @@ PUBLIC_URL=https://localhost:8443
    LETSENCRYPT_EMAIL=you@example.org
    ```
 
-3. `cd docker && docker compose up -d --build`.
+3. `docker compose --env-file docker/.env up -d --build`.
 
 nginx starts with a self-signed certificate. The `certbot` service asks Let's Encrypt for the real one (webroot, over
 port 80), and nginx loads it within 5 minutes without being restarted; certbot checks twice a day and renews when it is
 due, and nginx loads the renewed certificate the same way. If the DNS is not ready yet, certbot tries again every hour.
-`docker compose logs certbot` shows what it says.
+`docker compose --env-file docker/.env logs certbot` shows what it says.
 
 To try it first without the limits of Let's Encrypt, set `CERTBOT_ARGS=--test-cert` (the certificates are not trusted by
 browsers). To change to the real ones afterwards, delete the test certificate and let certbot ask again:
 
 ```bash
-docker compose run --rm --entrypoint certbot certbot delete --cert-name example.org
-docker compose restart certbot
+docker compose --env-file docker/.env run --rm --entrypoint certbot certbot delete --cert-name example.org
+docker compose --env-file docker/.env restart certbot
 ```
 
 When the real certificate works you can set `HSTS=max-age=31536000`. Do not set it before: browsers remember it.
@@ -86,11 +91,11 @@ Rootless podman needs a few things that docker does not. `docker-compose.podman.
 setting (MySQL, which is what the backend's `docker-compose.podman.yml` fixes too), the rest are about the machine:
 
 ```bash
-cd docker
-podman compose -f docker-compose.yml -f docker-compose.podman.yml up -d --build
+podman compose --env-file docker/.env -f docker-compose.yml -f docker-compose.podman.yml up -d --build
 ```
 
-or uncomment `COMPOSE_FILE=docker-compose.yml:docker-compose.podman.yml` in `.env` and run `podman compose up -d --build`.
+or uncomment `COMPOSE_FILE=docker-compose.yml:docker-compose.podman.yml` in `docker/.env` and run
+`podman compose --env-file docker/.env up -d --build`.
 
 * **MySQL**: its user is uid 27, which in a rootless container cannot write to a volume; `keep-id` maps it to you. Use it from
   the first start, a volume that mysql created the other way keeps its owners (`podman volume rm flowerevolver_db_data`).
@@ -102,15 +107,15 @@ or uncomment `COMPOSE_FILE=docker-compose.yml:docker-compose.podman.yml` in `.en
 * **Names between containers** (`backend`, `kafka`...) need the netavark network backend (the default from podman 4). nginx
   takes its resolver from the container, so it works with the DNS of podman as it is.
 * **The client address**: depending on the podman version and its rootless networking, nginx may see the gateway address
-  instead of the one of the browser. Then the rate limit of the backend counts every client as one. `podman compose logs
+  instead of the one of the browser. Then the rate limit of the backend counts every client as one. `podman compose --env-file docker/.env logs
   frontend` shows which address nginx sees; for a single tester it does not matter.
 
 ## Updating ##
 
 ```bash
 git pull
-docker compose pull backend describe     # the published images
-docker compose up -d --build             # also builds the frontend again
+docker compose --env-file docker/.env pull backend describe     # the published images
+docker compose --env-file docker/.env up -d --build             # also builds the frontend again
 ```
 
 The data (MySQL, `generated/`) are in volumes and are kept. The frontend is built again only when its files or

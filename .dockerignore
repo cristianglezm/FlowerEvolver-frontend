@@ -10,3 +10,4 @@ docker/.env
 docker/secrets
 docker/grafana
 docker/prometheus
+docker-compose*.yml

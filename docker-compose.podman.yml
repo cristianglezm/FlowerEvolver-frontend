@@ -1,6 +1,6 @@
 # Extra file for rootless podman, together with docker-compose.yml:
-#   podman compose -f docker-compose.yml -f docker-compose.podman.yml up -d --build
-# or COMPOSE_FILE=docker-compose.yml:docker-compose.podman.yml in .env. Not for docker: it has no keep-id.
+#   podman compose --env-file docker/.env -f docker-compose.yml -f docker-compose.podman.yml up -d --build
+# or COMPOSE_FILE=docker-compose.yml:docker-compose.podman.yml in docker/.env. Not for docker: it has no keep-id.
 services:
   db:
     # mysqld runs as uid 27 in this image. In a rootless container that uid is a sub-uid of yours, which cannot write
