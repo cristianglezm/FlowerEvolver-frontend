@@ -17,13 +17,10 @@ export const STORAGE_KEY_GARDEN = "FlowerEvolverGarden";
 export const useFlowerStore = defineStore('FlowerStore', {
 	state: () => ({
 		db: ddb,
-		remoteFlowers: [],
-		lastAdded: [],
 		mutations: [],
 		ancestors: [],
 		remoteSelected: { index: 0, flowers: [] },
 		localSelected: { index: 0, flowers: [] },
-		timer: 0,
 		favourites: [],
 		settings: JSON.parse(localStorage.getItem(STORAGE_KEY) || JSON.stringify({
 			params: { radius:64, numLayers:3, P: 6.0, bias: 1.0 },
@@ -54,9 +51,6 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			if(state.remoteSelected.flowers.length > 1)
 				return (flower.id === state.remoteSelected.flowers[0] || flower.id === state.remoteSelected.flowers[1]);
 			return false;
-		},
-		getRemoteFlowers: (state) => {
-			return state.remoteFlowers;
 		},
 		getMutations: (state) => {
 			return state.mutations;
@@ -202,31 +196,6 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				this.localSelected.index = 0;
 			}
 		},
-		async updateRemoteFlowers({limit, offset}){
-			try{
-				this.remoteFlowers = await flowerApiClient.getFlowers({limit, offset});
-			}catch(_){
-				//const ErrorStore = useErrorStore();
-				//ErrorStore.push(_);
-			}
-		},
-		async updateAndConcatRemoteFlowers({limit, offset}){
-			try{
-				const flowers = await flowerApiClient.getFlowers({limit, offset});
-				this.remoteFlowers = this.remoteFlowers.concat(flowers);
-			}catch(_){
-				//const ErrorStore = useErrorStore();
-				//ErrorStore.push(e);
-			}
-		},
-		async updateLastAdded({limit, offset}){
-			try{
-				this.lastAdded = await flowerApiClient.getFlowers({limit, offset});
-			}catch(_){
-				//const ErrorStore = useErrorStore();
-				//ErrorStore.push(e);
-			}
-		},
 		async updateRemoteMutations({flower, limit, offset}){
 			try{
 				this.mutations = await flowerApiClient.getMutations(flower.id, {limit, offset});
@@ -357,8 +326,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		async makeRemoteFlower(){
 			try{
 				const flower = await flowerApiClient.createFlower();
-				this.remoteFlowers.unshift(flower);
-				this.lastAdded.unshift(flower);
+				flowerAdded('remote', flower);
+				flowerAdded('lastAdded', flower);
 			}catch(e){
 				const ErrorStore = useErrorStore();
 				ErrorStore.push(flowerApiClient.mapAxiosError(e, "cannot make a remote flower, server offline"));
@@ -488,8 +457,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			if(this.remoteSelected.flowers.length > 1){
 				try{
 					const flower = await flowerApiClient.reproduceRemote(this.remoteSelected.flowers[0], this.remoteSelected.flowers[1]);
-					this.remoteFlowers.unshift(flower);
-					this.lastAdded.unshift(flower);
+					flowerAdded('remote', flower);
+					flowerAdded('lastAdded', flower);
 					this.ancestors.unshift(flower);
 				}catch(_){
 					const ErrorStore = useErrorStore();
@@ -541,8 +510,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		async makeRemoteMutation(flower){
 			try{
 				const mutation = await flowerApiClient.mutateRemote(flower.id);
-				this.remoteFlowers.unshift(mutation);
-				this.lastAdded.unshift(mutation);
+				flowerAdded('remote', mutation);
+				flowerAdded('lastAdded', mutation);
 				this.mutations.unshift(mutation);
 			}catch(_){
 				const ErrorStore = useErrorStore();

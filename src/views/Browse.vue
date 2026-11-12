@@ -1,73 +1,41 @@
 <template>
   <div class="Browse">
     <PaginationOrInfiniteScroll
-      :pagination="isPaginated()" :itemsLength="flowers.length" :currentPage="data.page" :totalPages="data.totalPages"
+      :pagination="isPaginated" :items-length="state.items.length"
+      :current-page="state.page" :total-pages="state.totalPages"
       @next-page="nextPage" @prev-page="prevPage" @update-page="nextBatch"
     >
-      <FlowersTable :flowers="flowers" :isLocal="false" :noFlowerMessage="'There are no Flowers'" />
+      <FlowersTable :flowers="state.items" :is-local="false" :no-flower-message="'There are no Flowers'" />
     </PaginationOrInfiniteScroll>
   </div>
 </template>
 
 <script setup>
 
-    import { reactive, computed, nextTick, onMounted } from 'vue';
-    import FlowersTable from '../components/FlowersTable.vue';
-    import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
-    import { useRoute, useRouter } from 'vue-router';
-    import { useFlowerStore } from '../stores/FlowerStore';
+import { onMounted } from 'vue';
+import FlowersTable from '../components/FlowersTable.vue';
+import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
+import { useFlowerStore } from '../stores/FlowerStore';
+import * as flowerApiClient from '../services/flowerApiClient';
+import { usePaginatedList } from '../composables/usePaginatedList';
+import { useRoute } from 'vue-router';
 
-    const FlowerStore = useFlowerStore();
-    const routes = useRoute();
-    const router = useRouter();
-    let data = reactive({
-        offset: 0,
-        page: parseInt(routes.query.page, 10) || 0,
-        totalPages: 0
-    });
-    onMounted(() => {
-        data.offset = 0;
-        if(isPaginated()){
-            getFlowersFrom(data.page);
-            FlowerStore.getRemoteFlowersCount().then(c => data.totalPages = Math.ceil(c / FlowerStore.settings.limit));
-        }else{
-            FlowerStore.updateRemoteFlowers({limit: FlowerStore.settings.limit, offset: data.offset});
-            data.offset = FlowerStore.increaseOffset(data.offset);
-        }
-    });
-    let flowers = computed(() => {
-        return FlowerStore.getRemoteFlowers;
-    });
-    const nextBatch = () => {
-        updateFlowers(FlowerStore.settings.limit, data.offset);
-    };
-    const updateFlowers = (limit, offset) => {
-        nextTick(() => {
-            FlowerStore.updateAndConcatRemoteFlowers({limit: limit, offset: offset});
-            data.offset = FlowerStore.increaseOffset(offset);
-        });
-    };
-    const getFlowersFrom = (page) => {
-        nextTick(() => {
-            data.offset = FlowerStore.calcOffset(page);
-            FlowerStore.updateRemoteFlowers({limit: FlowerStore.settings.limit, offset: data.offset});
-        });
-    };
-    const prevPage = () => {
-        if(data.page >= 1){
-            data.page -= 1;
-            router.push({path:"Browse", query:{page: data.page}});
-        }
-    };
-    const nextPage = () => {
-        if(data.page < data.totalPages - 1){
-            data.page += 1;
-            router.push({path:"Browse", query:{page: data.page}});
-        }
-    };
-    const isPaginated = () => {
-        return FlowerStore.settings.pagination;
-    };
+const routes = useRoute();
+const FlowerStore = useFlowerStore();
+
+const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginatedList({
+    list: 'remote',
+    // the count says when the server cannot be reached, and the pages do not: a server that is offline is not
+    // an error to show on every page, the list is empty
+    fetchCount: () => FlowerStore.getRemoteFlowersCount(),
+    fetchPage: ({ limit, offset }) => flowerApiClient.getFlowers({ limit, offset }).catch(() => [])
+});
+
+onMounted(() => {
+    // ?page= is the page to start at, the pages after it are not a route each
+    init(parseInt(routes.query.page, 10) || 0);
+});
+
 </script>
 
 <style scoped>

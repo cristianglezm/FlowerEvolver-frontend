@@ -1,30 +1,48 @@
 <template>
   <div class="LastAdded">
-    <FlowersTable :flowers="flowers" :isLocal="false" :noFlowerMessage="'There are no Flowers'" />
+    <FlowersTable :flowers="flowers" :is-local="false" :no-flower-message="'There are no Flowers'" />
   </div>
 </template>
 
 <script setup>
 
-    import FlowersTable from '../components/FlowersTable.vue';
-    import { useFlowerStore } from '../stores/FlowerStore';
-    import { onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
+import FlowersTable from '../components/FlowersTable.vue';
+import * as flowerApiClient from '../services/flowerApiClient';
+import { listenToList } from '../services/listEvents';
 
-    const FlowerStore = useFlowerStore();
-    let flowers = computed(() => {
-        return FlowerStore.lastAdded
-    });
-    onMounted( () => {
-        updateList(30, 0);
-        FlowerStore.timer = window.setInterval(updateList, 30000, 30, 0);
-    });
-    onUnmounted(() => {
-        window.clearInterval(FlowerStore.timer);
-        FlowerStore.timer = 0;
-    });
-    const updateList = (limit, offset) => {
-        FlowerStore.updateLastAdded({limit: limit, offset: offset});
-    };
+const LIMIT = 30;
+const REFRESH_EVERY = 30000;
+
+const flowers = ref([]);
+let timer = 0;
+
+const refresh = async () => {
+    try{
+        flowers.value = await flowerApiClient.getFlowers({ limit: LIMIT, offset: 0 });
+    }catch(_){
+        // a server that is offline is not an error to show every 30 seconds: the list stays as it was
+    }
+};
+
+// what is made from this browser is shown without waiting for the next refresh, once: the refresh can have it
+const stopListening = listenToList('lastAdded', {
+    added: (flower) => {
+        if(!flowers.value.some((f) => f.id === flower.id)){
+            flowers.value = [flower, ...flowers.value];
+        }
+    }
+});
+
+onMounted(() => {
+    refresh();
+    timer = window.setInterval(refresh, REFRESH_EVERY);
+});
+onUnmounted(() => {
+    window.clearInterval(timer);
+    stopListening();
+});
+
 </script>
 
 <style scoped>

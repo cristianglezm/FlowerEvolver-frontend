@@ -77,10 +77,20 @@ describe('FlowerStore', () => {
 	// what the views that show the list of the local flowers are told
 	let announced;
 	let stopListening;
+	// the remote lists: what they were told, in order
+	let toRemote;
+	let toLastAdded;
+	let stopRemote;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
 		announced = [];
+		toRemote = [];
+		toLastAdded = [];
+		stopRemote = [
+			listenToList('remote', { added: (flower) => toRemote.push(flower) }),
+			listenToList('lastAdded', { added: (flower) => toLastAdded.push(flower) }),
+		];
 		stopListening = listenToList('local', {
 			added: (flower) => announced.push(['added', flower]),
 			removed: (id) => announced.push(['removed', id]),
@@ -96,6 +106,7 @@ describe('FlowerStore', () => {
 
 	afterEach(() => {
 		stopListening();
+		stopRemote.forEach((stop) => stop());
 	});
 
 	describe('counts', () => {
@@ -480,14 +491,36 @@ describe('FlowerStore', () => {
 			expect(ErrorStore.push).toHaveBeenCalledWith('cannot share flower, server offline');
 		});
 
-		test('makeRemoteFlower prepends the new flower to remoteFlowers and lastAdded', async () => {
+		test('makeRemoteFlower announces the new flower to the remote flowers and to the last added', async () => {
 			const flower = { id: 1, genome: 'g', image: 'i' };
 			flowerApiClient.createFlower.mockResolvedValue(flower);
 
 			await FlowerStore.makeRemoteFlower();
 
-			expect(FlowerStore.remoteFlowers[0]).toEqual(flower);
-			expect(FlowerStore.lastAdded[0]).toEqual(flower);
+			expect(toRemote).toEqual([flower]);
+			expect(toLastAdded).toEqual([flower]);
+		});
+
+		test('makeRemoteFlower announces nothing when the server cannot be reached', async () => {
+			flowerApiClient.createFlower.mockRejectedValue({ response: undefined });
+
+			await FlowerStore.makeRemoteFlower();
+
+			expect(toRemote).toEqual([]);
+			expect(toLastAdded).toEqual([]);
+			expect(ErrorStore.push).toHaveBeenCalledWith('cannot make a remote flower, server offline');
+		});
+
+		test('makeRemoteMutation announces the mutation to the remote flowers and to the last added', async () => {
+			const mutation = { id: 8, genome: 'g', image: 'i' };
+			flowerApiClient.mutateRemote.mockResolvedValue(mutation);
+
+			await FlowerStore.makeRemoteMutation({ id: 4 });
+
+			expect(flowerApiClient.mutateRemote).toHaveBeenCalledWith(4);
+			expect(toRemote).toEqual([mutation]);
+			expect(toLastAdded).toEqual([mutation]);
+			expect(FlowerStore.mutations[0]).toEqual(mutation);
 		});
 
 		test('remoteReproduce requires two selected flowers before calling the API', async () => {
@@ -507,6 +540,8 @@ describe('FlowerStore', () => {
 			await FlowerStore.remoteReproduce();
 
 			expect(flowerApiClient.reproduceRemote).toHaveBeenCalledWith(1, 2);
+			expect(toRemote).toEqual([child]);
+			expect(toLastAdded).toEqual([child]);
 			expect(FlowerStore.ancestors[0]).toEqual(child);
 		});
 	});
