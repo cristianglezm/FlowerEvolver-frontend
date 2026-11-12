@@ -1,6 +1,7 @@
-import { reactive, computed } from 'vue';
+import { reactive, computed, getCurrentScope, onScopeDispose } from 'vue';
 import { useFlowerStore } from '../stores/FlowerStore';
 import { useErrorStore } from '../stores/ErrorStore';
+import { listenToList } from '../services/listEvents';
 
 /**
  * @brief The paging of a list of flowers: one page at a time or infinite scroll, as the settings say.
@@ -14,6 +15,12 @@ import { useErrorStore } from '../stores/ErrorStore';
  *
  * @param {Function} fetchCount - () => Promise<number>, how many items there are. Only called when paginated.
  * @param {Function} fetchPage - ({ limit, offset }) => Promise<Array>, the items of a page or a batch.
+ * @param {String} [list] - the name of the list (see listEvents.js). A flower added to it while the view is on
+ *     screen is shown at the top, one that was deleted goes away, and a reset reads the list again.
+ * @param {Function} [onLoaded] - ({ items, offset, limit, append }) => any, called after items are shown, for what
+ *     has to be loaded for them too. `append` is false for a page and for the first batch (they start the list, what
+ *     was loaded for the list before is not wanted) and true for the batches that follow. It is not waited for, and a
+ *     failure of it goes to the ErrorStore.
  *
  * @example
  * const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginatedList({
@@ -25,7 +32,7 @@ import { useErrorStore } from '../stores/ErrorStore';
  * //     :current-page="state.page" :total-pages="state.totalPages"
  * //     @next-page="nextPage" @prev-page="prevPage" @update-page="nextBatch">
  */
-export const usePaginatedList = ({ fetchCount, fetchPage }) => {
+export const usePaginatedList = ({ fetchCount, fetchPage, list, onLoaded }) => {
     const FlowerStore = useFlowerStore();
     const ErrorStore = useErrorStore();
     const state = reactive({
@@ -41,15 +48,25 @@ export const usePaginatedList = ({ fetchCount, fetchPage }) => {
     // the generation that has a batch on its way, scrolling asks again and again while it loads
     let batching = null;
 
+    const loaded = (info) => {
+        try{
+            Promise.resolve(onLoaded?.(info)).catch((e) => ErrorStore.push(e));
+        }catch(e){
+            ErrorStore.push(e);
+        }
+    };
+
     const load = async (page) => {
         const mine = ++latest;
         try{
+            const limit = FlowerStore.settings.limit;
             const offset = FlowerStore.calcOffset(page);
-            const items = await fetchPage({ limit: FlowerStore.settings.limit, offset });
+            const items = await fetchPage({ limit, offset });
             if(mine === latest){
                 state.page = page;
                 state.offset = offset;
                 state.items = items;
+                loaded({ items, offset, limit, append: false });
             }
         }catch(e){
             ErrorStore.push(e);
@@ -63,10 +80,13 @@ export const usePaginatedList = ({ fetchCount, fetchPage }) => {
         batching = mine;
         try{
             const from = state.offset;
-            const batch = await fetchPage({ limit: FlowerStore.settings.limit, offset: from });
+            const limit = FlowerStore.settings.limit;
+            const batch = await fetchPage({ limit, offset: from });
             if(mine === latest){
                 state.items = state.items.concat(batch);
                 state.offset = FlowerStore.increaseOffset(from);
+                // the first batch starts the list, as a page does: what was loaded for the list before is not wanted
+                loaded({ items: batch, offset: from, limit, append: from > 0 });
             }
         }catch(e){
             ErrorStore.push(e);
@@ -104,5 +124,28 @@ export const usePaginatedList = ({ fetchCount, fetchPage }) => {
         }
     };
 
-    return { state, isPaginated, init, nextPage, prevPage, nextBatch };
+    const idOf = (item) => (item !== null && typeof item === 'object') ? item.id : undefined;
+    // not twice: a flower that is announced while the list is being read can already be in what was read
+    const prepend = (item) => {
+        const id = idOf(item);
+        if(id !== undefined && state.items.some((i) => idOf(i) === id)){
+            return;
+        }
+        state.items = [item, ...state.items];
+    };
+    const remove = (id) => {
+        const kept = state.items.filter((i) => idOf(i) != id);
+        if(kept.length !== state.items.length){
+            state.items = kept;
+        }
+    };
+
+    if(list){
+        const stop = listenToList(list, { added: prepend, removed: remove, reset: () => init() });
+        if(getCurrentScope()){
+            onScopeDispose(stop);
+        }
+    }
+
+    return { state, isPaginated, init, nextPage, prevPage, nextBatch, prepend, remove };
 };
