@@ -39,7 +39,7 @@
               <a @click="download3DModel(); toggleMainMenu();">Download 3D</a>
               <a @click="downloadEmissive3DModel(); toggleMainMenu();">Download Emissive 3D</a>
               <a @click="showMutations(); toggleMainMenu();">Show Mutations</a>
-              <a @click="showAncestors(); toggleMainMenu();">Show Descendants</a>
+              <a @click="showDescendants(); toggleMainMenu();">Show Descendants</a>
               <a @click="deleteThisFlower(); toggleMainMenu();">Delete Flower</a>
               <a @click="FlowerStore.redrawFlower({ genome: props.genome }); toggleMainMenu();">Redraw Flower</a>
             </div>
@@ -94,7 +94,7 @@
               <a @click="download3DModel(); toggleMainMenu();"> Download 3D </a>
               <a @click="downloadEmissive3DModel(); toggleMainMenu();">Download Emissive 3D </a>
               <a @click="showMutations(); toggleMainMenu();">Show Mutations</a>
-              <a @click="showAncestors(); toggleMainMenu();">Show Descendants</a>
+              <a @click="showDescendants(); toggleMainMenu();">Show Descendants</a>
             </div>
           </FloatingPanel>
         </Transition>
@@ -332,7 +332,7 @@
         let localOr = props.isLocal ? "local":"remote";
         router.push({name:'Mutations', params:{id: props.id, isLocal: localOr}});
     };
-    const showAncestors = () => {
+    const showDescendants = () => {
         let localOr = props.isLocal ? "local":"remote";
         router.push({name:'DescendantsFatherOrMother', params:{father: props.id, isLocal: localOr}});
     };

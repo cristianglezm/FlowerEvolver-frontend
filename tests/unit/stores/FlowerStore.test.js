@@ -84,6 +84,9 @@ describe('FlowerStore', () => {
 	// the lists of mutations: what they were told, with the relation that came with it
 	let toLocalMutations;
 	let toRemoteMutations;
+	// the lists of descendants
+	let toLocalDescendants;
+	let toRemoteDescendants;
 	let stopRemote;
 
 	beforeEach(() => {
@@ -94,6 +97,8 @@ describe('FlowerStore', () => {
 		toFavourites = [];
 		toLocalMutations = [];
 		toRemoteMutations = [];
+		toLocalDescendants = [];
+		toRemoteDescendants = [];
 		stopRemote = [
 			listenToList('remote', { added: (flower) => toRemote.push(flower) }),
 			listenToList('lastAdded', { added: (flower) => toLastAdded.push(flower) }),
@@ -103,6 +108,12 @@ describe('FlowerStore', () => {
 				reset: () => toLocalMutations.push(['reset']),
 			}),
 			listenToList('remoteMutations', { added: (flower, relation) => toRemoteMutations.push([flower, relation]) }),
+			listenToList('localDescendants', {
+				added: (flower, relation) => toLocalDescendants.push(['added', flower, relation]),
+				removed: (id) => toLocalDescendants.push(['removed', id]),
+				reset: () => toLocalDescendants.push(['reset']),
+			}),
+			listenToList('remoteDescendants', { added: (flower, relation) => toRemoteDescendants.push([flower, relation]) }),
 			listenToList('favourites', {
 				added: (flower) => toFavourites.push(['added', flower]),
 				removed: (id) => toFavourites.push(['removed', id]),
@@ -128,6 +139,18 @@ describe('FlowerStore', () => {
 	});
 
 	describe('counts', () => {
+		test('getRemoteDescendantsCount asks for one parent or for two, and returns 0 and records the error on failure', async () => {
+			flowerApiClient.getDescendantsCount.mockResolvedValueOnce(4).mockResolvedValueOnce(2);
+			await expect(FlowerStore.getRemoteDescendantsCount(7)).resolves.toBe(4);
+			await expect(FlowerStore.getRemoteDescendantsCount(7, 8)).resolves.toBe(2);
+			expect(flowerApiClient.getDescendantsCount.mock.calls).toEqual([[7, undefined], [7, 8]]);
+
+			const failure = new Error('offline');
+			flowerApiClient.getDescendantsCount.mockRejectedValueOnce(failure);
+			await expect(FlowerStore.getRemoteDescendantsCount(7)).resolves.toBe(0);
+			expect(ErrorStore.push).toHaveBeenCalledWith(failure);
+		});
+
 		test('getRemoteFlowersCount returns 0 and records the error on failure', async () => {
 			const err = new Error('network down');
 			flowerApiClient.getFlowersCount.mockRejectedValue(err);
@@ -193,6 +216,7 @@ describe('FlowerStore', () => {
 			expect(announced).toEqual([['removed', 5]]);
 			expect(toFavourites).toEqual([['removed', 5]]);
 			expect(toLocalMutations).toEqual([['removed', 5]]);
+			expect(toLocalDescendants).toEqual([['removed', 5]]);
 		});
 
 		test('deleteNonFavourites keeps the favourites renumbered 1..n, with their descriptions matched by position', async () => {
@@ -423,7 +447,7 @@ describe('FlowerStore', () => {
 			expect(announced).toEqual([]);
 		});
 
-		test('localReproduce announces the child, which is also a descendant of its parents', async () => {
+		test('localReproduce announces the child, and to the descendants of the pair that was selected', async () => {
 			const genome = await realGenome();
 			FlowerStore.localSelected.flowers = [1, 2];
 			flowerRepository.getFlower.mockImplementation(async (id) => ({ id, genome, image: 'i' }));
@@ -433,7 +457,8 @@ describe('FlowerStore', () => {
 			await FlowerStore.localReproduce();
 
 			expect(announced).toEqual([['added', { id: 9, genome, image: 'i' }]]);
-			expect(FlowerStore.ancestors[0]).toEqual({ id: 9, genome, image: 'i' });
+			// the first selected flower is the father and the second the mother, the lists of descendants decide with that
+			expect(toLocalDescendants).toEqual([['added', { id: 9, genome, image: 'i' }, { father: 1, mother: 2 }]]);
 		});
 
 		test('makeLocalMutation announces the mutation, and to the mutations of the flower that was mutated', async () => {
@@ -498,9 +523,10 @@ describe('FlowerStore', () => {
 			await FlowerStore.deleteAllFlowers();
 
 			expect(order).toEqual(['wiped', 'reset']);
-			// and so did the favourites and the mutations
+			// and so did the favourites, the mutations and the descendants
 			expect(toFavourites).toEqual([['reset']]);
 			expect(toLocalMutations).toEqual([['reset']]);
+			expect(toLocalDescendants).toEqual([['reset']]);
 		});
 
 		test('deleteNonFavourites announces a reset, and only when the favourites are written again', async () => {
@@ -521,9 +547,10 @@ describe('FlowerStore', () => {
 
 			// no flower is announced: a reset makes the view read the table, with the new ids
 			expect(order).toEqual(['flowers written', 'species written', 'reset']);
-			// the favourites were written again too, with the new ids, and the mutations are gone
+			// the favourites were written again too, with the new ids, and the mutations and descendants are gone
 			expect(toFavourites).toEqual([['reset']]);
 			expect(toLocalMutations).toEqual([['reset']]);
+			expect(toLocalDescendants).toEqual([['reset']]);
 		});
 	});
 
@@ -569,6 +596,17 @@ describe('FlowerStore', () => {
 			expect(toRemoteMutations).toEqual([[mutation, { original: 4 }]]);
 		});
 
+		test('remoteReproduce announces nothing when the server cannot be reached', async () => {
+			FlowerStore.remoteSelected.flowers = [1, 2];
+			flowerApiClient.reproduceRemote.mockRejectedValue({ response: undefined });
+
+			await FlowerStore.remoteReproduce();
+
+			expect(toRemote).toEqual([]);
+			expect(toRemoteDescendants).toEqual([]);
+			expect(ErrorStore.push).toHaveBeenCalledWith('cannot reproduce remote flowers, server offline.');
+		});
+
 		test('remoteReproduce requires two selected flowers before calling the API', async () => {
 			FlowerStore.remoteSelected.flowers = [1];
 
@@ -588,7 +626,7 @@ describe('FlowerStore', () => {
 			expect(flowerApiClient.reproduceRemote).toHaveBeenCalledWith(1, 2);
 			expect(toRemote).toEqual([child]);
 			expect(toLastAdded).toEqual([child]);
-			expect(FlowerStore.ancestors[0]).toEqual(child);
+			expect(toRemoteDescendants).toEqual([[child, { father: 1, mother: 2 }]]);
 		});
 	});
 });

@@ -17,7 +17,6 @@ export const STORAGE_KEY_GARDEN = "FlowerEvolverGarden";
 export const useFlowerStore = defineStore('FlowerStore', {
 	state: () => ({
 		db: ddb,
-		ancestors: [],
 		remoteSelected: { index: 0, flowers: [] },
 		localSelected: { index: 0, flowers: [] },
 		settings: JSON.parse(localStorage.getItem(STORAGE_KEY) || JSON.stringify({
@@ -50,9 +49,6 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				return (flower.id === state.remoteSelected.flowers[0] || flower.id === state.remoteSelected.flowers[1]);
 			return false;
 		},
-		getAncestors: (state) => {
-			return state.ancestors;
-		}
 	},
 	actions: {
 		increaseOffset(offset){
@@ -79,19 +75,14 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			}
 			return 0;
 		},
-		async getRemoteAncestorsCount(fatherID, motherID){
+		async getRemoteDescendantsCount(fatherID, motherID){
 			try{
 				return await flowerApiClient.getDescendantsCount(fatherID, motherID);
 			}catch(e){
 				const ErrorStore = useErrorStore();
 				ErrorStore.push(e);
-			}
-		},
-		async getLocalAncestorsCount(fatherID, motherID){
-			if(motherID === undefined || motherID === null){
-				return flowerRepository.countDescendantsByParent(fatherID);
-			}else{
-				return flowerRepository.countDescendantsByParents(fatherID, motherID);
+				// the pages of a list are counted with it: no number would be NaN pages
+				return 0;
 			}
 		},
 		async setLoadDemoFlowers(load){
@@ -182,81 +173,6 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				this.localSelected.index = 0;
 			}
 		},
-		async updateRemoteAncestors({flower1, flower2, limit, offset}){
-			try{
-				if(flower2 === undefined || flower2 === null){
-					this.ancestors = await flowerApiClient.getDescendants(flower1.id, undefined, {limit, offset});
-				}else{
-					this.ancestors = await flowerApiClient.getDescendants(flower1.id, flower2.id, {limit, offset});
-				}
-			}catch(_){
-				//const ErrorStore = useErrorStore();
-				//ErrorStore.push(_);
-			}
-		},
-		async updateLocalAncestors({flower1, flower2, limit, offset}){
-			try{
-				this.ancestors = [];
-				if(flower2 === undefined || flower2 === null){
-					const descendants = await flowerRepository.listDescendantsByParent({fatherID: flower1.id, limit, offset});
-					for(const d of descendants){
-						flowerRepository.getFlower(d.id)
-							.then((f) => {
-								this.ancestors.push(f);
-						});
-					}
-				}else{
-					const descendants = await flowerRepository.listDescendantsByParents({fatherID: flower1.id, motherID: flower2.id, limit, offset});
-					for(const d of descendants){
-						flowerRepository.getFlower(d.id)
-							.then((f) => {
-								this.ancestors.push(f);
-						});
-					}
-				}
-			}catch(e){
-				const ErrorStore = useErrorStore();
-				ErrorStore.push(e);
-			}
-		},
-		async updateAndConcatRemoteAncestors({flower1, flower2, limit, offset}){
-			try{
-				if(flower2 === undefined || flower2 === null){
-					const ancestors = await flowerApiClient.getDescendants(flower1.id, undefined, {limit, offset});
-					this.ancestors = this.ancestors.concat(ancestors);
-				}else{
-					const ancestors = await flowerApiClient.getDescendants(flower1.id, flower2.id, {limit, offset});
-					this.ancestors = this.ancestors.concat(ancestors);
-				}
-			}catch(_){
-				//const ErrorStore = useErrorStore();
-				//ErrorStore.push(_);
-			}
-		},
-		async updateAndConcatLocalAncestors({flower1, flower2, limit, offset}){
-			try{
-				if(flower2 === undefined || flower2 === null){
-					const descendants = await flowerRepository.listDescendantsByParent({fatherID: flower1.id, limit, offset});
-					for(const d of descendants){
-						flowerRepository.getFlower(d.id)
-							.then((f) => {
-								this.ancestors.push(f);
-						});
-					}
-				}else{
-					const descendants = await flowerRepository.listDescendantsByParents({fatherID: flower1.id, motherID: flower2.id, limit, offset});
-					for(const d of descendants){
-						flowerRepository.getFlower(d.id)
-							.then((f) => {
-								this.ancestors.push(f);
-						});
-					}
-				}
-			}catch(e){
-				const ErrorStore = useErrorStore();
-				ErrorStore.push(e);
-			}
-		},
 		async shareFlower(genome){
 			try{
 				await flowerApiClient.shareFlower(genome);
@@ -342,6 +258,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			listReset('local');
 			listReset('favourites');
 			listReset('localMutations');
+			listReset('localDescendants');
 		},
         async deleteNonFavourites(){
             let ids = await flowerRepository.listFavouriteIds();
@@ -376,6 +293,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			listReset('local');
 			listReset('favourites');
 			listReset('localMutations');
+			listReset('localDescendants');
 		},
 		async deleteLocalFlower(id){
 			this.localSelected.flowers = [];
@@ -396,16 +314,17 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				}).catch(handleError);
 			flowerRemoved('local', id);
 			flowerRemoved('favourites', id);
-			this.ancestors = this.ancestors.filter(f => f.id != id);
+			flowerRemoved('localDescendants', id);
 			flowerRemoved('localMutations', id);
 		},
 		async remoteReproduce(){
 			if(this.remoteSelected.flowers.length > 1){
 				try{
-					const flower = await flowerApiClient.reproduceRemote(this.remoteSelected.flowers[0], this.remoteSelected.flowers[1]);
+					const [father, mother] = this.remoteSelected.flowers;
+					const flower = await flowerApiClient.reproduceRemote(father, mother);
 					flowerAdded('remote', flower);
 					flowerAdded('lastAdded', flower);
-					this.ancestors.unshift(flower);
+					flowerAdded('remoteDescendants', flower, { father, mother });
 				}catch(_){
 					const ErrorStore = useErrorStore();
 					ErrorStore.push(flowerApiClient.mapAxiosError(_, "cannot reproduce remote flowers, server offline."));
@@ -446,7 +365,9 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					});
 				let f = await flowerRepository.getFlower(id);
 				flowerAdded('local', f);
-				this.ancestors.unshift(f);
+				// the first of the two selected is the father and the second the mother, the lists of descendants
+				// are made of the children of that pair
+				flowerAdded('localDescendants', f, { father: f1.id, mother: f2.id });
 				useSpeciesStore().classifyLater(id);
 			}else{
 				const ErrorStore = useErrorStore();

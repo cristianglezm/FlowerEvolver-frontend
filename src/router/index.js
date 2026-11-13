@@ -3,7 +3,7 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 import Local from '../views/Local.vue';
 import LastAdded from '../views/LastAdded.vue';
 import Mutations from '../views/Mutations.vue';
-import Ancestors from '../views/Ancestors.vue';
+import Descendants from '../views/Descendants.vue';
 import Browse from '../views/Browse.vue';
 import Favourites from '../views/Favourites.vue';
 import Species from '../views/Species.vue';
@@ -25,12 +25,12 @@ const routes = [
   {
     path: '/Descendants/:isLocal/:father/:mother',
     name: 'DescendantsFatherAndMother',
-    component: Ancestors,
+    component: Descendants,
   },
   {
     path: '/Descendants/:isLocal/:father',
     name: 'DescendantsFatherOrMother',
-    component: Ancestors,
+    component: Descendants,
   },
 ];
 
