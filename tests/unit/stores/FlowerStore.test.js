@@ -80,6 +80,7 @@ describe('FlowerStore', () => {
 	// the remote lists: what they were told, in order
 	let toRemote;
 	let toLastAdded;
+	let toFavourites;
 	let stopRemote;
 
 	beforeEach(() => {
@@ -87,9 +88,15 @@ describe('FlowerStore', () => {
 		announced = [];
 		toRemote = [];
 		toLastAdded = [];
+		toFavourites = [];
 		stopRemote = [
 			listenToList('remote', { added: (flower) => toRemote.push(flower) }),
 			listenToList('lastAdded', { added: (flower) => toLastAdded.push(flower) }),
+			listenToList('favourites', {
+				added: (flower) => toFavourites.push(['added', flower]),
+				removed: (id) => toFavourites.push(['removed', id]),
+				reset: () => toFavourites.push(['reset']),
+			}),
 		];
 		stopListening = listenToList('local', {
 			added: (flower) => announced.push(['added', flower]),
@@ -110,11 +117,6 @@ describe('FlowerStore', () => {
 	});
 
 	describe('counts', () => {
-		test('getLocalFlowersCount delegates to the repository', async () => {
-			flowerRepository.countFlowers.mockResolvedValue(42);
-			await expect(FlowerStore.getLocalFlowersCount()).resolves.toBe(42);
-		});
-
 		test('getRemoteFlowersCount returns 0 and records the error on failure', async () => {
 			const err = new Error('network down');
 			flowerApiClient.getFlowersCount.mockRejectedValue(err);
@@ -144,15 +146,32 @@ describe('FlowerStore', () => {
 			expect(announced).toEqual([['added', { id: 7, genome: 'stored-genome', image: 'stored-image' }]]);
 		});
 
-		test('addFlowerToFav adds via the repository and unshifts the resolved flower', async () => {
+		test('addFlowerToFav adds via the repository and announces the resolved flower to the favourites', async () => {
 			flowerRepository.addFavourite.mockResolvedValue(3);
 			flowerRepository.getFlower.mockResolvedValue({ id: 3, genome: 'g', image: 'i' });
 
 			await FlowerStore.addFlowerToFav(3);
-			await Promise.resolve();
+			await vi.waitFor(() => expect(toFavourites).toHaveLength(1));
 
 			expect(flowerRepository.addFavourite).toHaveBeenCalledWith(3);
-			expect(FlowerStore.favourites[0]).toEqual({ id: 3, genome: 'g', image: 'i' });
+			expect(toFavourites).toEqual([['added', { id: 3, genome: 'g', image: 'i' }]]);
+		});
+
+		test('addFlowerToFav records the error and announces nothing when it cannot be added', async () => {
+			const failure = new Error('already a favourite');
+			flowerRepository.addFavourite.mockRejectedValue(failure);
+
+			await FlowerStore.addFlowerToFav(3);
+			await vi.waitFor(() => expect(ErrorStore.push).toHaveBeenCalledWith(failure));
+
+			expect(toFavourites).toEqual([]);
+		});
+
+		test('removeFlowerFromFav removes it via the repository and announces the removal', () => {
+			FlowerStore.removeFlowerFromFav(3);
+
+			expect(flowerRepository.removeFavourite).toHaveBeenCalledWith(3);
+			expect(toFavourites).toEqual([['removed', 3]]);
 		});
 
 		test('deleteLocalFlower removes the flower from every table via the repository', async () => {
@@ -167,6 +186,7 @@ describe('FlowerStore', () => {
 			expect(flowerRepository.deleteFlower).toHaveBeenCalledWith(5);
 			expect(flowerRepository.removeFavourite).toHaveBeenCalledWith(5);
 			expect(announced).toEqual([['removed', 5]]);
+			expect(toFavourites).toEqual([['removed', 5]]);
 		});
 
 		test('deleteNonFavourites keeps the favourites renumbered 1..n, with their descriptions matched by position', async () => {
@@ -458,6 +478,8 @@ describe('FlowerStore', () => {
 			await FlowerStore.deleteAllFlowers();
 
 			expect(order).toEqual(['wiped', 'reset']);
+			// the favourites went with it
+			expect(toFavourites).toEqual([['reset']]);
 		});
 
 		test('deleteNonFavourites announces a reset, and only when the favourites are written again', async () => {
@@ -478,6 +500,8 @@ describe('FlowerStore', () => {
 
 			// no flower is announced: a reset makes the view read the table, with the new ids
 			expect(order).toEqual(['flowers written', 'species written', 'reset']);
+			// the favourites were written again too, with the new ids
+			expect(toFavourites).toEqual([['reset']]);
 		});
 	});
 

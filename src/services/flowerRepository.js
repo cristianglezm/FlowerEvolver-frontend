@@ -28,6 +28,13 @@ export async function listFlowers({limit, offset}){
 	return db.flowers.reverse().offset(offset).limit(limit).toArray();
 }
 
+// the favourites, the one with the highest id first; the table has the id of the flower in each row
+export async function listFavourites({limit, offset}){
+	const ids = await db.favourites.reverse().offset(offset).limit(limit).toArray();
+	const flowers = await db.flowers.bulkGet(ids);
+	// a favourite whose flower is not there has nothing to show
+	return flowers.filter((f) => f !== undefined);
+}
 export async function countFavourites(){
 	return db.favourites.count();
 }

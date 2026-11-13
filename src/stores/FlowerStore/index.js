@@ -21,7 +21,6 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		ancestors: [],
 		remoteSelected: { index: 0, flowers: [] },
 		localSelected: { index: 0, flowers: [] },
-		favourites: [],
 		settings: JSON.parse(localStorage.getItem(STORAGE_KEY) || JSON.stringify({
 			params: { radius:64, numLayers:3, P: 6.0, bias: 1.0 },
 			mutationRates: { addNodeRate: 0.2, addConnRate: 0.3, removeConnRate: 0.2, perturbWeightsRate: 0.6, enableRate: 0.35, disableRate: 0.3, actTypeRate: 0.4 },
@@ -74,12 +73,6 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				ErrorStore.push(e);
 			}
 			return 0;
-		},
-		async getLocalFlowersCount(){
-			return await flowerRepository.countFlowers();
-		},
-		async getFavouritesCount(){
-			return await flowerRepository.countFavourites();
 		},
 		async getRemoteMutationsCount(original){
 			try{
@@ -166,7 +159,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				.then(ID => {
 					flowerRepository.getFlower(ID)
 						.then((f) => {
-							this.favourites.unshift(f);
+							flowerAdded('favourites', f);
 						})
 						.catch(e => {
 							const ErrorStore = useErrorStore();
@@ -180,7 +173,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		},
 		removeFlowerFromFav(id){
 			flowerRepository.removeFavourite(id);
-			this.favourites = this.favourites.filter(f => f.id != id);
+			flowerRemoved('favourites', id);
 		},
 		selectRemoteFlower(flower){
 			this.remoteSelected.flowers[this.remoteSelected.index] = flower.id;
@@ -398,6 +391,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
             await flowerRepository.wipeDatabase();
 			useSpeciesStore().invalidate();
 			listReset('local');
+			listReset('favourites');
 		},
         async deleteNonFavourites(){
             let ids = await flowerRepository.listFavouriteIds();
@@ -428,8 +422,9 @@ export const useFlowerStore = defineStore('FlowerStore', {
             await flowerRepository.bulkAddDescriptions(descs);
             await speciesRepository.bulkPutSpecies(species);
             useSpeciesStore().invalidate();
-			// the table was written again with other ids: whoever shows the flowers reads them again
+			// the tables were written again with other ids: whoever shows the flowers reads them again
 			listReset('local');
+			listReset('favourites');
 		},
 		async deleteLocalFlower(id){
 			this.localSelected.flowers = [];
@@ -449,7 +444,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					flowerRepository.bulkDeleteMutations(ids).catch(handleError);
 				}).catch(handleError);
 			flowerRemoved('local', id);
-			this.favourites = this.favourites.filter(f => f.id != id);
+			flowerRemoved('favourites', id);
 			this.ancestors = this.ancestors.filter(f => f.id != id);
 			this.mutations = this.mutations.filter(f => f.id != id);
 		},
