@@ -17,7 +17,6 @@ export const STORAGE_KEY_GARDEN = "FlowerEvolverGarden";
 export const useFlowerStore = defineStore('FlowerStore', {
 	state: () => ({
 		db: ddb,
-		mutations: [],
 		ancestors: [],
 		remoteSelected: { index: 0, flowers: [] },
 		localSelected: { index: 0, flowers: [] },
@@ -51,9 +50,6 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				return (flower.id === state.remoteSelected.flowers[0] || flower.id === state.remoteSelected.flowers[1]);
 			return false;
 		},
-		getMutations: (state) => {
-			return state.mutations;
-		},
 		getAncestors: (state) => {
 			return state.ancestors;
 		}
@@ -82,9 +78,6 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				ErrorStore.push(e);
 			}
 			return 0;
-		},
-		async getLocalMutationsCount(original){
-			return await flowerRepository.countMutations(original);
 		},
 		async getRemoteAncestorsCount(fatherID, motherID){
 			try{
@@ -187,50 +180,6 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			this.localSelected.index++;
 			if(this.localSelected.index > 1){
 				this.localSelected.index = 0;
-			}
-		},
-		async updateRemoteMutations({flower, limit, offset}){
-			try{
-				this.mutations = await flowerApiClient.getMutations(flower.id, {limit, offset});
-			}catch(_){
-				//const ErrorStore = useErrorStore();
-				//ErrorStore.push(_);
-			}
-		},
-		async updateLocalMutations({flower, limit, offset}){
-			try{
-				this.mutations = [];
-				const mutations = await flowerRepository.listMutationsByOriginal({original: flower.id, limit, offset});
-				for(const m of mutations){
-					flowerRepository.getFlower(m.id).then((f) => {
-						this.mutations.push(f);
-					});
-				}
-			}catch(e){
-				const ErrorStore = useErrorStore();
-				ErrorStore.push(e);
-			}
-		},
-		async updateAndConcatRemoteMutations({flower, limit, offset}){
-			try{
-				const mutations = await flowerApiClient.getMutations(flower.id, {limit, offset});
-				this.mutations = this.mutations.concat(mutations);
-			}catch(_){
-				//const ErrorStore = useErrorStore();
-				//ErrorStore.push(_);
-			}
-		},
-		async updateAndConcatLocalMutations({flower, limit, offset}){
-			try{
-				const mutations = await flowerRepository.listMutationsByOriginal({original: flower.id, limit, offset});
-				for(const m of mutations){
-					flowerRepository.getFlower(m.id).then((f) => {
-						this.mutations.push(f);
-					});
-				}
-			}catch(e){
-				const ErrorStore = useErrorStore();
-				ErrorStore.push(e);
 			}
 		},
 		async updateRemoteAncestors({flower1, flower2, limit, offset}){
@@ -392,6 +341,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			useSpeciesStore().invalidate();
 			listReset('local');
 			listReset('favourites');
+			listReset('localMutations');
 		},
         async deleteNonFavourites(){
             let ids = await flowerRepository.listFavouriteIds();
@@ -425,6 +375,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			// the tables were written again with other ids: whoever shows the flowers reads them again
 			listReset('local');
 			listReset('favourites');
+			listReset('localMutations');
 		},
 		async deleteLocalFlower(id){
 			this.localSelected.flowers = [];
@@ -446,7 +397,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			flowerRemoved('local', id);
 			flowerRemoved('favourites', id);
 			this.ancestors = this.ancestors.filter(f => f.id != id);
-			this.mutations = this.mutations.filter(f => f.id != id);
+			flowerRemoved('localMutations', id);
 		},
 		async remoteReproduce(){
 			if(this.remoteSelected.flowers.length > 1){
@@ -507,7 +458,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				const mutation = await flowerApiClient.mutateRemote(flower.id);
 				flowerAdded('remote', mutation);
 				flowerAdded('lastAdded', mutation);
-				this.mutations.unshift(mutation);
+				flowerAdded('remoteMutations', mutation, { original: flower.id });
 			}catch(_){
 				const ErrorStore = useErrorStore();
 				ErrorStore.push(flowerApiClient.mapAxiosError(_, "cannot mutate a remote flower, server offline."));
@@ -549,7 +500,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				});
 				let f = await flowerRepository.getFlower(id);
 				flowerAdded('local', f);
-				this.mutations.unshift(f);
+				flowerAdded('localMutations', f, { original: original.id });
 				useSpeciesStore().classifyLater(id);
 			}catch(e){
 				const ErrorStore = useErrorStore();

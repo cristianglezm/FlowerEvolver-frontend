@@ -5,98 +5,77 @@
     </div>
     <div class="header"><p><strong>Mutations of {{ data.original.id }}</strong></p></div>
     <PaginationOrInfiniteScroll
-      :pagination="isPaginated()" :itemsLength="mutations.length" :currentPage="data.page" :totalPages="data.totalPages"
-      @next-page="nextPage" @prev-page="prevPage" @update-page="updateMutations"
+      :pagination="isPaginated" :items-length="state.items.length"
+      :current-page="state.page" :total-pages="state.totalPages"
+      @next-page="nextPage" @prev-page="prevPage" @update-page="nextBatch"
     >
-      <FlowersTable :flowers="mutations" :isLocal="data.isLocal" :noFlowerMessage="'This Flower Has no Mutations.'" />
+      <FlowersTable :flowers="state.items" :is-local="data.isLocal" :no-flower-message="'This Flower Has no Mutations.'" />
     </PaginationOrInfiniteScroll>
   </div>
 </template>
 
 <script setup>
 
-    import { reactive, computed, nextTick, onBeforeMount } from 'vue';
-    import FlowerCard from '../components/FlowerCard.vue';
-    import FlowersTable from '../components/FlowersTable.vue';
-    import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
-    import { useRoute, useRouter } from 'vue-router';
-    import { useFlowerStore } from '../stores/FlowerStore';
-	
-    const FlowerStore = useFlowerStore();
-    const routes = useRoute();
-    const router = useRouter();
-    let data = reactive({
-        offset: 0,
-        original: { id: 0, genome: "", image: ""},
-        page: parseInt(routes.query.page, 10) || 0,
-        totalPages: 0,
-        isLocal: routes.params.isLocal === "local"
-    });
-    onBeforeMount(() => {
-        Init();
-    });
-    let mutations = computed(() => {
-        return FlowerStore.getMutations;
-    });
+import { reactive, onMounted } from 'vue';
+import FlowerCard from '../components/FlowerCard.vue';
+import FlowersTable from '../components/FlowersTable.vue';
+import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
+import { useRoute } from 'vue-router';
+import { useFlowerStore } from '../stores/FlowerStore';
+import { useErrorStore } from '../stores/ErrorStore';
+import * as flowerRepository from '../services/flowerRepository';
+import * as flowerApiClient from '../services/flowerApiClient';
+import { usePaginatedList } from '../composables/usePaginatedList';
 
-    const Init = async () => {
-        let originalID = parseInt(routes.params.id);
-        if(data.isLocal){
-            data.original = await FlowerStore.db.flowers.get(originalID);
-        }else{
-            data.original = { id: originalID, genome: originalID + '.json', image: originalID + '.png'};
-        }
-        if(isPaginated()){
-            if(data.isLocal){
-                FlowerStore.getLocalMutationsCount(data.original.id).then(c => data.totalPages = Math.ceil(c / FlowerStore.settings.limit));
-            }else{
-                FlowerStore.getRemoteMutationsCount(data.original.id).then(c => data.totalPages = Math.ceil(c / FlowerStore.settings.limit));
-            }
-            getMutationsFrom(data.page);
-        }else{
-            FlowerStore.mutations = [];
-            updateMutations();
-        }
-    };
-    const getMutationsFrom = (page) => {
-        nextTick(() => {
-            data.offset = FlowerStore.calcOffset(page);
-            if(data.isLocal){
-                FlowerStore.updateLocalMutations({flower: data.original, limit: FlowerStore.settings.limit, offset: data.offset});
-            }else{
-                FlowerStore.updateRemoteMutations({flower: data.original, limit: FlowerStore.settings.limit, offset: data.offset});
-            }
-        });
-    };
-    const updateMutations = () => {
-        nextTick(() => {
-            if(data.isLocal){
-                FlowerStore.updateAndConcatLocalMutations({flower: data.original, limit: FlowerStore.settings.limit, offset: data.offset});
-            }else{
-                FlowerStore.updateAndConcatRemoteMutations({flower: data.original, limit: FlowerStore.settings.limit, offset: data.offset});
-            }
-            data.offset = FlowerStore.increaseOffset(data.offset);
-        });
-    };
-    const prevPage = () => {
-        if(data.page >= 1){
-            data.page -= 1;
-            pushRoute();
-        }
-    };
-    const nextPage = () => {
-        if(data.page < data.totalPages - 1){
-            data.page += 1;
-            pushRoute();
-        }
-    };
-    const pushRoute = () => {
-        let localOr = data.isLocal ? "local":"remote";
-        router.push({name:"Mutations", params: {id: data.original.id, isLocal: localOr}, query:{page: data.page}});
-    };
-    const isPaginated = () => {
-        return FlowerStore.settings.pagination;
-    };
+const FlowerStore = useFlowerStore();
+const ErrorStore = useErrorStore();
+const routes = useRoute();
+const originalID = parseInt(routes.params.id);
+const isLocal = routes.params.isLocal === 'local';
+const data = reactive({
+    original: { id: originalID, genome: '', image: '' },
+    isLocal
+});
+
+// the mutations of the flower in the local rows: each one is a flower of its own
+const readLocal = async ({ limit, offset }) => {
+    const rows = await flowerRepository.listMutationsByOriginal({ original: originalID, limit, offset });
+    const flowers = await Promise.all(rows.map((m) => flowerRepository.getFlower(m.id)));
+    // a mutation whose flower was deleted has nothing to show
+    return flowers.filter((f) => f !== undefined);
+};
+
+const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginatedList({
+    // the mutations of the browser and those of the server are not the same list
+    list: isLocal ? 'localMutations' : 'remoteMutations',
+    // A mutation is stored as a mutation of the flower that was mutated, which can be one of the mutations in this
+    // list: that one is in the list of that flower, and not in this one after the page is read again.
+    accepts: (_, relation) => relation?.original === originalID,
+    fetchCount: () => {
+        return isLocal ? flowerRepository.countMutations(originalID)
+                       // reports a server that cannot be reached, the pages do not
+                       : FlowerStore.getRemoteMutationsCount(originalID);
+    },
+    fetchPage: ({ limit, offset }) => {
+        return isLocal ? readLocal({ limit, offset })
+                       : flowerApiClient.getMutations(originalID, { limit, offset }).catch(() => []);
+    }
+});
+
+onMounted(async () => {
+    // ?page= is the page to start at, the pages after it are not a route each
+    init(parseInt(routes.query.page, 10) || 0);
+    if(!isLocal){
+        data.original = { id: originalID, genome: originalID + '.json', image: originalID + '.png' };
+        return;
+    }
+    try{
+        // a flower that is not there is not drawn, its mutations are still listed
+        data.original = await flowerRepository.getFlower(originalID) ?? data.original;
+    }catch(e){
+        ErrorStore.push(e);
+    }
+});
 
 </script>
 

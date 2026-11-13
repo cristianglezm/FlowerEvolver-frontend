@@ -81,6 +81,9 @@ describe('FlowerStore', () => {
 	let toRemote;
 	let toLastAdded;
 	let toFavourites;
+	// the lists of mutations: what they were told, with the relation that came with it
+	let toLocalMutations;
+	let toRemoteMutations;
 	let stopRemote;
 
 	beforeEach(() => {
@@ -89,9 +92,17 @@ describe('FlowerStore', () => {
 		toRemote = [];
 		toLastAdded = [];
 		toFavourites = [];
+		toLocalMutations = [];
+		toRemoteMutations = [];
 		stopRemote = [
 			listenToList('remote', { added: (flower) => toRemote.push(flower) }),
 			listenToList('lastAdded', { added: (flower) => toLastAdded.push(flower) }),
+			listenToList('localMutations', {
+				added: (flower, relation) => toLocalMutations.push(['added', flower, relation]),
+				removed: (id) => toLocalMutations.push(['removed', id]),
+				reset: () => toLocalMutations.push(['reset']),
+			}),
+			listenToList('remoteMutations', { added: (flower, relation) => toRemoteMutations.push([flower, relation]) }),
 			listenToList('favourites', {
 				added: (flower) => toFavourites.push(['added', flower]),
 				removed: (id) => toFavourites.push(['removed', id]),
@@ -122,12 +133,6 @@ describe('FlowerStore', () => {
 			flowerApiClient.getFlowersCount.mockRejectedValue(err);
 			await expect(FlowerStore.getRemoteFlowersCount()).resolves.toBe(0);
 			expect(ErrorStore.push).toHaveBeenCalledWith(err);
-		});
-
-		test('getLocalMutationsCount(original) is scoped to the given original', async () => {
-			flowerRepository.countMutations.mockResolvedValue(3);
-			await expect(FlowerStore.getLocalMutationsCount(9)).resolves.toBe(3);
-			expect(flowerRepository.countMutations).toHaveBeenCalledWith(9);
 		});
 	});
 
@@ -187,6 +192,7 @@ describe('FlowerStore', () => {
 			expect(flowerRepository.removeFavourite).toHaveBeenCalledWith(5);
 			expect(announced).toEqual([['removed', 5]]);
 			expect(toFavourites).toEqual([['removed', 5]]);
+			expect(toLocalMutations).toEqual([['removed', 5]]);
 		});
 
 		test('deleteNonFavourites keeps the favourites renumbered 1..n, with their descriptions matched by position', async () => {
@@ -430,7 +436,7 @@ describe('FlowerStore', () => {
 			expect(FlowerStore.ancestors[0]).toEqual({ id: 9, genome, image: 'i' });
 		});
 
-		test('makeLocalMutation announces the mutation, which is also in the list of mutations', async () => {
+		test('makeLocalMutation announces the mutation, and to the mutations of the flower that was mutated', async () => {
 			const genome = await realGenome();
 			flowerRepository.addFlower.mockResolvedValue(10);
 			flowerRepository.addMutation.mockResolvedValue();
@@ -439,7 +445,21 @@ describe('FlowerStore', () => {
 			await FlowerStore.makeLocalMutation({ id: 1, genome });
 
 			expect(announced).toEqual([['added', { id: 10, genome, image: 'i' }]]);
-			expect(FlowerStore.mutations[0]).toEqual({ id: 10, genome, image: 'i' });
+			expect(flowerRepository.addMutation).toHaveBeenCalledWith({ id: 10, original: 1 });
+			// the original is the one that was mutated, not the first of a family: a list decides with it if it is its own
+			expect(toLocalMutations).toEqual([['added', { id: 10, genome, image: 'i' }, { original: 1 }]]);
+		});
+
+		test('makeLocalMutation announces nothing when the flower cannot be mutated', async () => {
+			const fe = await getFlowerEvolver();
+			vi.spyOn(fe, 'mutate').mockRejectedValueOnce(new Error('wasm trapped'));
+
+			await FlowerStore.makeLocalMutation({ id: 1, genome: 'not a genome' });
+
+			expect(announced).toEqual([]);
+			expect(toLocalMutations).toEqual([]);
+			expect(ErrorStore.push).toHaveBeenCalledWith("couldn't mutate a local flower.");
+			vi.restoreAllMocks();
 		});
 
 		test('addRemoteFlowerToLocal announces the flower it brings in', async () => {
@@ -478,8 +498,9 @@ describe('FlowerStore', () => {
 			await FlowerStore.deleteAllFlowers();
 
 			expect(order).toEqual(['wiped', 'reset']);
-			// the favourites went with it
+			// and so did the favourites and the mutations
 			expect(toFavourites).toEqual([['reset']]);
+			expect(toLocalMutations).toEqual([['reset']]);
 		});
 
 		test('deleteNonFavourites announces a reset, and only when the favourites are written again', async () => {
@@ -500,8 +521,9 @@ describe('FlowerStore', () => {
 
 			// no flower is announced: a reset makes the view read the table, with the new ids
 			expect(order).toEqual(['flowers written', 'species written', 'reset']);
-			// the favourites were written again too, with the new ids
+			// the favourites were written again too, with the new ids, and the mutations are gone
 			expect(toFavourites).toEqual([['reset']]);
+			expect(toLocalMutations).toEqual([['reset']]);
 		});
 	});
 
@@ -544,7 +566,7 @@ describe('FlowerStore', () => {
 			expect(flowerApiClient.mutateRemote).toHaveBeenCalledWith(4);
 			expect(toRemote).toEqual([mutation]);
 			expect(toLastAdded).toEqual([mutation]);
-			expect(FlowerStore.mutations[0]).toEqual(mutation);
+			expect(toRemoteMutations).toEqual([[mutation, { original: 4 }]]);
 		});
 
 		test('remoteReproduce requires two selected flowers before calling the API', async () => {
