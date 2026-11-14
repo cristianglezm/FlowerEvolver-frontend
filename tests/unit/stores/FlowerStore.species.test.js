@@ -4,6 +4,7 @@ import { describe, test, expect, beforeEach, afterAll, vi } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { db } from '../../../src/stores/FlowerStore/db';
 import { useFlowerStore } from '../../../src/stores/FlowerStore';
+import { useFavouritesStore } from '../../../src/stores/FavouritesStore';
 import { useSpeciesStore, _resetSpeciesStoreForTests } from '../../../src/stores/SpeciesStore';
 import { getSpeciesClient } from '../../../src/services/speciesWorker';
 import { getFlowerEvolver } from '../../../src/services/flowerEvolver';
@@ -23,6 +24,7 @@ vi.mock('../../../src/services/speciesWorker', async () => {
 // Drawing flowers and classifying them is real work, a loaded machine can take seconds for one test.
 describe('FlowerStore and SpeciesStore together', { timeout: 30000 }, () => {
     let FlowerStore;
+    let FavouritesStore;
     let SpeciesStore;
 
     const makeFlowers = async (count) => {
@@ -45,6 +47,7 @@ describe('FlowerStore and SpeciesStore together', { timeout: 30000 }, () => {
         (await getFlowerEvolver()).loadSOM('');
         createTestingPinia({ stubActions: false, createSpy: vi.fn });
         FlowerStore = useFlowerStore();
+        FavouritesStore = useFavouritesStore();
         SpeciesStore = useSpeciesStore();
     });
 
@@ -85,8 +88,8 @@ describe('FlowerStore and SpeciesStore together', { timeout: 30000 }, () => {
                 { id: ids[2], x: 0, y: 1, d: 0.3, fp },
                 { id: ids[3], x: 1, y: 1, d: 0.4, fp },
             ]);
-            await FlowerStore.addFlowerToFav(ids[1]);
-            await FlowerStore.addFlowerToFav(ids[3]);
+            await FavouritesStore.addFlowerToFav(ids[1]);
+            await FavouritesStore.addFlowerToFav(ids[3]);
             const classify = vi.spyOn(getSpeciesClient(), 'classifyBatch');
 
             await FlowerStore.deleteNonFavourites();
@@ -108,7 +111,7 @@ describe('FlowerStore and SpeciesStore together', { timeout: 30000 }, () => {
             ]);
             await SpeciesStore.ensureFor(ids);
             expect(SpeciesStore.rowFor(1)).toMatchObject({ x: 0, y: 0 });
-            await FlowerStore.addFlowerToFav(ids[1]);
+            await FavouritesStore.addFlowerToFav(ids[1]);
 
             await FlowerStore.deleteNonFavourites();
 

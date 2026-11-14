@@ -116,6 +116,7 @@
     import { onMounted, ref, reactive, inject, onUnmounted } from "vue";
     import { useFlowerStore } from '../stores/FlowerStore';
     import { useSettingsStore } from '../stores/SettingsStore';
+    import { useFavouritesStore } from '../stores/FavouritesStore';
     import { getFlowerEvolver } from '../services/flowerEvolver';
     import { useCaptionerStore } from '../stores/CaptionerStore';
     import { useErrorStore } from '../stores/ErrorStore';
@@ -205,13 +206,14 @@
     const router = useRouter();
     const FlowerStore = useFlowerStore();
     const SettingsStore = useSettingsStore();
+    const FavouritesStore = useFavouritesStore();
     const ErrorStore = useErrorStore();
     const CaptionerStore = useCaptionerStore();
     const emitter = inject('emitter');
     onMounted(() => {
         if(props.isLocal){
             parseParams();
-            FlowerStore.isFavourited(props.id)
+            FavouritesStore.isFavourited(props.id)
                 .then((isFav) => {
                     if(isFav){
                         data.heartIconSrc = loadImage("heart_full.png","x32");
@@ -346,15 +348,15 @@
     };
     const toggleFavourite = async (id) => {
         if(props.isLocal){
-            let isFav = await FlowerStore.isFavourited(id);
+            let isFav = await FavouritesStore.isFavourited(id);
             if(isFav){
                 data.index = 6;
                 setTimeout(changeHeartIcon, 50, true);
-                FlowerStore.removeFlowerFromFav(id);
+                FavouritesStore.removeFlowerFromFav(id);
             }else{
                 data.index = 0;
                 setTimeout(changeHeartIcon, 50, false);
-                await FlowerStore.addFlowerToFav(id);
+                await FavouritesStore.addFlowerToFav(id);
             }
         }else{
             ErrorStore.push("Add the flower to local first to add it to favourites.");

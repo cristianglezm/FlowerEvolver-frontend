@@ -177,34 +177,6 @@ describe('FlowerStore', () => {
 			expect(announced).toEqual([['added', { id: 7, genome: 'stored-genome', image: 'stored-image' }]]);
 		});
 
-		test('addFlowerToFav adds via the repository and announces the resolved flower to the favourites', async () => {
-			flowerRepository.addFavourite.mockResolvedValue(3);
-			flowerRepository.getFlower.mockResolvedValue({ id: 3, genome: 'g', image: 'i' });
-
-			await FlowerStore.addFlowerToFav(3);
-			await vi.waitFor(() => expect(toFavourites).toHaveLength(1));
-
-			expect(flowerRepository.addFavourite).toHaveBeenCalledWith(3);
-			expect(toFavourites).toEqual([['added', { id: 3, genome: 'g', image: 'i' }]]);
-		});
-
-		test('addFlowerToFav records the error and announces nothing when it cannot be added', async () => {
-			const failure = new Error('already a favourite');
-			flowerRepository.addFavourite.mockRejectedValue(failure);
-
-			await FlowerStore.addFlowerToFav(3);
-			await vi.waitFor(() => expect(ErrorStore.push).toHaveBeenCalledWith(failure));
-
-			expect(toFavourites).toEqual([]);
-		});
-
-		test('removeFlowerFromFav removes it via the repository and announces the removal', () => {
-			FlowerStore.removeFlowerFromFav(3);
-
-			expect(flowerRepository.removeFavourite).toHaveBeenCalledWith(3);
-			expect(toFavourites).toEqual([['removed', 3]]);
-		});
-
 		test('deleteLocalFlower removes the flower from every table via the repository', async () => {
 			flowerRepository.removeFavourite.mockResolvedValue();
 			flowerRepository.deleteDescription.mockResolvedValue();

@@ -106,35 +106,6 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				ErrorStore.push(e);
 			}
 		},
-		async isFavourited(id){
-			try{
-				return await flowerRepository.isFavourited(id);
-			}catch(e){
-				const ErrorStore = useErrorStore();
-				ErrorStore.push(e);
-			}
-		},
-		async addFlowerToFav(id){
-			flowerRepository.addFavourite(id)
-				.then(ID => {
-					flowerRepository.getFlower(ID)
-						.then((f) => {
-							flowerAdded('favourites', f);
-						})
-						.catch(e => {
-							const ErrorStore = useErrorStore();
-							ErrorStore.push(e);
-						});
-				})
-				.catch(e => {
-					const ErrorStore = useErrorStore();
-					ErrorStore.push(e);
-				});
-		},
-		removeFlowerFromFav(id){
-			flowerRepository.removeFavourite(id);
-			flowerRemoved('favourites', id);
-		},
 		selectRemoteFlower(flower){
 			this.remoteSelected.flowers[this.remoteSelected.index] = flower.id;
 			this.remoteSelected.index++;

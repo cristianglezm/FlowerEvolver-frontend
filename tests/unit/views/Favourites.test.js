@@ -7,6 +7,7 @@ import { createRouter, createMemoryHistory } from 'vue-router';
 import Favourites from '../../../src/views/Favourites.vue';
 import PaginationOrInfiniteScroll from '../../../src/components/PaginationOrInfiniteScroll.vue';
 import { useFlowerStore } from '../../../src/stores/FlowerStore';
+import { useFavouritesStore } from '../../../src/stores/FavouritesStore';
 import { useSettingsStore } from '../../../src/stores/SettingsStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 import { flowerAdded } from '../../../src/services/listEvents';
@@ -63,6 +64,7 @@ vi.mock('../../../src/components/FlowersTable.vue', () => ({
 
 describe('Favourites view', () => {
     let FlowerStore;
+    let FavouritesStore;
     let SettingsStore;
     let ErrorStore;
     let router;
@@ -91,6 +93,7 @@ describe('Favourites view', () => {
         db.favourites = new Set();
         createTestingPinia({ stubActions: false, createSpy: vi.fn });
         FlowerStore = useFlowerStore();
+        FavouritesStore = useFavouritesStore();
         SettingsStore = useSettingsStore();
         ErrorStore = useErrorStore();
         vi.spyOn(ErrorStore, 'push');
@@ -141,10 +144,10 @@ describe('Favourites view', () => {
             await mountView();
             expect(shown()).toEqual([1]);
 
-            await FlowerStore.addFlowerToFav(4);
+            await FavouritesStore.addFlowerToFav(4);
             await vi.waitFor(() => expect(shown()).toEqual([4, 1]));
 
-            FlowerStore.removeFlowerFromFav(1);
+            FavouritesStore.removeFlowerFromFav(1);
             await settle();
             expect(shown()).toEqual([4]);
             expect(ErrorStore.push).not.toHaveBeenCalled();
@@ -154,7 +157,7 @@ describe('Favourites view', () => {
             fill(3, [1]);
             await mountView();
 
-            await FlowerStore.addFlowerToFav(1);
+            await FavouritesStore.addFlowerToFav(1);
             await settle();
 
             expect(shown()).toEqual([1]);
@@ -210,7 +213,7 @@ describe('Favourites view', () => {
             wrapper.unmount();
             wrapper = undefined;
 
-            await FlowerStore.addFlowerToFav(2);
+            await FavouritesStore.addFlowerToFav(2);
             await flushPromises();
 
             expect(ErrorStore.push).not.toHaveBeenCalled();

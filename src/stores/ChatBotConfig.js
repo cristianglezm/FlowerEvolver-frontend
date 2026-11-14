@@ -1,4 +1,5 @@
 import { useFlowerStore } from "./FlowerStore";
+import { useFavouritesStore } from "./FavouritesStore";
 import { useCaptionerStore } from "./CaptionerStore";
 import { useRouter } from "vue-router";
 import { useVectorStore } from "./vectorStore";
@@ -209,12 +210,12 @@ export const execCommand = (text) => {
             }
                 break;
             case "addToFav":{
-                let FlowerStore = useFlowerStore();
+                let FavouritesStore = useFavouritesStore();
                 let fail = "addToFavs command failed";
                 let success = "addToFavs command executed";
                 let id = command[i].parameters?.id;
                 if(id){
-                    FlowerStore.addFlowerToFav(id);
+                    FavouritesStore.addFlowerToFav(id);
                     infoForUser.push(success);
                 }else{
                     infoForUser.push("Flower id not found");
@@ -223,7 +224,7 @@ export const execCommand = (text) => {
             }
                 break;
             case "deleteFromFav":{
-                let FlowerStore = useFlowerStore();
+                let FavouritesStore = useFavouritesStore();
                 let fail = "deleteFromFav command failed";
                 let success = "deleteFromFav requested confirmation";
                 let id = command[i].parameters?.id;
@@ -234,7 +235,7 @@ export const execCommand = (text) => {
                         btnNo: 'no',
                         btnYes: 'remove flower from favourites',
                         onConfirm: async () => {
-                            FlowerStore.removeFlowerFromFav(id);
+                            FavouritesStore.removeFlowerFromFav(id);
                         }
                     });
                     infoForUser.push(success);
