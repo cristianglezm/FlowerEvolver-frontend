@@ -7,6 +7,7 @@ import { createRouter, createMemoryHistory } from 'vue-router';
 import Favourites from '../../../src/views/Favourites.vue';
 import PaginationOrInfiniteScroll from '../../../src/components/PaginationOrInfiniteScroll.vue';
 import { useFlowerStore } from '../../../src/stores/FlowerStore';
+import { useSettingsStore } from '../../../src/stores/SettingsStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 import { flowerAdded } from '../../../src/services/listEvents';
 
@@ -62,6 +63,7 @@ vi.mock('../../../src/components/FlowersTable.vue', () => ({
 
 describe('Favourites view', () => {
     let FlowerStore;
+    let SettingsStore;
     let ErrorStore;
     let router;
     let wrapper;
@@ -89,10 +91,11 @@ describe('Favourites view', () => {
         db.favourites = new Set();
         createTestingPinia({ stubActions: false, createSpy: vi.fn });
         FlowerStore = useFlowerStore();
+        SettingsStore = useSettingsStore();
         ErrorStore = useErrorStore();
         vi.spyOn(ErrorStore, 'push');
-        FlowerStore.settings.pagination = false;
-        FlowerStore.settings.limit = 3;
+        SettingsStore.settings.pagination = false;
+        SettingsStore.settings.limit = 3;
         router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/Favourites', name: 'Favourites', component: { template: '<div />' } }] });
     });
 
@@ -216,7 +219,7 @@ describe('Favourites view', () => {
 
     describe('one page at a time', () => {
         beforeEach(() => {
-            FlowerStore.settings.pagination = true;
+            SettingsStore.settings.pagination = true;
             fill(12, [1, 3, 4, 6, 7, 9, 10, 12]);
         });
         const clickArrow = async (label) => {

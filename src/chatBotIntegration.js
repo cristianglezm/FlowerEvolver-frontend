@@ -8,7 +8,7 @@ export { ChatBotWidget, chat_template, tools, documents, execCommand };
  * Wires up the chatbot's event plumbing. Call once, from the app shell's
  * onMounted.
  * @param emitter the app-wide mitt event bus (see main.js)
- * @param settings FlowerStore.settings - drives which models load on start
+ * @param settings SettingsStore.settings - drives which models load on start
  */
 export function registerChatBot(emitter, settings){
     const CaptionerStore = useCaptionerStore();

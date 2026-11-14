@@ -7,11 +7,11 @@ import * as flowerApiClient from '../../services/flowerApiClient';
 import * as speciesRepository from '../../services/speciesRepository';
 import { useErrorStore } from '../ErrorStore';
 import { useSpeciesStore } from '../SpeciesStore';
+import { useSettingsStore } from '../SettingsStore';
 import { flowerAdded, flowerRemoved, listReset } from '../../services/listEvents';
 
 export const API = import.meta.env.VITE_APP_API_URL;
 export const URL = import.meta.env.VITE_APP_DOWNLOAD_URL;
-export const STORAGE_KEY = 'FlowerEvolverSettings';
 export const STORAGE_KEY_GARDEN = "FlowerEvolverGarden";
 
 export const useFlowerStore = defineStore('FlowerStore', {
@@ -19,18 +19,6 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		db: ddb,
 		remoteSelected: { index: 0, flowers: [] },
 		localSelected: { index: 0, flowers: [] },
-		settings: JSON.parse(localStorage.getItem(STORAGE_KEY) || JSON.stringify({
-			params: { radius:64, numLayers:3, P: 6.0, bias: 1.0 },
-			mutationRates: { addNodeRate: 0.2, addConnRate: 0.3, removeConnRate: 0.2, perturbWeightsRate: 0.6, enableRate: 0.35, disableRate: 0.3, actTypeRate: 0.4 },
-			loadDemoFlowers: true,
-			loadCaptionerModel: false,
-			loadChatBotModel: false,
-			loadKokoroModel: false,
-			showChatBot: false,
-			pagination: false,
-			limit: 100,
-			magnification: 4
-		})),
 	}),
 	getters: {
 		getRemoteSelected: (state) => {
@@ -51,12 +39,6 @@ export const useFlowerStore = defineStore('FlowerStore', {
 		},
 	},
 	actions: {
-		increaseOffset(offset){
-			return offset + this.settings.limit;
-		},
-		calcOffset(page){
-			return page * this.settings.limit;
-		},
 		async getRemoteFlowersCount(){
 			try{
 				return await flowerApiClient.getFlowersCount();
@@ -85,14 +67,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				return 0;
 			}
 		},
-		async setLoadDemoFlowers(load){
-			this.settings.loadDemoFlowers = load;
-			this.saveSettings();
-		},
-		async saveSettings(){
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(this.settings));
-		},
 		async addRemoteFlowerToLocal(flower){
+			const settings = useSettingsStore().settings;
 			try{
 				fetch(URL + flower.genome)
 				.then(response => {
@@ -103,8 +79,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 					let localFlower;
 					try{
 						const fe = await getFlowerEvolver();
-						fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
-							this.settings.params.P, this.settings.params.bias));
+						fe.setParams(new FEParams(settings.params.radius, settings.params.numLayers,
+							settings.params.P, settings.params.bias));
 						localFlower = await fe.drawFlower(genome);
 					}catch(e){
 						const ErrorStore = useErrorStore();
@@ -192,13 +168,14 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			}
 		},
 		async makeLocalFlower(){
+			const settings = useSettingsStore().settings;
 			try{
 				flowerRepository.ensureOpen();
 				let flower;
 				try{
 					const fe = await getFlowerEvolver();
-					fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
-													this.settings.params.P, this.settings.params.bias));
+					fe.setParams(new FEParams(settings.params.radius, settings.params.numLayers,
+													settings.params.P, settings.params.bias));
 					flower = await fe.makeFlower();
 				}catch(_){
 					const ErrorStore = useErrorStore();
@@ -219,13 +196,14 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			}
 		},
 		async redrawFlower(flower){
+			const settings = useSettingsStore().settings;
 			try{
 				flowerRepository.ensureOpen();
 				let f;
 				try{
 					const fe = await getFlowerEvolver();
-					fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
-						this.settings.params.P, this.settings.params.bias));
+					fe.setParams(new FEParams(settings.params.radius, settings.params.numLayers,
+						settings.params.P, settings.params.bias));
 					f = await fe.drawFlower(flower.genome);
 				}catch(_){
 					const ErrorStore = useErrorStore();
@@ -335,6 +313,7 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			}
 		},
 		async localReproduce(){
+			const settings = useSettingsStore().settings;
 			if(this.localSelected.flowers.length > 1){
 				flowerRepository.ensureOpen();
 				let f1 = await flowerRepository.getFlower(this.localSelected.flowers[0]);
@@ -342,8 +321,8 @@ export const useFlowerStore = defineStore('FlowerStore', {
 				let flower;
 				try{
 					const fe = await getFlowerEvolver();
-					fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
-						this.settings.params.P, this.settings.params.bias));
+					fe.setParams(new FEParams(settings.params.radius, settings.params.numLayers,
+						settings.params.P, settings.params.bias));
 					flower = await fe.reproduce(f1.genome, f2.genome);
 				}catch(_){
 					const ErrorStore = useErrorStore();
@@ -386,21 +365,22 @@ export const useFlowerStore = defineStore('FlowerStore', {
 			}
 		},
 		async makeLocalMutation(original){
+			const settings = useSettingsStore().settings;
 			try{
 				flowerRepository.ensureOpen();
 				let flower;
 				try{
 					const fe = await getFlowerEvolver();
-					fe.setParams(new FEParams(this.settings.params.radius, this.settings.params.numLayers, 
-						this.settings.params.P, this.settings.params.bias));
+					fe.setParams(new FEParams(settings.params.radius, settings.params.numLayers,
+						settings.params.P, settings.params.bias));
 					flower = await fe.mutate(original.genome, 
-                                                this.settings.mutationRates.addNodeRate, 
-                                                this.settings.mutationRates.addConnRate, 
-                                                this.settings.mutationRates.removeConnRate, 
-                                                this.settings.mutationRates.perturbWeightsRate, 
-                                                this.settings.mutationRates.enableRate, 
-                                                this.settings.mutationRates.disableRate, 
-                                                this.settings.mutationRates.actTypeRate
+                                                settings.mutationRates.addNodeRate,
+                                                settings.mutationRates.addConnRate,
+                                                settings.mutationRates.removeConnRate,
+                                                settings.mutationRates.perturbWeightsRate,
+                                                settings.mutationRates.enableRate,
+                                                settings.mutationRates.disableRate,
+                                                settings.mutationRates.actTypeRate
                                             );
 				}catch(_){
 					const ErrorStore = useErrorStore();

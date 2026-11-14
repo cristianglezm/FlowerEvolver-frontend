@@ -28,17 +28,17 @@
 <script setup>
 import { reactive } from 'vue';
 import ToolTip from '../components/ToolTip.vue';
-import { useFlowerStore, STORAGE_KEY } from '../stores/FlowerStore';
+import { useSettingsStore } from '../stores/SettingsStore';
 import { FEParams } from '@cristianglezm/flower-evolver-wasm';
 import { getFlowerEvolver } from '../services/flowerEvolver';
 
-const FlowerStore = useFlowerStore();
+const SettingsStore = useSettingsStore();
 
 const params = reactive({
-    radius: FlowerStore.settings.params.radius,
-    numLayers: FlowerStore.settings.params.numLayers,
-    P: FlowerStore.settings.params.P,
-    bias: FlowerStore.settings.params.bias
+    radius: SettingsStore.settings.params.radius,
+    numLayers: SettingsStore.settings.params.numLayers,
+    P: SettingsStore.settings.params.P,
+    bias: SettingsStore.settings.params.bias
 });
 
 const restoreDefaults = () => {
@@ -66,7 +66,7 @@ const getTimesDivisibleBy = (val, divisor) => {
 const saveSettings = async () => {
     const fe = await getFlowerEvolver();
     fe.setParams(new FEParams(params.radius, params.numLayers, params.P, params.bias));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(FlowerStore.settings));
+    SettingsStore.saveSettings();
 };
 
 const validateParams = () => {
@@ -74,7 +74,7 @@ const validateParams = () => {
     params.numLayers = clamp(params.numLayers, 1, getTimesDivisibleBy(params.radius, 2));
     params.P = validateFloat(params.P, 6.0);
     params.bias = validateFloat(params.bias, 1.0);
-    FlowerStore.settings.params = params;
+    SettingsStore.settings.params = params;
     saveSettings();
 };
 const validateFloat = (number, Default) => {

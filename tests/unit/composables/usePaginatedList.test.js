@@ -5,10 +5,10 @@ import { usePaginatedList } from '../../../src/composables/usePaginatedList';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 import { flowerAdded, flowerRemoved, listReset } from '../../../src/services/listEvents';
 
-// The settings are the only thing it takes from FlowerStore, the rest of that store needs the wasm.
-const flowerStore = vi.hoisted(() => ({}));
-vi.mock('../../../src/stores/FlowerStore', () => ({
-    useFlowerStore: () => flowerStore,
+// The settings and the offsets are all it takes from SettingsStore, here they are set by each test.
+const settingsStore = vi.hoisted(() => ({}));
+vi.mock('../../../src/stores/SettingsStore', () => ({
+    useSettingsStore: () => settingsStore,
 }));
 
 const gate = () => {
@@ -35,9 +35,9 @@ describe('usePaginatedList', () => {
     beforeEach(() => {
         createTestingPinia({ stubActions: false, createSpy: vi.fn });
         ErrorStore = useErrorStore();
-        flowerStore.settings = reactive({ pagination: true, limit: 10 });
-        flowerStore.calcOffset = (page) => page * flowerStore.settings.limit;
-        flowerStore.increaseOffset = (offset) => offset + flowerStore.settings.limit;
+        settingsStore.settings = reactive({ pagination: true, limit: 10 });
+        settingsStore.calcOffset = (page) => page * settingsStore.settings.limit;
+        settingsStore.increaseOffset = (offset) => offset + settingsStore.settings.limit;
     });
 
     describe('one page at a time', () => {
@@ -139,7 +139,7 @@ describe('usePaginatedList', () => {
 
     describe('infinite scroll', () => {
         beforeEach(() => {
-            flowerStore.settings.pagination = false;
+            settingsStore.settings.pagination = false;
         });
 
         test('init loads the first batch and does not count', async () => {
@@ -258,7 +258,7 @@ describe('usePaginatedList', () => {
         });
 
         test('the first batch starts the list and the next ones continue it', async () => {
-            flowerStore.settings.pagination = false;
+            settingsStore.settings.pagination = false;
             const onLoaded = vi.fn();
             const list = usePaginatedList({ ...makeFlowers(35), onLoaded });
 
@@ -495,7 +495,7 @@ describe('usePaginatedList', () => {
         const list = usePaginatedList(makeList(25));
         expect(list.isPaginated.value).toBe(true);
 
-        flowerStore.settings.pagination = false;
+        settingsStore.settings.pagination = false;
         expect(list.isPaginated.value).toBe(false);
     });
 });

@@ -7,7 +7,7 @@
  * // start worker
  *   workers.exportWorker.postMessage({
  *       type: type,
- *       batchSize: FlowerStore.settings.limit
+ *       batchSize: SettingsStore.settings.limit
  *   });
  * // worker will send
  * // update

@@ -4,33 +4,33 @@
     <div id="pagination-option" class="option-box labelInputArea">
       <ToolTip :info="'if checked pagination will be used, infinite Scroll otherwise.'" />
       <label for="pagination">Pagination: </label>
-      <input id="pagination" v-model="FlowerStore.settings.pagination" type="checkbox" @change="saveSettings()">
+      <input id="pagination" v-model="SettingsStore.settings.pagination" type="checkbox" @change="saveSettings()">
     </div>
     <div id="loadDemoFlowers-option" class="option-box labelInputArea">
       <ToolTip :info="'if checked the demo flowers will load in Local.'" />
       <label for="loadDemoFlowers">Load Demo Flowers: </label>
-      <input id="loadDemoFlowers" v-model="FlowerStore.settings.loadDemoFlowers" type="checkbox" @change="saveSettings()">
+      <input id="loadDemoFlowers" v-model="SettingsStore.settings.loadDemoFlowers" type="checkbox" @change="saveSettings()">
     </div>
     <div id="loadCaptionerModel-option" class="option-box labelInputArea">
       <ToolTip :info="'if checked the Captioner will be loaded when the website is loaded.'" />
       <label for="loadCaptionerModel">Load Captioner: </label>
-      <input id="loadCaptionerModel" v-model="FlowerStore.settings.loadCaptionerModel" type="checkbox" @change="saveSettings(); loadCaptionerModel();">
+      <input id="loadCaptionerModel" v-model="SettingsStore.settings.loadCaptionerModel" type="checkbox" @change="saveSettings(); loadCaptionerModel();">
     </div>
     <div id="loadModelChatBot-option" class="option-box labelInputArea">
       <ToolTip :info="'if checked the ChatBot will be loaded when the website is loaded.'" />
       <label for="loadChatBotModel">Load ChatBot: </label>
-      <input id="loadChatBotModel" v-model="FlowerStore.settings.loadChatBotModel" type="checkbox" @change="saveSettings(); loadChatBotModel();">
+      <input id="loadChatBotModel" v-model="SettingsStore.settings.loadChatBotModel" type="checkbox" @change="saveSettings(); loadChatBotModel();">
     </div>
     <div id="loadModelKokoro-option" class="option-box labelInputArea">
       <ToolTip :info="'if checked the speech generation (Kokoro) model will be loaded when the website is loaded.'" />
       <label for="loadKokoroModel">Load Kokoro: </label>
-      <input id="loadKokoroModel" v-model="FlowerStore.settings.loadKokoroModel" type="checkbox" @change="saveSettings(); loadKokoroModel();">
+      <input id="loadKokoroModel" v-model="SettingsStore.settings.loadKokoroModel" type="checkbox" @change="saveSettings(); loadKokoroModel();">
     </div>
     <div id="magnification-option" class="option-box labelInputArea">
       <ToolTip :info="'Adjust the zoom magnification to enhance the view.'" />
       <label for="magnification-range">Magnification:</label>
-      <input id="magnification-range" v-model="FlowerStore.settings.magnification" type="range" min="4" max="16" step="2" @change="validateMagnification()">
-      <span>{{ FlowerStore.settings.magnification }}x</span>
+      <input id="magnification-range" v-model="SettingsStore.settings.magnification" type="range" min="4" max="16" step="2" @change="validateMagnification()">
+      <span>{{ SettingsStore.settings.magnification }}x</span>
     </div>
     <div id="persists-option" class="option-box labelInputArea">
       <ToolTip :info="'it will keep data even when low on space'" />
@@ -41,7 +41,7 @@
       <div id="limit-settings" class="option-box labelInputArea">
         <ToolTip :info="'limit for how many flowers it will load at a time.'" />
         <label for="setLimit">Limit per Page: </label>
-        <input id="setLimit" v-model.number="FlowerStore.settings.limit" type="number" min="1" @change="validateLimit()">
+        <input id="setLimit" v-model.number="SettingsStore.settings.limit" type="number" min="1" @change="validateLimit()">
       </div>
       <div style="color: lightgreen; text-align: center;"> 
         <ToolTip :info="'Space used by the flowers (usage / quota) if persistent storage is enabled it will use a bit more space, the model adds around 240mb'" />
@@ -55,9 +55,9 @@
 
 import { reactive, inject, onBeforeUnmount, onMounted } from 'vue';
 import ToolTip from '../components/ToolTip.vue';
-import { useFlowerStore, STORAGE_KEY } from '../stores/FlowerStore';
+import { useSettingsStore } from '../stores/SettingsStore';
 
-const FlowerStore = useFlowerStore();
+const SettingsStore = useSettingsStore();
 let emitter = inject('emitter');
 
 const data = reactive({
@@ -67,17 +67,17 @@ const data = reactive({
 });
 
 const loadCaptionerModel = () => {
-    if(FlowerStore.settings.loadCaptionerModel){
+    if(SettingsStore.settings.loadCaptionerModel){
         emitter.emit('App#loadCaptionerModel');
     }
 };
 const loadChatBotModel = () => {
-    if(FlowerStore.settings.loadChatBotModel){
+    if(SettingsStore.settings.loadChatBotModel){
         emitter.emit('ChatBotWidget#loadChatBotModel');
     }
 };
 const loadKokoroModel = () => {
-    if(FlowerStore.settings.loadKokoroModel){
+    if(SettingsStore.settings.loadKokoroModel){
         emitter.emit('ChatBotWidget#loadKokoroModel');
     }
 };
@@ -116,15 +116,15 @@ onBeforeUnmount(() => {
 });
 
 const saveSettings = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(FlowerStore.settings));
+    SettingsStore.saveSettings();
 };
 const validateLimit = () => {
-    FlowerStore.settings.limit = validateInteger(FlowerStore.settings.limit, 100);
+    SettingsStore.settings.limit = validateInteger(SettingsStore.settings.limit, 100);
     saveSettings();
 };
 const validateMagnification = () => {
-    let magnification = FlowerStore.settings.magnification;
-    FlowerStore.settings.magnification = Math.min(16, Math.max(validateInteger(magnification, 4), 4));
+    let magnification = SettingsStore.settings.magnification;
+    SettingsStore.settings.magnification = Math.min(16, Math.max(validateInteger(magnification, 4), 4));
     saveSettings();
 };
 const validateInteger = (number, Default) => {

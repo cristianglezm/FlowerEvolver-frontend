@@ -50,7 +50,7 @@
         <ThreeFlower :id="props.id" :width="245" :height="350" :genome="props.genome" :emissive="emissive" />
       </div>
       <div v-else>
-        <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="FlowerStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
+        <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="SettingsStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
       </div>
       <p>
         <strong>{{ props.id }}</strong>
@@ -103,7 +103,7 @@
         <ThreeFlower :id="props.id" :width="245" :height="350" :genome="props.genome" :emissive="emissive" />
       </div>
       <div v-else>
-        <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="FlowerStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
+        <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="SettingsStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
       </div>
       <p>
         <strong>{{ props.id }}</strong>
@@ -115,6 +115,7 @@
 <script setup>
     import { onMounted, ref, reactive, inject, onUnmounted } from "vue";
     import { useFlowerStore } from '../stores/FlowerStore';
+    import { useSettingsStore } from '../stores/SettingsStore';
     import { getFlowerEvolver } from '../services/flowerEvolver';
     import { useCaptionerStore } from '../stores/CaptionerStore';
     import { useErrorStore } from '../stores/ErrorStore';
@@ -203,6 +204,7 @@
     });
     const router = useRouter();
     const FlowerStore = useFlowerStore();
+    const SettingsStore = useSettingsStore();
     const ErrorStore = useErrorStore();
     const CaptionerStore = useCaptionerStore();
     const emitter = inject('emitter');
@@ -398,7 +400,7 @@
     const downloadPetalsImpl = async (genome) => {
             const zip = new JSZip();
             const fe = await getFlowerEvolver();
-            for(let i = FlowerStore.settings.params.numLayers; i >= 0; --i){
+            for(let i = SettingsStore.settings.params.numLayers; i >= 0; --i){
                 let f = await fe.drawPetalLayer(genome, i);
                 zip.file(
                   `Flower_${props.id}_PetalLayer_${i}.png`,

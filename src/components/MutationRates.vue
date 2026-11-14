@@ -65,25 +65,25 @@
 
 import { reactive } from 'vue';
 import ToolTip from '../components/ToolTip.vue';
-import { useFlowerStore, STORAGE_KEY } from '../stores/FlowerStore';
+import { useSettingsStore } from '../stores/SettingsStore';
 
-const FlowerStore = useFlowerStore();
+const SettingsStore = useSettingsStore();
 
 const mutationRates = reactive({
-    addNodeRate: FlowerStore.settings.mutationRates.addNodeRate,
-    addConnRate: FlowerStore.settings.mutationRates.addConnRate,
-    removeConnRate: FlowerStore.settings.mutationRates.removeConnRate,
-    perturbWeightsRate: FlowerStore.settings.mutationRates.perturbWeightsRate,
-    enableRate: FlowerStore.settings.mutationRates.enableRate,
-    disableRate: FlowerStore.settings.mutationRates.disableRate,
-    actTypeRate: FlowerStore.settings.mutationRates.actTypeRate
+    addNodeRate: SettingsStore.settings.mutationRates.addNodeRate,
+    addConnRate: SettingsStore.settings.mutationRates.addConnRate,
+    removeConnRate: SettingsStore.settings.mutationRates.removeConnRate,
+    perturbWeightsRate: SettingsStore.settings.mutationRates.perturbWeightsRate,
+    enableRate: SettingsStore.settings.mutationRates.enableRate,
+    disableRate: SettingsStore.settings.mutationRates.disableRate,
+    actTypeRate: SettingsStore.settings.mutationRates.actTypeRate
 });
 
 const clamp = (val, min, max) => {
     return Math.min(max, Math.max(val, min));
 }
 const saveSettings = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(FlowerStore.settings));
+    SettingsStore.saveSettings();
 };
 const restoreDefaults = () => {
     mutationRates.addNodeRate = 0.2;
@@ -103,7 +103,7 @@ const validateMutationRates = () => {
     mutationRates.enableRate = clamp(mutationRates.enableRate, 0.0, 1.0)
     mutationRates.perturbWeightsRate = clamp(mutationRates.perturbWeightsRate, 0.0, 1.0)
     mutationRates.removeConnRate = clamp(mutationRates.removeConnRate, 0.0, 1.0)
-    FlowerStore.settings.mutationRates = mutationRates;
+    SettingsStore.settings.mutationRates = mutationRates;
     saveSettings();
 };
 

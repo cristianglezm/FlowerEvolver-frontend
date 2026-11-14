@@ -1,5 +1,5 @@
 import { reactive, computed, getCurrentScope, onScopeDispose } from 'vue';
-import { useFlowerStore } from '../stores/FlowerStore';
+import { useSettingsStore } from '../stores/SettingsStore';
 import { useErrorStore } from '../stores/ErrorStore';
 import { listenToList } from '../services/listEvents';
 
@@ -36,7 +36,7 @@ import { listenToList } from '../services/listEvents';
  * //     @next-page="nextPage" @prev-page="prevPage" @update-page="nextBatch">
  */
 export const usePaginatedList = ({ fetchCount, fetchPage, list, accepts, onLoaded }) => {
-    const FlowerStore = useFlowerStore();
+    const SettingsStore = useSettingsStore();
     const ErrorStore = useErrorStore();
     const state = reactive({
         items: [],
@@ -45,7 +45,7 @@ export const usePaginatedList = ({ fetchCount, fetchPage, list, accepts, onLoade
         // how many pages there are, so the last one is totalPages - 1
         totalPages: 0
     });
-    const isPaginated = computed(() => FlowerStore.settings.pagination);
+    const isPaginated = computed(() => SettingsStore.settings.pagination);
     // What arrives after a newer page was asked for, or after init() started over, is not shown.
     let latest = 0;
     // the generation that has a batch on its way, scrolling asks again and again while it loads
@@ -62,8 +62,8 @@ export const usePaginatedList = ({ fetchCount, fetchPage, list, accepts, onLoade
     const load = async (page) => {
         const mine = ++latest;
         try{
-            const limit = FlowerStore.settings.limit;
-            const offset = FlowerStore.calcOffset(page);
+            const limit = SettingsStore.settings.limit;
+            const offset = SettingsStore.calcOffset(page);
             const items = await fetchPage({ limit, offset });
             if(mine === latest){
                 state.page = page;
@@ -83,11 +83,11 @@ export const usePaginatedList = ({ fetchCount, fetchPage, list, accepts, onLoade
         batching = mine;
         try{
             const from = state.offset;
-            const limit = FlowerStore.settings.limit;
+            const limit = SettingsStore.settings.limit;
             const batch = await fetchPage({ limit, offset: from });
             if(mine === latest){
                 state.items = state.items.concat(batch);
-                state.offset = FlowerStore.increaseOffset(from);
+                state.offset = SettingsStore.increaseOffset(from);
                 // the first batch starts the list, as a page does: what was loaded for the list before is not wanted
                 loaded({ items: batch, offset: from, limit, append: from > 0 });
             }
@@ -108,7 +108,7 @@ export const usePaginatedList = ({ fetchCount, fetchPage, list, accepts, onLoade
         if(isPaginated.value){
             await load(startPage);
             try{
-                state.totalPages = Math.ceil(await fetchCount() / FlowerStore.settings.limit);
+                state.totalPages = Math.ceil(await fetchCount() / SettingsStore.settings.limit);
             }catch(e){
                 ErrorStore.push(e);
             }

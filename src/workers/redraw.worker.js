@@ -5,7 +5,7 @@
  * @example
  * // start worker
  *   workers.redrawWorker.postMessage({
- *       batchSize: FlowerStore.settings.limit,
+ *       batchSize: SettingsStore.settings.limit,
  *       params: structuredClone(toRaw(params))
  *  });
  * // updates

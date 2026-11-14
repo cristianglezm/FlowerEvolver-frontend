@@ -7,6 +7,7 @@ import { createRouter, createMemoryHistory } from 'vue-router';
 import Mutations from '../../../src/views/Mutations.vue';
 import PaginationOrInfiniteScroll from '../../../src/components/PaginationOrInfiniteScroll.vue';
 import { useFlowerStore } from '../../../src/stores/FlowerStore';
+import { useSettingsStore } from '../../../src/stores/SettingsStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 import { flowerAdded } from '../../../src/services/listEvents';
 
@@ -84,6 +85,7 @@ vi.mock('../../../src/components/FlowersTable.vue', () => ({
 
 describe('Mutations view', () => {
     let FlowerStore;
+    let SettingsStore;
     let ErrorStore;
     let router;
     let wrapper;
@@ -133,10 +135,11 @@ describe('Mutations view', () => {
         server.offline = false;
         createTestingPinia({ stubActions: false, createSpy: vi.fn });
         FlowerStore = useFlowerStore();
+        SettingsStore = useSettingsStore();
         ErrorStore = useErrorStore();
         vi.spyOn(ErrorStore, 'push');
-        FlowerStore.settings.pagination = false;
-        FlowerStore.settings.limit = 3;
+        SettingsStore.settings.pagination = false;
+        SettingsStore.settings.limit = 3;
         router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/Mutations/:isLocal/:id', name: 'Mutations', component: { template: '<div />' } }] });
     });
 
@@ -383,7 +386,7 @@ describe('Mutations view', () => {
 
     describe('one page at a time', () => {
         beforeEach(() => {
-            FlowerStore.settings.pagination = true;
+            SettingsStore.settings.pagination = true;
         });
         const clickArrow = async (label) => {
             await wrapper.findAll('button').find((b) => b.text() === label).trigger('click');

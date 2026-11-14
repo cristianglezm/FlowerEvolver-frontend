@@ -7,10 +7,13 @@ import { createRouter, createMemoryHistory } from 'vue-router';
 import mitt from 'mitt';
 import AppMenu from '../../../src/components/AppMenu.vue';
 
-// the menu only reads the settings of FlowerStore, the rest of that store needs the wasm
-const flowerStore = vi.hoisted(() => ({}));
+// the menu only reads the settings, the actions of FlowerStore need the wasm
+const settingsStore = vi.hoisted(() => ({}));
+vi.mock('../../../src/stores/SettingsStore', () => ({
+    useSettingsStore: () => settingsStore,
+}));
 vi.mock('../../../src/stores/FlowerStore', () => ({
-    useFlowerStore: () => flowerStore,
+    useFlowerStore: () => ({}),
 }));
 
 const page = { template: '<div />' };
@@ -22,7 +25,7 @@ describe('AppMenu tabs', () => {
     const tabs = (wrapper) => wrapper.findAll('nav.tabs a').map((link) => [link.text(), link.attributes('href')]);
     const mountMenu = async ({ width, pagination }) => {
         window.innerWidth = width;
-        flowerStore.settings = reactive({ pagination, showChatBot: false });
+        settingsStore.settings = reactive({ pagination, showChatBot: false });
         const wrapper = mount(AppMenu, {
             props: { isLocal: true },
             global: {

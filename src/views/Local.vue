@@ -15,7 +15,7 @@
 import { onMounted, reactive, inject, watch } from 'vue';
 import FlowersTable from '../components/FlowersTable.vue';
 import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
-import { useFlowerStore } from '../stores/FlowerStore';
+import { useSettingsStore } from '../stores/SettingsStore';
 import { useErrorStore } from '../stores/ErrorStore';
 import { useCaptionerStore } from '../stores/CaptionerStore';
 import * as flowerRepository from '../services/flowerRepository';
@@ -26,7 +26,7 @@ import WorkerManager from '../stores/WorkerManager';
 import mitt from 'mitt';
 
 const routes = useRoute();
-const FlowerStore = useFlowerStore();
+const SettingsStore = useSettingsStore();
 const ErrorStore = useErrorStore();
 const CaptionerStore = useCaptionerStore();
 const emitter = inject('emitter');
@@ -89,7 +89,7 @@ wm.onResponse('importer', (e) => {
 });
 
 const loadDemoFlowers = async () => {
-    if(FlowerStore.settings.loadDemoFlowers){
+    if(SettingsStore.settings.loadDemoFlowers){
         const blob = await fetch(data.demoFlowersFile)
                 .then(response => {
                     return response.blob();
@@ -98,9 +98,9 @@ const loadDemoFlowers = async () => {
         wm.sendRequest('importer', {
             files: files,
             toFavs: false,
-            batchSize: FlowerStore.settings.limit
+            batchSize: SettingsStore.settings.limit
         });
-        FlowerStore.setLoadDemoFlowers(false);
+        SettingsStore.setLoadDemoFlowers(false);
     }else{
         data.killWorker = true;
     }

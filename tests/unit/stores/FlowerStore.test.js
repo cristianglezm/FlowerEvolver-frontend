@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { useFlowerStore } from '../../../src/stores/FlowerStore';
+import { useSettingsStore } from '../../../src/stores/SettingsStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 import * as flowerRepository from '../../../src/services/flowerRepository';
 import * as flowerApiClient from '../../../src/services/flowerApiClient';
@@ -73,6 +74,7 @@ vi.mock('../../../src/stores/SpeciesStore', () => ({
 
 describe('FlowerStore', () => {
 	let FlowerStore;
+	let SettingsStore;
 	let ErrorStore;
 	// what the views that show the list of the local flowers are told
 	let announced;
@@ -129,6 +131,7 @@ describe('FlowerStore', () => {
 		// real; only its collaborators (the two mocked services above) are faked.
 		createTestingPinia({ stubActions: false, createSpy: vi.fn });
 		FlowerStore = useFlowerStore();
+		SettingsStore = useSettingsStore();
 		ErrorStore = useErrorStore();
 		vi.spyOn(ErrorStore, 'push');
 	});
@@ -551,6 +554,90 @@ describe('FlowerStore', () => {
 			expect(toFavourites).toEqual([['reset']]);
 			expect(toLocalMutations).toEqual([['reset']]);
 			expect(toLocalDescendants).toEqual([['reset']]);
+		});
+	});
+
+	// The parameters of the evolver and the rates of mutation are the settings of the user: they live in
+	// SettingsStore and the actions that draw, reproduce and mutate read them when they are called
+	describe('the settings that the evolver is given', () => {
+		const params = { radius: 32, numLayers: 2, P: 4.5, bias: 0.5 };
+		const rates = { addNodeRate: 0.11, addConnRate: 0.22, removeConnRate: 0.33, perturbWeightsRate: 0.44, enableRate: 0.55, disableRate: 0.66, actTypeRate: 0.77 };
+		const realGenome = async () => {
+			flowerRepository.addFlower.mockResolvedValueOnce(1);
+			flowerRepository.getFlower.mockResolvedValueOnce({ id: 1, genome: 'g', image: 'i' });
+			await FlowerStore.makeLocalFlower();
+			const { genome } = flowerRepository.addFlower.mock.calls[0][0];
+			vi.clearAllMocks();
+			return genome;
+		};
+		const prepare = (genome) => {
+			flowerRepository.addFlower.mockResolvedValue(5);
+			flowerRepository.getFlower.mockImplementation(async (id) => ({ id, genome, image: 'i' }));
+			flowerRepository.addMutation.mockResolvedValue();
+			flowerRepository.addDescendant.mockResolvedValue();
+		};
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		test.each([
+			['makeLocalFlower', async () => FlowerStore.makeLocalFlower()],
+			['redrawFlower', async (genome) => FlowerStore.redrawFlower({ id: 1, genome, image: 'i' })],
+			['localReproduce', async () => {
+				FlowerStore.localSelected.flowers = [1, 2];
+				await FlowerStore.localReproduce();
+			}],
+			['makeLocalMutation', async (genome) => FlowerStore.makeLocalMutation({ id: 1, genome })],
+			['addRemoteFlowerToLocal', async (genome) => {
+				vi.stubGlobal('fetch', vi.fn(async () => ({ text: async () => genome })));
+				await FlowerStore.addRemoteFlowerToLocal({ genome: 'remote-id' });
+				vi.unstubAllGlobals();
+			}],
+		])('%s draws with the parameters of the settings', async (_, run) => {
+			const genome = await realGenome();
+			prepare(genome);
+			SettingsStore.settings.params = { ...params };
+			const setParams = vi.spyOn(await getFlowerEvolver(), 'setParams');
+
+			await run(genome);
+			// the flower of the server is fetched and drawn after the action returned
+			await vi.waitFor(() => expect(setParams).toHaveBeenCalled());
+			for(const [given] of setParams.mock.calls){
+				expect(given).toMatchObject(params);
+			}
+			expect(ErrorStore.push).not.toHaveBeenCalled();
+		});
+
+		test('makeLocalMutation mutates with the rates of the settings, in the order the evolver takes them', async () => {
+			const genome = await realGenome();
+			prepare(genome);
+			SettingsStore.settings.mutationRates = { ...rates };
+			const mutate = vi.spyOn(await getFlowerEvolver(), 'mutate');
+
+			await FlowerStore.makeLocalMutation({ id: 1, genome });
+
+			expect(mutate).toHaveBeenCalledExactlyOnceWith(genome, 0.11, 0.22, 0.33, 0.44, 0.55, 0.66, 0.77);
+		});
+
+		test('what is used is what the settings say when the action is called, not when the store was made', async () => {
+			const genome = await realGenome();
+			prepare(genome);
+			const setParams = vi.spyOn(await getFlowerEvolver(), 'setParams');
+
+			SettingsStore.settings.params = { ...params };
+			await FlowerStore.makeLocalFlower();
+			// both ways that the settings change: one value, and the whole object (what the form of the parameters does)
+			SettingsStore.settings.params.radius = 16;
+			await FlowerStore.makeLocalFlower();
+			SettingsStore.settings.params = { radius: 8, numLayers: 1, P: 2, bias: 0.25 };
+			await FlowerStore.makeLocalFlower();
+
+			expect(setParams.mock.calls.map(([given]) => [given.radius, given.numLayers, given.P, given.bias])).toEqual([
+				[32, 2, 4.5, 0.5],
+				[16, 2, 4.5, 0.5],
+				[8, 1, 2, 0.25],
+			]);
 		});
 	});
 

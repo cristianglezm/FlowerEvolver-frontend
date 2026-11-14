@@ -7,6 +7,7 @@ import { createRouter, createMemoryHistory } from 'vue-router';
 import Browse from '../../../src/views/Browse.vue';
 import PaginationOrInfiniteScroll from '../../../src/components/PaginationOrInfiniteScroll.vue';
 import { useFlowerStore } from '../../../src/stores/FlowerStore';
+import { useSettingsStore } from '../../../src/stores/SettingsStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 
 // The view with the real FlowerStore: the menu and the cards make, reproduce and mutate remote flowers while the
@@ -52,6 +53,7 @@ vi.mock('../../../src/components/FlowersTable.vue', () => ({
 
 describe('Browse view', () => {
     let FlowerStore;
+    let SettingsStore;
     let ErrorStore;
     let router;
     let wrapper;
@@ -81,10 +83,11 @@ describe('Browse view', () => {
         server.offline = false;
         createTestingPinia({ stubActions: false, createSpy: vi.fn });
         FlowerStore = useFlowerStore();
+        SettingsStore = useSettingsStore();
         ErrorStore = useErrorStore();
         vi.spyOn(ErrorStore, 'push');
-        FlowerStore.settings.pagination = false;
-        FlowerStore.settings.limit = 3;
+        SettingsStore.settings.pagination = false;
+        SettingsStore.settings.limit = 3;
         router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/Browse', name: 'Browse', component: { template: '<div />' } }] });
     });
 
@@ -184,7 +187,7 @@ describe('Browse view', () => {
 
     describe('one page at a time', () => {
         beforeEach(() => {
-            FlowerStore.settings.pagination = true;
+            SettingsStore.settings.pagination = true;
             addRows(8);
         });
         const clickArrow = async (label) => {

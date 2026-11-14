@@ -22,15 +22,15 @@ import AppTitle from './components/AppTitle.vue';
 import AppMenu from './components/AppMenu.vue';
 import AppFooter from './components/AppFooter.vue';
 import { useRoute } from 'vue-router';
-import { useFlowerStore } from './stores/FlowerStore';
+import { useSettingsStore } from './stores/SettingsStore';
 import { ChatBotWidget, chat_template, tools, documents, execCommand, registerChatBot, unregisterChatBot } from './chatBotIntegration';
 
 const routes = useRoute();
 const emitter = inject('emitter');
-const FlowerStore = useFlowerStore();
+const SettingsStore = useSettingsStore();
 
 const isChatBotOpened = computed(() => {
-  return FlowerStore.settings.showChatBot;
+  return SettingsStore.settings.showChatBot;
 });
 const isLocal = () => {
   return routes.path === '/Local' || 
@@ -40,7 +40,7 @@ const isLocal = () => {
           routes.path === '/Settings';
 };
 onMounted(() => {
-  registerChatBot(emitter, FlowerStore.settings);
+  registerChatBot(emitter, SettingsStore.settings);
 });
 onUnmounted(() => {
   unregisterChatBot(emitter);

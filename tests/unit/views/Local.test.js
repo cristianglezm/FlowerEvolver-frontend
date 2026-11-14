@@ -7,6 +7,7 @@ import { createRouter, createMemoryHistory } from 'vue-router';
 import Local from '../../../src/views/Local.vue';
 import PaginationOrInfiniteScroll from '../../../src/components/PaginationOrInfiniteScroll.vue';
 import { useFlowerStore } from '../../../src/stores/FlowerStore';
+import { useSettingsStore } from '../../../src/stores/SettingsStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 import { flowerAdded } from '../../../src/services/listEvents';
 
@@ -72,6 +73,7 @@ const page = { template: '<div />' };
 
 describe('Local view', () => {
     let FlowerStore;
+    let SettingsStore;
     let ErrorStore;
     let router;
     let emitter;
@@ -103,11 +105,12 @@ describe('Local view', () => {
         emitter = { emit: vi.fn() };
         createTestingPinia({ stubActions: false, createSpy: vi.fn });
         FlowerStore = useFlowerStore();
+        SettingsStore = useSettingsStore();
         ErrorStore = useErrorStore();
         vi.spyOn(ErrorStore, 'push');
-        FlowerStore.settings.loadDemoFlowers = false;
-        FlowerStore.settings.pagination = false;
-        FlowerStore.settings.limit = 3;
+        SettingsStore.settings.loadDemoFlowers = false;
+        SettingsStore.settings.pagination = false;
+        SettingsStore.settings.limit = 3;
         router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/Local', name: 'Local', component: page }] });
     });
 
@@ -249,7 +252,7 @@ describe('Local view', () => {
 
     describe('one page at a time', () => {
         beforeEach(() => {
-            FlowerStore.settings.pagination = true;
+            SettingsStore.settings.pagination = true;
             addRows(8);
         });
         const clickArrow = async (label) => {
@@ -299,12 +302,12 @@ describe('Local view', () => {
 
     describe('the demo flowers', () => {
         test('what the worker imported is shown when it says it is done', async () => {
-            FlowerStore.settings.loadDemoFlowers = true;
+            SettingsStore.settings.loadDemoFlowers = true;
             vi.stubGlobal('fetch', vi.fn(async () => ({ blob: async () => new Blob(['[]']) })));
             await mountView();
             expect(shown()).toEqual([]);
             expect(workers[0].postMessage).toHaveBeenCalledTimes(1);
-            expect(FlowerStore.settings.loadDemoFlowers).toBe(false);
+            expect(SettingsStore.settings.loadDemoFlowers).toBe(false);
 
             addRows(4);
             workers[0].onmessage({ data: { type: 'done' } });
@@ -316,8 +319,8 @@ describe('Local view', () => {
         });
 
         test('the pages are counted again, the import added to them', async () => {
-            FlowerStore.settings.pagination = true;
-            FlowerStore.settings.loadDemoFlowers = true;
+            SettingsStore.settings.pagination = true;
+            SettingsStore.settings.loadDemoFlowers = true;
             vi.stubGlobal('fetch', vi.fn(async () => ({ blob: async () => new Blob(['[]']) })));
             await mountView();
             expect(wrapper.findComponent(PaginationOrInfiniteScroll).props('totalPages')).toBe(0);
@@ -332,7 +335,7 @@ describe('Local view', () => {
         });
 
         test('the progress of the import is shown through the emitter', async () => {
-            FlowerStore.settings.loadDemoFlowers = true;
+            SettingsStore.settings.loadDemoFlowers = true;
             vi.stubGlobal('fetch', vi.fn(async () => ({ blob: async () => new Blob(['[]']) })));
             await mountView();
 

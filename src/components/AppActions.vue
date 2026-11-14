@@ -29,6 +29,7 @@
 <script setup>
 import { inject, toRaw, onBeforeUnmount, onMounted } from 'vue';
 import { useFlowerStore, STORAGE_KEY_GARDEN } from '../stores/FlowerStore';
+import { useSettingsStore } from '../stores/SettingsStore';
 import UploadFileModal from '../components/UploadFileModal.vue';
 import redrawWorker from '../workers/redraw.worker?worker';
 import exportWorker from '../workers/export.worker?worker';
@@ -40,6 +41,7 @@ import { useSpeciesStore } from '../stores/SpeciesStore';
 import { useClassifierReset } from '../composables/useClassifierReset';
 
 const FlowerStore = useFlowerStore();
+const SettingsStore = useSettingsStore();
 const ErrorStore = useErrorStore();
 const SpeciesStore = useSpeciesStore();
 const { canReset, askReset } = useClassifierReset();
@@ -139,8 +141,8 @@ const deleteNonFavourites = () => {
 };
 const redrawLocalFlowers = async () => {
     wm.sendRequest('redraw', {
-        batchSize: FlowerStore.settings.limit,
-        params: structuredClone(toRaw(FlowerStore.settings.params))
+        batchSize: SettingsStore.settings.limit,
+        params: structuredClone(toRaw(SettingsStore.settings.params))
     });
 };
 const showRedrawFlowers = () => {
@@ -219,7 +221,7 @@ const importFiles = async (files, toFavs) => {
     wm.sendRequest('importer', {
         files: files,
         toFavs: toFavs,
-        batchSize: FlowerStore.settings.limit
+        batchSize: SettingsStore.settings.limit
     });
 };
 const importGarden = async () => {
@@ -231,7 +233,7 @@ const importGarden = async () => {
     wm.sendRequest('importer', {
         files: files,
         toFavs: toFavs,
-        batchSize: FlowerStore.settings.limit
+        batchSize: SettingsStore.settings.limit
     });
 };
 const showImport = (toFavs) => {
@@ -263,7 +265,7 @@ const exportFlowers = (type) => {
     }
     wm.sendRequest('exporter', {
         type: type,
-        batchSize: FlowerStore.settings.limit
+        batchSize: SettingsStore.settings.limit
     });
 };
 

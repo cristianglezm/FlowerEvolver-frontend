@@ -90,6 +90,7 @@ import { useRouter } from 'vue-router';
 import ErrorModal from './ErrorModal.vue';
 import ConfirmModal from './ConfirmModal.vue';
 import { useFlowerStore } from '../stores/FlowerStore';
+import { useSettingsStore } from '../stores/SettingsStore';
 import { useErrorStore } from '../stores/ErrorStore';
 
 const props = defineProps({
@@ -105,9 +106,10 @@ let data = reactive({
 });
 const emitter = inject('emitter');
 const FlowerStore = useFlowerStore();
+const SettingsStore = useSettingsStore();
 const ErrorStore = useErrorStore();
 const router = useRouter();
-const toggleButtonMessage = ref(FlowerStore.settings.showChatBot ? "Close ChatBot":"Open ChatBot");
+const toggleButtonMessage = ref(SettingsStore.settings.showChatBot ? "Close ChatBot":"Open ChatBot");
 
 const block = (Fn) => {
     if(!data.blocked){
@@ -139,16 +141,16 @@ const toggleMenu = () => {
     data.showMenu = !data.showMenu;
 };
 const toggleChatBot = () => {
-    FlowerStore.settings.showChatBot = !FlowerStore.settings.showChatBot;
-    if(FlowerStore.settings.showChatBot){
+    SettingsStore.settings.showChatBot = !SettingsStore.settings.showChatBot;
+    if(SettingsStore.settings.showChatBot){
         toggleButtonMessage.value = "Close ChatBot";
     }else{
         toggleButtonMessage.value = "Open ChatBot";
     }
-    FlowerStore.saveSettings();
+    SettingsStore.saveSettings();
 };
 const isPaginated = () => {
-    return FlowerStore.settings.pagination;
+    return SettingsStore.settings.pagination;
 };
 const isMobile = () => {
     return window.innerWidth <= 1280;

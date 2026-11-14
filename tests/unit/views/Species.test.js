@@ -13,7 +13,7 @@ import * as flowerRepository from '../../../src/services/flowerRepository';
 import { classifierJson } from '../helpers/classifier';
 
 // What is under test is the view: what it asks of the store and the tables and what it shows. A flower
-// card is a lot of components and stores, and the settings are all it takes from FlowerStore.
+// card is a lot of components and stores, the selection is what it takes from FlowerStore.
 vi.mock('../../../src/components/FlowersTable.vue', () => ({
     default: {
         props: ['flowers', 'isLocal', 'noFlowerMessage'],
@@ -33,6 +33,11 @@ vi.mock('../../../src/services/flowerRepository', () => ({
 const flowerStore = vi.hoisted(() => ({}));
 vi.mock('../../../src/stores/FlowerStore', () => ({
     useFlowerStore: () => flowerStore,
+}));
+// the list takes the settings and the offsets from here
+const settingsStore = vi.hoisted(() => ({}));
+vi.mock('../../../src/stores/SettingsStore', () => ({
+    useSettingsStore: () => settingsStore,
 }));
 
 const page = { template: '<div />' };
@@ -75,14 +80,14 @@ describe('Species view', () => {
         getContext = vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
         vi.clearAllMocks();
         emitter = { emit: vi.fn() };
-        flowerStore.settings = reactive({ pagination: false, limit: 10 });
+        settingsStore.settings = reactive({ pagination: false, limit: 10 });
         flowerStore.localSelected = reactive({ index: 0, flowers: [] });
         flowerStore.selectLocalFlower = vi.fn((flower) => {
             flowerStore.localSelected.flowers[flowerStore.localSelected.index] = flower.id;
             flowerStore.localSelected.index = (flowerStore.localSelected.index + 1) % 2;
         });
-        flowerStore.calcOffset = (p) => p * flowerStore.settings.limit;
-        flowerStore.increaseOffset = (offset) => offset + flowerStore.settings.limit;
+        settingsStore.calcOffset = (p) => p * settingsStore.settings.limit;
+        settingsStore.increaseOffset = (offset) => offset + settingsStore.settings.limit;
         speciesRepository.countByCell.mockResolvedValue(0);
         speciesRepository.listFlowerIdsByCell.mockResolvedValue([]);
         flowerRepository.bulkGetFlowers.mockImplementation(async (ids) => ids.map((id) => ({ id, genome: 'g', image: 'i' })));
@@ -354,7 +359,7 @@ describe('Species view', () => {
         });
 
         test('start at the page of the address, when they come a page at a time', async () => {
-            flowerStore.settings.pagination = true;
+            settingsStore.settings.pagination = true;
             SpeciesStore.selected = { x: 1, y: 0 };
             speciesRepository.countByCell.mockResolvedValue(25);
 
@@ -585,7 +590,7 @@ describe('Species view', () => {
         });
 
         test('the flowers are the ones of the chosen sub-species, and are read again when it changes', async () => {
-            flowerStore.settings.pagination = true;
+            settingsStore.settings.pagination = true;
             SpeciesStore.submaps = new Map([['1,0', submap]]);
             SpeciesStore.readSubspecies.mockResolvedValue(split());
             await mountView();

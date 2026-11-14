@@ -8,7 +8,7 @@
  *     worker.postMessage({
  *       files: files,
  *       toFavs: false,
- *       batchSize: FlowerStore.settings.limit
+ *       batchSize: SettingsStore.settings.limit
  *   });
  * // worker will send these:
  * // starting processing file

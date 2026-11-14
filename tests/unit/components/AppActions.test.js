@@ -14,7 +14,7 @@ vi.mock('../../../src/services/speciesWorker', () => ({
     getSpeciesClient: vi.fn(),
 }));
 vi.mock('../../../src/stores/FlowerStore', () => ({
-    useFlowerStore: () => ({ settings: {}, deleteAllFlowers: vi.fn(), deleteNonFavourites: vi.fn() }),
+    useFlowerStore: () => ({ deleteAllFlowers: vi.fn(), deleteNonFavourites: vi.fn() }),
     STORAGE_KEY_GARDEN: 'garden',
 }));
 
