@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia';
-import { db as ddb } from './db';
 import { FEParams } from '@cristianglezm/flower-evolver-wasm';
 import { getFlowerEvolver } from '../../services/flowerEvolver';
 import * as flowerRepository from '../../services/flowerRepository';
@@ -16,7 +15,6 @@ export const STORAGE_KEY_GARDEN = "FlowerEvolverGarden";
 
 export const useFlowerStore = defineStore('FlowerStore', {
 	state: () => ({
-		db: ddb,
 		remoteSelected: { index: 0, flowers: [] },
 		localSelected: { index: 0, flowers: [] },
 	}),

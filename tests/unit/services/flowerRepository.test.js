@@ -1,6 +1,6 @@
 // tests/unit/setup/jsdom.js
 import 'fake-indexeddb/auto';
-import { describe, test, expect, beforeEach, afterAll } from 'vitest';
+import { describe, test, expect, beforeEach, afterAll, vi } from 'vitest';
 import { db } from '../../../src/stores/FlowerStore/db';
 import * as flowerRepository from '../../../src/services/flowerRepository';
 
@@ -53,6 +53,25 @@ describe('flowerRepository (real Dexie semantics via fake-indexeddb)', () => {
 
 			await flowerRepository.deleteFlower(1);
 			expect(await flowerRepository.getFlower(1)).toBeUndefined();
+		});
+
+		test('forEachFlower visits every flower once, oldest first, and waits for the last one', async () => {
+			await flowerRepository.bulkAddFlowers([
+				{ id: 1, genome: 'g1', image: 'i1' },
+				{ id: 2, genome: 'g2', image: 'i2' },
+				{ id: 3, genome: 'g3', image: 'i3' },
+			]);
+			const seen = [];
+
+			await flowerRepository.forEachFlower((f) => { seen.push(f.genome); });
+
+			expect(seen).toEqual(['g1', 'g2', 'g3']);
+		});
+
+		test('forEachFlower does not call back when there are no flowers', async () => {
+			const callback = vi.fn();
+			await flowerRepository.forEachFlower(callback);
+			expect(callback).not.toHaveBeenCalled();
 		});
 
 		test('listFlowerIds has the id of every flower, oldest first, and not the deleted ones', async () => {

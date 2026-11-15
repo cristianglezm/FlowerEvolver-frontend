@@ -3,6 +3,7 @@ import { useFavouritesStore } from "./FavouritesStore";
 import { useCaptionerStore } from "./CaptionerStore";
 import { useRouter } from "vue-router";
 import { useVectorStore } from "./vectorStore";
+import * as flowerRepository from "../services/flowerRepository";
 
 // we need this global router initialized in the App to be 
 // able to use goto as useRouter needs to be inside a <script setup>
@@ -67,10 +68,9 @@ export const execCommand = (text) => {
                 break;
             case "describe":{
                 const CaptionerStore = useCaptionerStore();
-                const FlowerStore = useFlowerStore();
                 let flowerID = command[i].parameters?.id;
                 if(flowerID){
-                    FlowerStore.db.flowers.get(flowerID)
+                    flowerRepository.getFlower(flowerID)
                     .then((flower) => {
                         const numPreload = 5;
                         let lower = flower.id - numPreload;
@@ -190,7 +190,7 @@ export const execCommand = (text) => {
                 let fail = "mutate command failed.";
                 let success = "mutate command executed.";
                 if(original){
-                    FlowerStore.db.flowers.get(original)
+                    flowerRepository.getFlower(original)
                     .then((flower) => {
                         FlowerStore.makeLocalMutation(flower);
                     }).catch((_) => {

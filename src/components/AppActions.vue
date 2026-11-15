@@ -30,6 +30,7 @@
 import { inject, toRaw, onBeforeUnmount, onMounted } from 'vue';
 import { useFlowerStore, STORAGE_KEY_GARDEN } from '../stores/FlowerStore';
 import { useSettingsStore } from '../stores/SettingsStore';
+import * as flowerRepository from '../services/flowerRepository';
 import UploadFileModal from '../components/UploadFileModal.vue';
 import redrawWorker from '../workers/redraw.worker?worker';
 import exportWorker from '../workers/export.worker?worker';
@@ -152,13 +153,13 @@ const showRedrawFlowers = () => {
         btnNo: 'no',
         btnYes: 'redraw local flowers',
         onConfirm: () => {
-            FlowerStore.db.flowers.count((totalFlowers) => {
+            flowerRepository.countFlowers().then((totalFlowers) => {
                 if(totalFlowers != 0){
                     showProgressBar('re-drawing flowers', totalFlowers, redrawLocalFlowers);   
                 }else{
                     ErrorStore.push("You have no local flowers to redraw.");
                 }
-            });
+            }).catch(onError);
         },
     });
 };
@@ -170,7 +171,7 @@ const showExport = (type) => {
             btnNo: 'no',
             btnYes: 'Export favourite flowers',
             onConfirm: () => {
-                FlowerStore.db.favourites.count((totalFlowers) => {
+                flowerRepository.countFavourites().then((totalFlowers) => {
                     if(totalFlowers != 0){
                         showProgressBar('exporting favourite flowers', totalFlowers, 
                             () => {
@@ -179,7 +180,7 @@ const showExport = (type) => {
                     }else{
                         ErrorStore.push("You have no favourites to export");
                     }
-                });
+                }).catch(onError);
             }
         });
     }else if(type == "all"){
@@ -189,7 +190,7 @@ const showExport = (type) => {
             btnNo: 'no',
             btnYes: 'Export all local flowers',
             onConfirm: () => {
-                FlowerStore.db.flowers.count((totalFlowers) => {
+                flowerRepository.countFlowers().then((totalFlowers) => {
                     if(totalFlowers != 0){
                         showProgressBar('exporting flowers', totalFlowers, 
                             () => {
@@ -198,7 +199,7 @@ const showExport = (type) => {
                     }else{
                         ErrorStore.push("You have no flowers to export");
                     }
-                });
+                }).catch(onError);
             }
         });
     }else if(type == "garden"){

@@ -24,6 +24,11 @@ export async function bulkAddFlowers(flowers){
 export async function deleteFlower(id){
 	return db.flowers.delete(id);
 }
+// visits every flower, in the order of the table, one at a time: the callers that only summarise the flowers
+// (the charts) do not need them all in memory
+export async function forEachFlower(callback){
+	return db.flowers.toCollection().each(callback);
+}
 export async function listFlowers({limit, offset}){
 	return db.flowers.reverse().offset(offset).limit(limit).toArray();
 }
