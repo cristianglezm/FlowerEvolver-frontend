@@ -55,7 +55,8 @@ const speciesStore = vi.hoisted(() => ({
     classifyLater: vi.fn(), removeFlower: vi.fn(async () => {}), invalidate: vi.fn(), ensureFor: vi.fn(async () => {}),
 }));
 vi.mock('../../../src/stores/SpeciesStore', () => ({ useSpeciesStore: () => speciesStore }));
-const captioner = vi.hoisted(() => ({ loadLocalDescriptions: vi.fn(), loadAndConcatLocalDescriptions: vi.fn() }));
+// the descriptions of the flowers that are shown are asked for by id
+const captioner = vi.hoisted(() => ({ loadLocalDescriptionsOf: vi.fn(async () => {}) }));
 vi.mock('../../../src/stores/CaptionerStore', () => ({ useCaptionerStore: () => captioner }));
 vi.mock('../../../src/components/FlowersTable.vue', () => ({
     default: {
@@ -123,16 +124,22 @@ describe('Favourites view', () => {
             expect(shown()).toEqual([10, 9, 8, 6, 5, 3]);
         });
 
-        test('the descriptions of a batch are added to those of the batches before, not put in their place', async () => {
+        test('asks for the descriptions of the favourites that are shown, not of the flowers that are in their place in the table', async () => {
+            // the favourites are not the first flowers of the table, and the table of descriptions is not theirs
+            fill(10, [2, 5, 9]);
+            await mountView();
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[9, 5, 2]]]);
+        });
+
+        test('asks for the descriptions of each batch, the ones that were not asked for yet', async () => {
             fill(10, [1, 2, 3, 4, 5, 6, 7]);
             await mountView();
-            expect(captioner.loadLocalDescriptions).toHaveBeenCalledExactlyOnceWith(0, 3);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[7, 6, 5]]]);
 
             wrapper.findComponent(PaginationOrInfiniteScroll).vm.$emit('update-page');
             await settle();
 
-            expect(captioner.loadAndConcatLocalDescriptions).toHaveBeenCalledExactlyOnceWith(3, 3);
-            expect(captioner.loadLocalDescriptions).toHaveBeenCalledTimes(1);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[7, 6, 5]], [[4, 3, 2]]]);
         });
 
         test('asks for the species of each batch when it is shown, and only of that batch', async () => {
@@ -272,7 +279,7 @@ describe('Favourites view', () => {
             expect(speciesStore.ensureFor.mock.calls).toEqual([[[12, 10, 9]], [[7, 6, 4]], [[12, 10, 9]]]);
         });
 
-        test('the arrows move one page, in place, and each page takes the place of the descriptions of the one before', async () => {
+        test('the arrows move one page, in place, and each page has the descriptions of its own flowers asked for', async () => {
             await mountView();
             const route = router.currentRoute.value.fullPath;
 
@@ -283,8 +290,7 @@ describe('Favourites view', () => {
             expect(shown()).toEqual([7, 6, 4]);
 
             expect(router.currentRoute.value.fullPath).toBe(route);
-            expect(captioner.loadAndConcatLocalDescriptions).not.toHaveBeenCalled();
-            expect(captioner.loadLocalDescriptions.mock.calls).toEqual([[0, 3], [3, 3], [6, 3], [3, 3]]);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[12, 10, 9]], [[7, 6, 4]], [[3, 1]], [[7, 6, 4]]]);
         });
     });
 });

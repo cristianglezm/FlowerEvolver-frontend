@@ -73,6 +73,7 @@ import { usePaginatedList } from '../composables/usePaginatedList';
 import { useClassifierReset } from '../composables/useClassifierReset';
 import { useLocalFlowerStore } from '../stores/LocalFlowerStore';
 import { useSpeciesStore } from '../stores/SpeciesStore';
+import { useShownFlowers } from '../composables/useShownFlowers';
 import { useErrorStore } from '../stores/ErrorStore';
 import * as speciesRepository from '../services/speciesRepository';
 import * as flowerRepository from '../services/flowerRepository';
@@ -80,6 +81,7 @@ import * as flowerRepository from '../services/flowerRepository';
 const routes = useRoute();
 const LocalFlowerStore = useLocalFlowerStore();
 const SpeciesStore = useSpeciesStore();
+const whenShown = useShownFlowers();
 const ErrorStore = useErrorStore();
 const { canReset, askReset } = useClassifierReset();
 const fineTune = ref(null);
@@ -113,10 +115,9 @@ const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginated
         const flowers = await flowerRepository.bulkGetFlowers(ids);
         return flowers.filter((flower) => flower !== undefined);
     },
-    // the cards show the species they were classified in, which the store reads when it is asked for them
-    onLoaded: ({ items }) => {
-        SpeciesStore.ensureFor(items.map((flower) => flower.id));
-    }
+    // the cards show the species they were classified in, which the store reads when it is asked for them, and
+    // their description
+    onLoaded: ({ items }) => whenShown(items)
 });
 
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;

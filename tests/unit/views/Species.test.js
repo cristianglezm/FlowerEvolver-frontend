@@ -36,6 +36,9 @@ vi.mock('../../../src/stores/LocalFlowerStore', () => ({
 }));
 // the list takes the settings and the offsets from here
 const settingsStore = vi.hoisted(() => ({}));
+// the descriptions of the flowers that are shown are asked for by id
+const captioner = vi.hoisted(() => ({ loadLocalDescriptionsOf: vi.fn(async () => {}) }));
+vi.mock('../../../src/stores/CaptionerStore', () => ({ useCaptionerStore: () => captioner }));
 vi.mock('../../../src/stores/SettingsStore', () => ({
     useSettingsStore: () => settingsStore,
 }));
@@ -353,6 +356,7 @@ describe('Species view', () => {
             await mountView();
 
             expect(SpeciesStore.ensureFor).toHaveBeenCalledExactlyOnceWith([9, 7, 4]);
+            expect(captioner.loadLocalDescriptionsOf).toHaveBeenCalledExactlyOnceWith([9, 7, 4]);
         });
 
         test('are asked for without the ones that were deleted, and for none when the species has none', async () => {
@@ -361,13 +365,16 @@ describe('Species view', () => {
             flowerRepository.bulkGetFlowers.mockResolvedValue([{ id: 9 }, undefined, { id: 4 }]);
             await mountView();
             expect(SpeciesStore.ensureFor).toHaveBeenCalledExactlyOnceWith([9, 4]);
+            expect(captioner.loadLocalDescriptionsOf).toHaveBeenCalledExactlyOnceWith([9, 4]);
 
             SpeciesStore.ensureFor.mockClear();
+            captioner.loadLocalDescriptionsOf.mockClear();
             speciesRepository.listFlowerIdsByCell.mockResolvedValue([]);
             flowerRepository.bulkGetFlowers.mockResolvedValue([]);
             SpeciesStore.selected = { x: 0, y: 0 };
             await mountView();
             expect(SpeciesStore.ensureFor.mock.calls.flatMap(([ids]) => ids)).toEqual([]);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls.flatMap(([ids]) => ids)).toEqual([]);
         });
 
         test('leave out the ones that were deleted since the list was read', async () => {

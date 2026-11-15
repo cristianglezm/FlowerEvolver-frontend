@@ -22,14 +22,14 @@ import FlowersTable from '../components/FlowersTable.vue';
 import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
 import { useRoute } from 'vue-router';
 import { useRemoteFlowerStore } from '../stores/RemoteFlowerStore';
-import { useSpeciesStore } from '../stores/SpeciesStore';
+import { useShownFlowers } from '../composables/useShownFlowers';
 import { useErrorStore } from '../stores/ErrorStore';
 import * as flowerRepository from '../services/flowerRepository';
 import * as flowerApiClient from '../services/flowerApiClient';
 import { usePaginatedList } from '../composables/usePaginatedList';
 
 const RemoteFlowerStore = useRemoteFlowerStore();
-const SpeciesStore = useSpeciesStore();
+const whenShown = useShownFlowers();
 const ErrorStore = useErrorStore();
 const routes = useRoute();
 const originalID = parseInt(routes.params.id);
@@ -62,10 +62,8 @@ const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginated
         return isLocal ? readLocal({ limit, offset })
                        : flowerApiClient.getMutations(originalID, { limit, offset }).catch(() => []);
     },
-    // the flowers of the server have no species
-    onLoaded: isLocal ? ({ items }) => {
-        SpeciesStore.ensureFor(items.map((flower) => flower.id));
-    } : undefined
+    // the flowers of the server have no species, and no description of the browser
+    onLoaded: isLocal ? ({ items }) => whenShown(items) : undefined
 });
 
 onMounted(async () => {

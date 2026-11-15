@@ -52,7 +52,8 @@ const speciesStore = vi.hoisted(() => ({
     classifyLater: vi.fn(), removeFlower: vi.fn(async () => {}), invalidate: vi.fn(), ensureFor: vi.fn(async () => {}),
 }));
 vi.mock('../../../src/stores/SpeciesStore', () => ({ useSpeciesStore: () => speciesStore }));
-const captioner = vi.hoisted(() => ({ loadLocalDescriptions: vi.fn(), loadAndConcatLocalDescriptions: vi.fn() }));
+// the descriptions of the flowers that are shown are asked for by id
+const captioner = vi.hoisted(() => ({ loadLocalDescriptionsOf: vi.fn(async () => {}) }));
 vi.mock('../../../src/stores/CaptionerStore', () => ({ useCaptionerStore: () => captioner }));
 // a flower card is a lot of components and stores, the view only hands it the flowers
 vi.mock('../../../src/components/FlowersTable.vue', () => ({
@@ -129,15 +130,14 @@ describe('Local view', () => {
             await mountView();
 
             expect(shown()).toEqual([7, 6, 5]);
-            expect(captioner.loadLocalDescriptions).toHaveBeenCalledExactlyOnceWith(0, 3);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[7, 6, 5]]]);
 
             wrapper.findComponent(PaginationOrInfiniteScroll).vm.$emit('update-page');
             await settle();
 
             expect(shown()).toEqual([7, 6, 5, 4, 3, 2]);
-            // the next batch adds to the descriptions, it does not take the ones of the first away
-            expect(captioner.loadAndConcatLocalDescriptions).toHaveBeenCalledExactlyOnceWith(3, 3);
-            expect(captioner.loadLocalDescriptions).toHaveBeenCalledTimes(1);
+            // the next batch is the flowers that were not asked for yet, and no others
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[7, 6, 5]], [[4, 3, 2]]]);
         });
 
         test('asks for the species of each batch when it is shown, and only of that batch', async () => {
@@ -288,11 +288,11 @@ describe('Local view', () => {
             await settle();
         };
 
-        test('starts at the page of the route, counts the pages, and each page replaces the descriptions', async () => {
+        test('starts at the page of the route, and counts the pages', async () => {
             await mountView('/Local?page=1');
 
             expect(shown()).toEqual([5, 4, 3]);
-            expect(captioner.loadLocalDescriptions).toHaveBeenCalledExactlyOnceWith(3, 3);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[5, 4, 3]]]);
             expect(wrapper.findComponent(PaginationOrInfiniteScroll).props('totalPages')).toBe(3);
         });
 
@@ -322,8 +322,8 @@ describe('Local view', () => {
             expect(shown()).toEqual([5, 4, 3]);
 
             expect(router.currentRoute.value.fullPath).toBe(route);
-            expect(captioner.loadAndConcatLocalDescriptions).not.toHaveBeenCalled();
-            expect(captioner.loadLocalDescriptions.mock.calls).toEqual([[0, 3], [3, 3], [6, 3], [3, 3]]);
+            // the descriptions of each page, the ones of the flowers on it
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[8, 7, 6]], [[5, 4, 3]], [[2, 1]], [[5, 4, 3]]]);
         });
 
         test('a flower that is made is at the top of the page that is shown', async () => {

@@ -17,8 +17,7 @@ import FlowersTable from '../components/FlowersTable.vue';
 import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
 import { useSettingsStore } from '../stores/SettingsStore';
 import { useErrorStore } from '../stores/ErrorStore';
-import { useCaptionerStore } from '../stores/CaptionerStore';
-import { useSpeciesStore } from '../stores/SpeciesStore';
+import { useShownFlowers } from '../composables/useShownFlowers';
 import * as flowerRepository from '../services/flowerRepository';
 import { usePaginatedList } from '../composables/usePaginatedList';
 import { useRoute } from 'vue-router';
@@ -29,8 +28,7 @@ import mitt from 'mitt';
 const routes = useRoute();
 const SettingsStore = useSettingsStore();
 const ErrorStore = useErrorStore();
-const CaptionerStore = useCaptionerStore();
-const SpeciesStore = useSpeciesStore();
+const whenShown = useShownFlowers();
 const emitter = inject('emitter');
 let channel = mitt();
 let wm = new WorkerManager(channel);
@@ -53,13 +51,8 @@ const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginated
     list: 'local',
     fetchCount: () => flowerRepository.countFlowers(),
     fetchPage: ({ limit, offset }) => flowerRepository.listFlowers({ limit, offset }),
-    // the species of the flowers that are shown is worked out when they are shown, and the descriptions are paged
-    // like the flowers: a page replaces those of the page before, a batch adds to them
-    onLoaded: ({ items, offset, limit, append }) => {
-        SpeciesStore.ensureFor(items.map((flower) => flower.id));
-        return append ? CaptionerStore.loadAndConcatLocalDescriptions(offset, limit)
-                      : CaptionerStore.loadLocalDescriptions(offset, limit);
-    }
+    // the species and the descriptions of the flowers that are shown
+    onLoaded: ({ items }) => whenShown(items)
 });
 
 onMounted(() => {

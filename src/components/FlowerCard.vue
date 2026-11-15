@@ -50,7 +50,7 @@
         <ThreeFlower :id="props.id" :width="245" :height="350" :genome="props.genome" :emissive="emissive" />
       </div>
       <div v-else>
-        <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="SettingsStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
+        <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="SettingsStore.settings.magnification" loading="lazy" :src="getImage()" :alt="description" class="FlowerImage" />
       </div>
       <p>
         <strong>{{ props.id }}</strong>
@@ -103,7 +103,7 @@
         <ThreeFlower :id="props.id" :width="245" :height="350" :genome="props.genome" :emissive="emissive" />
       </div>
       <div v-else>
-        <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="SettingsStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
+        <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="SettingsStore.settings.magnification" loading="lazy" :src="getImage()" :alt="description" class="FlowerImage" />
       </div>
       <p>
         <strong>{{ props.id }}</strong>
@@ -113,7 +113,7 @@
 </template>
 
 <script setup>
-    import { onMounted, ref, reactive, inject, onUnmounted } from "vue";
+    import { onMounted, ref, reactive, inject, onUnmounted, computed } from "vue";
     import { useLocalFlowerStore } from '../stores/LocalFlowerStore';
     import { useRemoteFlowerStore } from '../stores/RemoteFlowerStore';
     import { useSettingsStore } from '../stores/SettingsStore';
@@ -211,6 +211,12 @@
     const FavouritesStore = useFavouritesStore();
     const ErrorStore = useErrorStore();
     const CaptionerStore = useCaptionerStore();
+    // The description of a flower of the browser is the one the store has: the list that shows the card loads it,
+    // and that can be after the card is shown.
+    const description = computed(() => {
+        const described = props.isLocal ? CaptionerStore.getLocalDescription(props.id) : undefined;
+        return described === undefined ? data.description : "Flower " + props.id + " - " + described;
+    });
     const emitter = inject('emitter');
     onMounted(() => {
         if(props.isLocal){
@@ -221,9 +227,6 @@
                         data.heartIconSrc = loadImage("heart_full.png","x32");
                     }
                 });
-            if(CaptionerStore.localDescriptions.has(props.id)){
-                data.description = "Flower " + props.id + " - " + CaptionerStore.getLocalDescription(props.id);
-            }
             setTimeout(async () => {
                 const fe = await getFlowerEvolver();
                 data.stats = fe.getFlowerStats(props.genome, 0.3, 23, 1000, 0);

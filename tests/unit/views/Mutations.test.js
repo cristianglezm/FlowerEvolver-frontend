@@ -76,6 +76,9 @@ const speciesStore = vi.hoisted(() => ({
     classifyLater: vi.fn(), removeFlower: vi.fn(async () => {}), invalidate: vi.fn(), ensureFor: vi.fn(async () => {}),
 }));
 vi.mock('../../../src/stores/SpeciesStore', () => ({ useSpeciesStore: () => speciesStore }));
+// the descriptions of the flowers that are shown are asked for by id
+const captioner = vi.hoisted(() => ({ loadLocalDescriptionsOf: vi.fn(async () => {}) }));
+vi.mock('../../../src/stores/CaptionerStore', () => ({ useCaptionerStore: () => captioner }));
 vi.mock('../../../src/components/FlowerCard.vue', () => ({
     default: { props: ['id', 'genome', 'image', 'isLocal'], template: '<div class="card" :data-local="isLocal">{{ id }}</div>' },
 }));
@@ -179,6 +182,7 @@ describe('Mutations view', () => {
             await settle();
 
             expect(speciesStore.ensureFor.mock.calls).toEqual([[[6, 5, 4]], [[3, 2]]]);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[6, 5, 4]], [[3, 2]]]);
             expect(ErrorStore.push).not.toHaveBeenCalled();
         });
 
@@ -384,6 +388,7 @@ describe('Mutations view', () => {
 
             expect(shown()).toEqual([4, 3, 2, 1]);
             expect(speciesStore.ensureFor).not.toHaveBeenCalled();
+            expect(captioner.loadLocalDescriptionsOf).not.toHaveBeenCalled();
         });
 
         test('a mutation of the flower is at the top and a mutation of one of its mutations is not', async () => {
@@ -446,6 +451,7 @@ describe('Mutations view', () => {
             await clickArrow('<');
 
             expect(speciesStore.ensureFor.mock.calls).toEqual([[[8, 7, 6]], [[5, 4, 3]], [[8, 7, 6]]]);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[8, 7, 6]], [[5, 4, 3]], [[8, 7, 6]]]);
         });
 
         test('the server: does not ask for the species of its pages', async () => {

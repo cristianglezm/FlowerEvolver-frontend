@@ -41,11 +41,11 @@
     import * as flowerRepository from '../services/flowerRepository';
     import * as flowerApiClient from '../services/flowerApiClient';
     import { usePaginatedList } from '../composables/usePaginatedList';
-    import { useSpeciesStore } from '../stores/SpeciesStore';
+    import { useShownFlowers } from '../composables/useShownFlowers';
     import { useRoute } from 'vue-router';
 
     const RemoteFlowerStore = useRemoteFlowerStore();
-    const SpeciesStore = useSpeciesStore();
+    const whenShown = useShownFlowers();
     const ErrorStore = useErrorStore();
     const routes = useRoute();
     const isLocal = routes.params.isLocal === "local";
@@ -96,10 +96,8 @@
             return isLocal ? readLocal({ limit, offset })
                            : flowerApiClient.getDescendants(fatherID, motherID, { limit, offset }).catch(() => []);
         },
-        // the flowers of the server have no species
-        onLoaded: isLocal ? ({ items }) => {
-            SpeciesStore.ensureFor(items.map((flower) => flower.id));
-        } : undefined
+        // the flowers of the server have no species, and no description of the browser
+        onLoaded: isLocal ? ({ items }) => whenShown(items) : undefined
     });
 
     const remoteCard = (id) => ({ id, genome: id + '.json', image: id + '.png' });
