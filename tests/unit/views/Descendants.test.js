@@ -6,7 +6,7 @@ import { createTestingPinia } from '@pinia/testing';
 import { createRouter, createMemoryHistory } from 'vue-router';
 import Descendants from '../../../src/views/Descendants.vue';
 import PaginationOrInfiniteScroll from '../../../src/components/PaginationOrInfiniteScroll.vue';
-import { useFlowerStore } from '../../../src/stores/FlowerStore';
+import { useLocalFlowerStore } from '../../../src/stores/LocalFlowerStore';
 import { useRemoteFlowerStore } from '../../../src/stores/RemoteFlowerStore';
 import { useSettingsStore } from '../../../src/stores/SettingsStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
@@ -89,7 +89,7 @@ vi.mock('../../../src/components/FlowersTable.vue', () => ({
 }));
 
 describe('Descendants view', () => {
-    let FlowerStore;
+    let LocalFlowerStore;
     let RemoteFlowerStore;
     let SettingsStore;
     let ErrorStore;
@@ -98,15 +98,15 @@ describe('Descendants view', () => {
 
     // three flowers with a real genome, so that they can be reproduced: the flowers 1, 2 and 3
     const makeParents = async () => {
-        await FlowerStore.makeLocalFlower();
-        await FlowerStore.makeLocalFlower();
-        await FlowerStore.makeLocalFlower();
+        await LocalFlowerStore.makeLocalFlower();
+        await LocalFlowerStore.makeLocalFlower();
+        await LocalFlowerStore.makeLocalFlower();
     };
     // `father` is the first flower that is selected and `mother` the second
     const reproduce = async (father, mother) => {
-        FlowerStore.selectLocalFlower({ id: father });
-        FlowerStore.selectLocalFlower({ id: mother });
-        await FlowerStore.localReproduce();
+        LocalFlowerStore.selectLocalFlower({ id: father });
+        LocalFlowerStore.selectLocalFlower({ id: mother });
+        await LocalFlowerStore.localReproduce();
         await flushPromises();
     };
     // children that are in the table already: of (father, mother)
@@ -152,7 +152,7 @@ describe('Descendants view', () => {
         server.seq = 0;
         server.offline = false;
         createTestingPinia({ stubActions: false, createSpy: vi.fn });
-        FlowerStore = useFlowerStore();
+        LocalFlowerStore = useLocalFlowerStore();
         RemoteFlowerStore = useRemoteFlowerStore();
         SettingsStore = useSettingsStore();
         ErrorStore = useErrorStore();
@@ -261,11 +261,11 @@ describe('Descendants view', () => {
             addLocalChildren(1, 2, 3);
             await mountView('/Descendants/local/1');
 
-            await FlowerStore.deleteLocalFlower(5);
+            await LocalFlowerStore.deleteLocalFlower(5);
             await settle();
             expect(shown()).toEqual([6, 4]);
 
-            await FlowerStore.deleteAllFlowers();
+            await LocalFlowerStore.deleteAllFlowers();
             await settle();
             expect(shown()).toEqual([]);
         });

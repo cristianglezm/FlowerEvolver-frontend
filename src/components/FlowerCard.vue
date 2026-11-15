@@ -41,7 +41,7 @@
               <a @click="showMutations(); toggleMainMenu();">Show Mutations</a>
               <a @click="showDescendants(); toggleMainMenu();">Show Descendants</a>
               <a @click="deleteThisFlower(); toggleMainMenu();">Delete Flower</a>
-              <a @click="FlowerStore.redrawFlower({ genome: props.genome }); toggleMainMenu();">Redraw Flower</a>
+              <a @click="LocalFlowerStore.redrawFlower({ genome: props.genome }); toggleMainMenu();">Redraw Flower</a>
             </div>
           </FloatingPanel>
         </Transition>
@@ -114,7 +114,7 @@
 
 <script setup>
     import { onMounted, ref, reactive, inject, onUnmounted } from "vue";
-    import { useFlowerStore } from '../stores/FlowerStore';
+    import { useLocalFlowerStore } from '../stores/LocalFlowerStore';
     import { useRemoteFlowerStore } from '../stores/RemoteFlowerStore';
     import { useSettingsStore } from '../stores/SettingsStore';
     import { useFavouritesStore } from '../stores/FavouritesStore';
@@ -205,7 +205,7 @@
         lensSize: { x: 100, y: 100 },
     });
     const router = useRouter();
-    const FlowerStore = useFlowerStore();
+    const LocalFlowerStore = useLocalFlowerStore();
     const RemoteFlowerStore = useRemoteFlowerStore();
     const SettingsStore = useSettingsStore();
     const FavouritesStore = useFavouritesStore();
@@ -267,7 +267,7 @@
             btnNo: 'No',
             btnYes: 'Delete Flower',
             onConfirm: () => {
-                FlowerStore.deleteLocalFlower(props.id);
+                LocalFlowerStore.deleteLocalFlower(props.id);
             },
         });
     };
@@ -280,7 +280,7 @@
     };
     const onSelected = () => {
         if(props.isLocal){
-            FlowerStore.selectLocalFlower({id: props.id, genome: props.genome,image: props.image});
+            LocalFlowerStore.selectLocalFlower({id: props.id, genome: props.genome,image: props.image});
         }else{
             RemoteFlowerStore.selectRemoteFlower({id: props.id, genome: props.genome,image: props.image});
         }
@@ -344,7 +344,7 @@
     };
     const isSelected = () => {
         if(props.isLocal){
-            return FlowerStore.isLocalFlowerSelected({id: props.id, genome: props.genome, image: props.image})
+            return LocalFlowerStore.isLocalFlowerSelected({id: props.id, genome: props.genome, image: props.image})
         }
         return RemoteFlowerStore.isRemoteFlowerSelected({id: props.id, genome: props.genome, image: props.image})
     };
@@ -366,7 +366,7 @@
     };
     const addToLocal = () => {
         if(!props.isLocal){
-            FlowerStore.addRemoteFlowerToLocal({id: props.id, genome: props.genome, image: props.image});
+            LocalFlowerStore.addRemoteFlowerToLocal({id: props.id, genome: props.genome, image: props.image});
         }else{
             ErrorStore.push("This flower is a local flower already.");
         }
@@ -469,7 +469,7 @@
     };
     const mutate = () => {
         if(props.isLocal){
-            FlowerStore.makeLocalMutation({id: props.id, image: props.image, genome: props.genome});
+            LocalFlowerStore.makeLocalMutation({id: props.id, image: props.image, genome: props.genome});
         }else{
             RemoteFlowerStore.makeRemoteMutation({id: props.id, image: props.image, genome: props.genome});
         }

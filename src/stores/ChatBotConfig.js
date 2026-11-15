@@ -1,4 +1,4 @@
-import { useFlowerStore } from "./FlowerStore";
+import { useLocalFlowerStore } from "./LocalFlowerStore";
 import { useFavouritesStore } from "./FavouritesStore";
 import { useCaptionerStore } from "./CaptionerStore";
 import { useRouter } from "vue-router";
@@ -168,15 +168,15 @@ export const execCommand = (text) => {
             }
                 break;
             case "reproduce":{
-                let FlowerStore = useFlowerStore();
+                let LocalFlowerStore = useLocalFlowerStore();
                 let father = command[i].parameters?.father;
                 let mother = command[i].parameters?.mother;
                 let fail = "reproduce command failed";
                 let success = "reproduce command executed";
                 if(father && mother){
-                    FlowerStore.selectLocalFlower({ id: father});
-                    FlowerStore.selectLocalFlower({ id: mother});
-                    FlowerStore.localReproduce();
+                    LocalFlowerStore.selectLocalFlower({ id: father});
+                    LocalFlowerStore.selectLocalFlower({ id: mother});
+                    LocalFlowerStore.localReproduce();
                     infoForUser.push(success);
                 }else{
                     infoForUser.push("reproduce: father or mother id not given, need both ids.");
@@ -185,14 +185,14 @@ export const execCommand = (text) => {
             }
                 break;
             case "mutate":{
-                let FlowerStore = useFlowerStore();
+                let LocalFlowerStore = useLocalFlowerStore();
                 let original = command[i].parameters?.id;
                 let fail = "mutate command failed.";
                 let success = "mutate command executed.";
                 if(original){
                     flowerRepository.getFlower(original)
                     .then((flower) => {
-                        FlowerStore.makeLocalMutation(flower);
+                        LocalFlowerStore.makeLocalMutation(flower);
                     }).catch((_) => {
                         infoForUser.push("mutate command not executed, Flower not found");
                     });
@@ -204,8 +204,8 @@ export const execCommand = (text) => {
             }
                 break;
             case "makeFlower":{
-                let FlowerStore = useFlowerStore();
-                FlowerStore.makeLocalFlower();
+                let LocalFlowerStore = useLocalFlowerStore();
+                LocalFlowerStore.makeLocalFlower();
                 infoForUser.push("makeFlower command executed");
             }
                 break;
@@ -246,7 +246,7 @@ export const execCommand = (text) => {
             }
                 break;
             case "deleteFlower":{
-                let FlowerStore = useFlowerStore();
+                let LocalFlowerStore = useLocalFlowerStore();
                 let fail = "deleteFlower command failed";
                 let success = "deleteFlower requested confirmation";
                 let id = command[i].parameters?.id;
@@ -257,7 +257,7 @@ export const execCommand = (text) => {
                         btnNo: 'no',
                         btnYes: 'Delete flower',
                         onConfirm: async () => {
-                            FlowerStore.deleteLocalFlower(id);
+                            LocalFlowerStore.deleteLocalFlower(id);
                         }
                     });
                     infoForUser.push(success);
@@ -269,14 +269,14 @@ export const execCommand = (text) => {
                 break;
             case "deleteAllFlowers":{
                 let success = "deleteAllFlowers requested confirmation";
-                let FlowerStore = useFlowerStore();
+                let LocalFlowerStore = useLocalFlowerStore();
                 commandsToConfirm.push({
                         title: 'delete all flowers',
                         message: 'Are you sure you want to delete all flowers?',
                         btnNo: 'no',
                         btnYes: 'Delete all',
                         onConfirm: async () => {
-                            await FlowerStore.deleteAllFlowers();
+                            await LocalFlowerStore.deleteAllFlowers();
                         }
                 });
                 infoForUser.push(success);
@@ -284,14 +284,14 @@ export const execCommand = (text) => {
                 break;
             case "deleteNonFavourites":{
                 let success = "deleteNonFavourites requested confirmation";
-                let FlowerStore = useFlowerStore();
+                let LocalFlowerStore = useLocalFlowerStore();
                 commandsToConfirm.push({
                     title: 'Delete non favourites',
                     message: 'Are you sure you want to delete all flowers but favourites?',
                     btnNo: 'no',
                     btnYes: 'Delete non favourites',
                     onConfirm: async () => {
-                        await FlowerStore.deleteNonFavourites();
+                        await LocalFlowerStore.deleteNonFavourites();
                     }
                 });
                 infoForUser.push(success);

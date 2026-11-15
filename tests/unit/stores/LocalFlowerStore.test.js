@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
-import { useFlowerStore } from '../../../src/stores/FlowerStore';
+import { useLocalFlowerStore } from '../../../src/stores/LocalFlowerStore';
 import { useSettingsStore } from '../../../src/stores/SettingsStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 import * as flowerRepository from '../../../src/services/flowerRepository';
@@ -56,8 +56,8 @@ vi.mock('../../../src/stores/SpeciesStore', () => ({
 	useSpeciesStore: () => speciesStore,
 }));
 
-describe('FlowerStore', () => {
-	let FlowerStore;
+describe('LocalFlowerStore', () => {
+	let LocalFlowerStore;
 	let SettingsStore;
 	let ErrorStore;
 	// what the views that show the list of the local flowers are told
@@ -98,10 +98,10 @@ describe('FlowerStore', () => {
 			removed: (id) => announced.push(['removed', id]),
 			reset: () => announced.push(['reset']),
 		});
-		// stubActions: false - we want FlowerStore's own actions to run for
+		// stubActions: false - we want LocalFlowerStore's own actions to run for
 		// real; only its collaborators (the two mocked services above) are faked.
 		createTestingPinia({ stubActions: false, createSpy: vi.fn });
-		FlowerStore = useFlowerStore();
+		LocalFlowerStore = useLocalFlowerStore();
 		SettingsStore = useSettingsStore();
 		ErrorStore = useErrorStore();
 		vi.spyOn(ErrorStore, 'push');
@@ -117,7 +117,7 @@ describe('FlowerStore', () => {
 			flowerRepository.addFlower.mockResolvedValue(7);
 			flowerRepository.getFlower.mockResolvedValue({ id: 7, genome: 'stored-genome', image: 'stored-image' });
 
-			await FlowerStore.makeLocalFlower();
+			await LocalFlowerStore.makeLocalFlower();
 
 			expect(flowerRepository.ensureOpen).toHaveBeenCalled();
 			expect(flowerRepository.addFlower).toHaveBeenCalled();
@@ -134,7 +134,7 @@ describe('FlowerStore', () => {
 			flowerRepository.deleteFlower.mockResolvedValue();
 			flowerRepository.findMutationsByOriginalOrId.mockResolvedValue([]);
 
-			await FlowerStore.deleteLocalFlower(5);
+			await LocalFlowerStore.deleteLocalFlower(5);
 
 			expect(flowerRepository.deleteFlower).toHaveBeenCalledWith(5);
 			expect(flowerRepository.removeFavourite).toHaveBeenCalledWith(5);
@@ -167,7 +167,7 @@ describe('FlowerStore', () => {
 				return [{ id: 10, x: 1, y: 1, d: 0.1, fp: 'a' }, { id: 4, x: 0, y: 1, d: 0.2, fp: 'a' }, undefined];
 			});
 
-			await FlowerStore.deleteNonFavourites();
+			await LocalFlowerStore.deleteNonFavourites();
 
 			expect(asked).toEqual({ flowers: [10, 4, 7], descriptions: [10, 4, 7], species: [10, 4, 7] });
 			// the species of the favourite that is now flower 1 is the one it had as flower 10
@@ -199,7 +199,7 @@ describe('FlowerStore', () => {
 				writeFlowers = resolve;
 			}));
 
-			const done = FlowerStore.deleteNonFavourites();
+			const done = LocalFlowerStore.deleteNonFavourites();
 			await vi.waitFor(() => expect(flowerRepository.bulkAddFlowers).toHaveBeenCalled());
 			expect(flowerRepository.bulkAddFavourites).not.toHaveBeenCalled();
 
@@ -214,7 +214,7 @@ describe('FlowerStore', () => {
 		const realGenome = async () => {
 			flowerRepository.addFlower.mockResolvedValueOnce(1);
 			flowerRepository.getFlower.mockResolvedValueOnce({ id: 1, genome: 'g', image: 'i' });
-			await FlowerStore.makeLocalFlower();
+			await LocalFlowerStore.makeLocalFlower();
 			const { genome } = flowerRepository.addFlower.mock.calls[0][0];
 			vi.clearAllMocks();
 			announced.length = 0;
@@ -225,7 +225,7 @@ describe('FlowerStore', () => {
 			flowerRepository.addFlower.mockResolvedValue(7);
 			flowerRepository.getFlower.mockResolvedValue({ id: 7, genome: 'g', image: 'i' });
 
-			await FlowerStore.makeLocalFlower();
+			await LocalFlowerStore.makeLocalFlower();
 
 			expect(speciesStore.classifyLater).toHaveBeenCalledExactlyOnceWith(7);
 		});
@@ -234,7 +234,7 @@ describe('FlowerStore', () => {
 			const fe = await getFlowerEvolver();
 			vi.spyOn(fe, 'makeFlower').mockRejectedValueOnce(new Error('wasm trapped'));
 
-			await FlowerStore.makeLocalFlower();
+			await LocalFlowerStore.makeLocalFlower();
 
 			expect(speciesStore.classifyLater).not.toHaveBeenCalled();
 			vi.restoreAllMocks();
@@ -244,7 +244,7 @@ describe('FlowerStore', () => {
 			const genome = await realGenome();
 			flowerRepository.addFlower.mockResolvedValue(12);
 
-			await FlowerStore.redrawFlower({ id: 3, genome, image: 'old' });
+			await LocalFlowerStore.redrawFlower({ id: 3, genome, image: 'old' });
 
 			expect(speciesStore.classifyLater).toHaveBeenCalledExactlyOnceWith(12);
 		});
@@ -253,7 +253,7 @@ describe('FlowerStore', () => {
 			const genome = await realGenome();
 			flowerRepository.addFlower.mockRejectedValue(new Error('disk full'));
 
-			await FlowerStore.redrawFlower({ id: 3, genome, image: 'old' });
+			await LocalFlowerStore.redrawFlower({ id: 3, genome, image: 'old' });
 
 			expect(ErrorStore.push).toHaveBeenCalled();
 			expect(speciesStore.classifyLater).not.toHaveBeenCalled();
@@ -261,12 +261,12 @@ describe('FlowerStore', () => {
 
 		test('localReproduce asks for the species of the child', async () => {
 			const genome = await realGenome();
-			FlowerStore.localSelected.flowers = [1, 2];
+			LocalFlowerStore.localSelected.flowers = [1, 2];
 			flowerRepository.getFlower.mockImplementation(async (id) => ({ id, genome, image: 'i' }));
 			flowerRepository.addFlower.mockResolvedValue(9);
 			flowerRepository.addDescendant.mockResolvedValue();
 
-			await FlowerStore.localReproduce();
+			await LocalFlowerStore.localReproduce();
 
 			expect(speciesStore.classifyLater).toHaveBeenCalledExactlyOnceWith(9);
 		});
@@ -277,7 +277,7 @@ describe('FlowerStore', () => {
 			flowerRepository.addMutation.mockResolvedValue();
 			flowerRepository.getFlower.mockResolvedValue({ id: 10, genome, image: 'i' });
 
-			await FlowerStore.makeLocalMutation({ id: 1, genome });
+			await LocalFlowerStore.makeLocalMutation({ id: 1, genome });
 
 			expect(speciesStore.classifyLater).toHaveBeenCalledExactlyOnceWith(10);
 		});
@@ -287,7 +287,7 @@ describe('FlowerStore', () => {
 			vi.stubGlobal('fetch', vi.fn(async () => ({ text: async () => genome })));
 			flowerRepository.addFlower.mockResolvedValue(11);
 
-			await FlowerStore.addRemoteFlowerToLocal({ genome: 'remote-id' });
+			await LocalFlowerStore.addRemoteFlowerToLocal({ genome: 'remote-id' });
 
 			await vi.waitFor(() => expect(speciesStore.classifyLater).toHaveBeenCalledExactlyOnceWith(11));
 			vi.unstubAllGlobals();
@@ -300,7 +300,7 @@ describe('FlowerStore', () => {
 			flowerRepository.deleteFlower.mockResolvedValue();
 			flowerRepository.findMutationsByOriginalOrId.mockResolvedValue([]);
 
-			await FlowerStore.deleteLocalFlower(5);
+			await LocalFlowerStore.deleteLocalFlower(5);
 
 			expect(speciesStore.removeFlower).toHaveBeenCalledExactlyOnceWith(5);
 		});
@@ -314,14 +314,14 @@ describe('FlowerStore', () => {
 			const failure = new Error('disk full');
 			speciesStore.removeFlower.mockRejectedValueOnce(failure);
 
-			await FlowerStore.deleteLocalFlower(5);
+			await LocalFlowerStore.deleteLocalFlower(5);
 
 			expect(ErrorStore.push).toHaveBeenCalledWith(failure);
 			expect(flowerRepository.deleteFlower).toHaveBeenCalledWith(5);
 		});
 
 		test('deleteAllFlowers forgets what was known by id once the database is wiped, the ids start again', async () => {
-			await FlowerStore.deleteAllFlowers();
+			await LocalFlowerStore.deleteAllFlowers();
 
 			expect(speciesStore.invalidate).toHaveBeenCalledTimes(1);
 			expect(flowerRepository.wipeDatabase.mock.invocationCallOrder[0])
@@ -329,13 +329,13 @@ describe('FlowerStore', () => {
 		});
 	});
 
-	// FlowerStore does not keep the list of the local flowers: the view that shows it does, and these
+	// LocalFlowerStore does not keep the list of the local flowers: the view that shows it does, and these
 	// are the words that reach it (src/services/listEvents.js)
 	describe('what the list of the local flowers is told', () => {
 		const realGenome = async () => {
 			flowerRepository.addFlower.mockResolvedValueOnce(1);
 			flowerRepository.getFlower.mockResolvedValueOnce({ id: 1, genome: 'g', image: 'i' });
-			await FlowerStore.makeLocalFlower();
+			await LocalFlowerStore.makeLocalFlower();
 			const { genome } = flowerRepository.addFlower.mock.calls[0][0];
 			vi.clearAllMocks();
 			announced.length = 0;
@@ -346,7 +346,7 @@ describe('FlowerStore', () => {
 			const fe = await getFlowerEvolver();
 			vi.spyOn(fe, 'makeFlower').mockRejectedValueOnce(new Error('wasm trapped'));
 
-			await FlowerStore.makeLocalFlower();
+			await LocalFlowerStore.makeLocalFlower();
 
 			expect(announced).toEqual([]);
 			vi.restoreAllMocks();
@@ -356,7 +356,7 @@ describe('FlowerStore', () => {
 			const genome = await realGenome();
 			flowerRepository.addFlower.mockResolvedValue(12);
 
-			await FlowerStore.redrawFlower({ id: 3, genome, image: 'old' });
+			await LocalFlowerStore.redrawFlower({ id: 3, genome, image: 'old' });
 
 			expect(announced).toHaveLength(1);
 			expect(announced[0][0]).toBe('added');
@@ -367,19 +367,19 @@ describe('FlowerStore', () => {
 			const genome = await realGenome();
 			flowerRepository.addFlower.mockRejectedValue(new Error('disk full'));
 
-			await FlowerStore.redrawFlower({ id: 3, genome, image: 'old' });
+			await LocalFlowerStore.redrawFlower({ id: 3, genome, image: 'old' });
 
 			expect(announced).toEqual([]);
 		});
 
 		test('localReproduce announces the child, and to the descendants of the pair that was selected', async () => {
 			const genome = await realGenome();
-			FlowerStore.localSelected.flowers = [1, 2];
+			LocalFlowerStore.localSelected.flowers = [1, 2];
 			flowerRepository.getFlower.mockImplementation(async (id) => ({ id, genome, image: 'i' }));
 			flowerRepository.addFlower.mockResolvedValue(9);
 			flowerRepository.addDescendant.mockResolvedValue();
 
-			await FlowerStore.localReproduce();
+			await LocalFlowerStore.localReproduce();
 
 			expect(announced).toEqual([['added', { id: 9, genome, image: 'i' }]]);
 			// the first selected flower is the father and the second the mother, the lists of descendants decide with that
@@ -392,7 +392,7 @@ describe('FlowerStore', () => {
 			flowerRepository.addMutation.mockResolvedValue();
 			flowerRepository.getFlower.mockResolvedValue({ id: 10, genome, image: 'i' });
 
-			await FlowerStore.makeLocalMutation({ id: 1, genome });
+			await LocalFlowerStore.makeLocalMutation({ id: 1, genome });
 
 			expect(announced).toEqual([['added', { id: 10, genome, image: 'i' }]]);
 			expect(flowerRepository.addMutation).toHaveBeenCalledWith({ id: 10, original: 1 });
@@ -404,7 +404,7 @@ describe('FlowerStore', () => {
 			const fe = await getFlowerEvolver();
 			vi.spyOn(fe, 'mutate').mockRejectedValueOnce(new Error('wasm trapped'));
 
-			await FlowerStore.makeLocalMutation({ id: 1, genome: 'not a genome' });
+			await LocalFlowerStore.makeLocalMutation({ id: 1, genome: 'not a genome' });
 
 			expect(announced).toEqual([]);
 			expect(toLocalMutations).toEqual([]);
@@ -417,7 +417,7 @@ describe('FlowerStore', () => {
 			vi.stubGlobal('fetch', vi.fn(async () => ({ text: async () => genome })));
 			flowerRepository.addFlower.mockResolvedValue(11);
 
-			await FlowerStore.addRemoteFlowerToLocal({ genome: 'remote-id' });
+			await LocalFlowerStore.addRemoteFlowerToLocal({ genome: 'remote-id' });
 
 			await vi.waitFor(() => expect(announced).toHaveLength(1));
 			expect(announced[0][1]).toMatchObject({ id: 11, genome });
@@ -434,7 +434,7 @@ describe('FlowerStore', () => {
 			stopListening();
 			stopListening = listenToList('local', { removed: () => order.push('announced') });
 
-			await FlowerStore.deleteLocalFlower(5);
+			await LocalFlowerStore.deleteLocalFlower(5);
 
 			expect(order).toEqual(['deleted', 'announced']);
 		});
@@ -445,7 +445,7 @@ describe('FlowerStore', () => {
 			stopListening();
 			stopListening = listenToList('local', { reset: () => order.push('reset') });
 
-			await FlowerStore.deleteAllFlowers();
+			await LocalFlowerStore.deleteAllFlowers();
 
 			expect(order).toEqual(['wiped', 'reset']);
 			// and so did the favourites, the mutations and the descendants
@@ -468,7 +468,7 @@ describe('FlowerStore', () => {
 				reset: () => order.push('reset'),
 			});
 
-			await FlowerStore.deleteNonFavourites();
+			await LocalFlowerStore.deleteNonFavourites();
 
 			// no flower is announced: a reset makes the view read the table, with the new ids
 			expect(order).toEqual(['flowers written', 'species written', 'reset']);
@@ -487,7 +487,7 @@ describe('FlowerStore', () => {
 		const realGenome = async () => {
 			flowerRepository.addFlower.mockResolvedValueOnce(1);
 			flowerRepository.getFlower.mockResolvedValueOnce({ id: 1, genome: 'g', image: 'i' });
-			await FlowerStore.makeLocalFlower();
+			await LocalFlowerStore.makeLocalFlower();
 			const { genome } = flowerRepository.addFlower.mock.calls[0][0];
 			vi.clearAllMocks();
 			return genome;
@@ -504,16 +504,16 @@ describe('FlowerStore', () => {
 		});
 
 		test.each([
-			['makeLocalFlower', async () => FlowerStore.makeLocalFlower()],
-			['redrawFlower', async (genome) => FlowerStore.redrawFlower({ id: 1, genome, image: 'i' })],
+			['makeLocalFlower', async () => LocalFlowerStore.makeLocalFlower()],
+			['redrawFlower', async (genome) => LocalFlowerStore.redrawFlower({ id: 1, genome, image: 'i' })],
 			['localReproduce', async () => {
-				FlowerStore.localSelected.flowers = [1, 2];
-				await FlowerStore.localReproduce();
+				LocalFlowerStore.localSelected.flowers = [1, 2];
+				await LocalFlowerStore.localReproduce();
 			}],
-			['makeLocalMutation', async (genome) => FlowerStore.makeLocalMutation({ id: 1, genome })],
+			['makeLocalMutation', async (genome) => LocalFlowerStore.makeLocalMutation({ id: 1, genome })],
 			['addRemoteFlowerToLocal', async (genome) => {
 				vi.stubGlobal('fetch', vi.fn(async () => ({ text: async () => genome })));
-				await FlowerStore.addRemoteFlowerToLocal({ genome: 'remote-id' });
+				await LocalFlowerStore.addRemoteFlowerToLocal({ genome: 'remote-id' });
 				vi.unstubAllGlobals();
 			}],
 		])('%s draws with the parameters of the settings', async (_, run) => {
@@ -537,7 +537,7 @@ describe('FlowerStore', () => {
 			SettingsStore.settings.mutationRates = { ...rates };
 			const mutate = vi.spyOn(await getFlowerEvolver(), 'mutate');
 
-			await FlowerStore.makeLocalMutation({ id: 1, genome });
+			await LocalFlowerStore.makeLocalMutation({ id: 1, genome });
 
 			expect(mutate).toHaveBeenCalledExactlyOnceWith(genome, 0.11, 0.22, 0.33, 0.44, 0.55, 0.66, 0.77);
 		});
@@ -548,12 +548,12 @@ describe('FlowerStore', () => {
 			const setParams = vi.spyOn(await getFlowerEvolver(), 'setParams');
 
 			SettingsStore.settings.params = { ...params };
-			await FlowerStore.makeLocalFlower();
+			await LocalFlowerStore.makeLocalFlower();
 			// both ways that the settings change: one value, and the whole object (what the form of the parameters does)
 			SettingsStore.settings.params.radius = 16;
-			await FlowerStore.makeLocalFlower();
+			await LocalFlowerStore.makeLocalFlower();
 			SettingsStore.settings.params = { radius: 8, numLayers: 1, P: 2, bias: 0.25 };
-			await FlowerStore.makeLocalFlower();
+			await LocalFlowerStore.makeLocalFlower();
 
 			expect(setParams.mock.calls.map(([given]) => [given.radius, given.numLayers, given.P, given.bias])).toEqual([
 				[32, 2, 4.5, 0.5],

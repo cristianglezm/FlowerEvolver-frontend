@@ -1,7 +1,7 @@
 // tests/unit/setup/jsdom.js
 import 'fake-indexeddb/auto';
 import { describe, test, expect, beforeEach, afterAll } from 'vitest';
-import { db } from '../../../src/stores/FlowerStore/db';
+import { db } from '../../../src/services/db';
 import * as speciesRepository from '../../../src/services/speciesRepository';
 
 describe('speciesRepository (real Dexie semantics via fake-indexeddb)', () => {

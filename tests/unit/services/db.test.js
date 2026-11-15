@@ -24,7 +24,7 @@ describe('db', () => {
         await old.mutations.add({ id: 7, original: id });
         old.close();
 
-        ({ db } = await import('../../../src/stores/FlowerStore/db'));
+        ({ db } = await import('../../../src/services/db'));
         await db.open();
 
         expect(db.verno).toBe(2);

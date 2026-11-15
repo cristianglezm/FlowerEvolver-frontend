@@ -36,7 +36,7 @@ describe('CaptionerStore', () => {
 		expect(received).toEqual({ ok: true });
 	});
 
-	test('loadLocalDescriptions reads through flowerRepository, not FlowerStore.db', async () => {
+	test('loadLocalDescriptions reads through flowerRepository', async () => {
 		flowerRepository.listDescriptions.mockResolvedValue([{ id: 1, description: 'a red flower' }]);
 
 		await CaptionerStore.loadLocalDescriptions(0, 10);

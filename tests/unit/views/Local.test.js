@@ -6,12 +6,12 @@ import { createTestingPinia } from '@pinia/testing';
 import { createRouter, createMemoryHistory } from 'vue-router';
 import Local from '../../../src/views/Local.vue';
 import PaginationOrInfiniteScroll from '../../../src/components/PaginationOrInfiniteScroll.vue';
-import { useFlowerStore } from '../../../src/stores/FlowerStore';
+import { useLocalFlowerStore } from '../../../src/stores/LocalFlowerStore';
 import { useSettingsStore } from '../../../src/stores/SettingsStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 import { flowerAdded } from '../../../src/services/listEvents';
 
-// What is under test is the view with the real FlowerStore and the real wasm, the way the e2e specs use it: a
+// What is under test is the view with the real LocalFlowerStore and the real wasm, the way the e2e specs use it: a
 // flower is made, mutated, reproduced or deleted by the menu or a card while the Local tab is on screen, and the
 // tab has to show it. Only what is behind them is faked: the table of flowers (it behaves like the Dexie one,
 // the newest first), the network, the species and the descriptions.
@@ -72,7 +72,7 @@ vi.mock('../../../src/workers/import.worker?worker', () => ({
 const page = { template: '<div />' };
 
 describe('Local view', () => {
-    let FlowerStore;
+    let LocalFlowerStore;
     let SettingsStore;
     let ErrorStore;
     let router;
@@ -104,7 +104,7 @@ describe('Local view', () => {
         workers.length = 0;
         emitter = { emit: vi.fn() };
         createTestingPinia({ stubActions: false, createSpy: vi.fn });
-        FlowerStore = useFlowerStore();
+        LocalFlowerStore = useLocalFlowerStore();
         SettingsStore = useSettingsStore();
         ErrorStore = useErrorStore();
         vi.spyOn(ErrorStore, 'push');
@@ -146,11 +146,11 @@ describe('Local view', () => {
         test('a flower that the menu makes is at the top, and so is its mutation', async () => {
             await mountView();
 
-            await FlowerStore.makeLocalFlower();
+            await LocalFlowerStore.makeLocalFlower();
             await settle();
             expect(shown()).toEqual([1]);
 
-            await FlowerStore.makeLocalMutation(table.rows[0]);
+            await LocalFlowerStore.makeLocalMutation(table.rows[0]);
             await settle();
             expect(shown()).toEqual([2, 1]);
             expect(ErrorStore.push).not.toHaveBeenCalled();
@@ -159,14 +159,14 @@ describe('Local view', () => {
         // the e2e spec 'selecting two local flowers enables reproduction'
         test('the child of two selected flowers is at the top', async () => {
             await mountView();
-            await FlowerStore.makeLocalFlower();
-            await FlowerStore.makeLocalFlower();
+            await LocalFlowerStore.makeLocalFlower();
+            await LocalFlowerStore.makeLocalFlower();
             await settle();
             expect(shown()).toEqual([2, 1]);
 
-            FlowerStore.selectLocalFlower({ id: 1 });
-            FlowerStore.selectLocalFlower({ id: 2 });
-            await FlowerStore.localReproduce();
+            LocalFlowerStore.selectLocalFlower({ id: 1 });
+            LocalFlowerStore.selectLocalFlower({ id: 2 });
+            await LocalFlowerStore.localReproduce();
             await settle();
 
             expect(shown()).toEqual([3, 2, 1]);
@@ -175,10 +175,10 @@ describe('Local view', () => {
 
         test('a redrawn copy is at the top with its own id', async () => {
             await mountView();
-            await FlowerStore.makeLocalFlower();
+            await LocalFlowerStore.makeLocalFlower();
             await settle();
 
-            await FlowerStore.redrawFlower({ ...table.rows[0] });
+            await LocalFlowerStore.redrawFlower({ ...table.rows[0] });
             await settle();
 
             expect(shown()).toEqual([2, 1]);
@@ -188,7 +188,7 @@ describe('Local view', () => {
             addRows(3);
             await mountView();
 
-            await FlowerStore.deleteLocalFlower(2);
+            await LocalFlowerStore.deleteLocalFlower(2);
             await settle();
 
             expect(shown()).toEqual([3, 1]);
@@ -198,12 +198,12 @@ describe('Local view', () => {
             addRows(3);
             await mountView();
 
-            await FlowerStore.deleteAllFlowers();
+            await LocalFlowerStore.deleteAllFlowers();
             await settle();
             expect(shown()).toEqual([]);
             expect(wrapper.find('.none').exists()).toBe(true);
 
-            await FlowerStore.makeLocalFlower();
+            await LocalFlowerStore.makeLocalFlower();
             await settle();
             expect(shown()).toEqual([1]);
         });
@@ -221,7 +221,7 @@ describe('Local view', () => {
                 table.seq = 0;
                 flowers.forEach((f) => table.rows.push({ ...f, id: ++table.seq }));
             });
-            await FlowerStore.deleteNonFavourites();
+            await LocalFlowerStore.deleteNonFavourites();
             await settle();
 
             expect(shown()).toEqual([1]);
@@ -243,7 +243,7 @@ describe('Local view', () => {
             wrapper.unmount();
             wrapper = undefined;
 
-            await FlowerStore.makeLocalFlower();
+            await LocalFlowerStore.makeLocalFlower();
             await flushPromises();
 
             expect(ErrorStore.push).not.toHaveBeenCalled();
@@ -293,7 +293,7 @@ describe('Local view', () => {
         test('a flower that is made is at the top of the page that is shown', async () => {
             await mountView();
 
-            await FlowerStore.makeLocalFlower();
+            await LocalFlowerStore.makeLocalFlower();
             await settle();
 
             expect(shown()).toEqual([9, 8, 7, 6]);

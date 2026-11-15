@@ -1,4 +1,4 @@
-import { db } from '../stores/FlowerStore/db';
+import { db } from './db';
 
 export function ensureOpen(){
 	if(!db.isOpen()){

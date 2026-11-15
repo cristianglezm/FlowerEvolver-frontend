@@ -25,8 +25,8 @@
         </nav>
         <div class="actions" alt="actions">
           <nav v-if="props.isLocal">
-            <button class="safe-button" data-testid="menu-new-local-flower" @click="FlowerStore.makeLocalFlower(); toggleMenu()"> New Local Flower</button>
-            <button class="safe-button" data-testid="menu-local-reproduce" @click="FlowerStore.localReproduce(); toggleMenu()"> Local Reproduce Selected</button>
+            <button class="safe-button" data-testid="menu-new-local-flower" @click="LocalFlowerStore.makeLocalFlower(); toggleMenu()"> New Local Flower</button>
+            <button class="safe-button" data-testid="menu-local-reproduce" @click="LocalFlowerStore.localReproduce(); toggleMenu()"> Local Reproduce Selected</button>
             <button class="safe-button" data-testid="menu-show-local-descendants" @click="showDescendants(); toggleMenu()"> Show Local Selected Descendants</button>
             <button class="safe-button" data-testid="menu-toggle-chatbot" @click="toggleChatBot(); toggleMenu()">{{ toggleButtonMessage }}</button>
           </nav>
@@ -68,8 +68,8 @@
         <button class="fixed-button left-fixed-button" data-testid="menu-toggle-chatbot" @click="toggleChatBot()">{{ toggleButtonMessage }}</button>
       </div>
       <div v-if="props.isLocal" class="floating-actions-right">
-        <button class="fixed-button right-fixed-button" data-testid="menu-new-local-flower" @click="FlowerStore.makeLocalFlower()"> New Local Flower</button>
-        <button class="fixed-button right-fixed-button" data-testid="menu-local-reproduce" @click="FlowerStore.localReproduce()"> Local Reproduce Selected</button>
+        <button class="fixed-button right-fixed-button" data-testid="menu-new-local-flower" @click="LocalFlowerStore.makeLocalFlower()"> New Local Flower</button>
+        <button class="fixed-button right-fixed-button" data-testid="menu-local-reproduce" @click="LocalFlowerStore.localReproduce()"> Local Reproduce Selected</button>
         <button class="fixed-button right-fixed-button" data-testid="menu-show-local-descendants" @click="showDescendants()"> Show Local Selected Descendants</button>
       </div>
       <div v-else class="floating-actions-right">
@@ -89,7 +89,7 @@ import { reactive, inject, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import ErrorModal from './ErrorModal.vue';
 import ConfirmModal from './ConfirmModal.vue';
-import { useFlowerStore } from '../stores/FlowerStore';
+import { useLocalFlowerStore } from '../stores/LocalFlowerStore';
 import { useRemoteFlowerStore } from '../stores/RemoteFlowerStore';
 import { useSettingsStore } from '../stores/SettingsStore';
 import { useErrorStore } from '../stores/ErrorStore';
@@ -106,7 +106,7 @@ let data = reactive({
     showMenu: false
 });
 const emitter = inject('emitter');
-const FlowerStore = useFlowerStore();
+const LocalFlowerStore = useLocalFlowerStore();
 const RemoteFlowerStore = useRemoteFlowerStore();
 const SettingsStore = useSettingsStore();
 const ErrorStore = useErrorStore();
@@ -124,7 +124,7 @@ const block = (Fn) => {
 };
 const showDescendants = () => {
     if(props.isLocal){
-        let selected = FlowerStore.getLocalSelected;
+        let selected = LocalFlowerStore.getLocalSelected;
         if(selected.length < 1){
             ErrorStore.push('You need to select two flowers');
         }else{

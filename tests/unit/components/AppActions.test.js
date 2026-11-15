@@ -7,7 +7,7 @@ import { useSpeciesStore } from '../../../src/stores/SpeciesStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 import * as flowerRepository from '../../../src/services/flowerRepository';
 
-// The three workers and FlowerStore are what the rest of this component is about, here it is only the
+// The three workers and LocalFlowerStore are what the rest of this component is about, here it is only the
 // button of the Danger Zone for the fine-tuned classifier.
 vi.mock('../../../src/workers/redraw.worker?worker', () => ({ default: () => ({ postMessage: () => {}, terminate: () => {} }) }));
 vi.mock('../../../src/workers/export.worker?worker', () => ({ default: () => ({ postMessage: () => {}, terminate: () => {} }) }));
@@ -19,9 +19,9 @@ vi.mock('../../../src/services/flowerRepository', () => ({
     countFlowers: vi.fn(),
     countFavourites: vi.fn(),
 }));
-vi.mock('../../../src/stores/FlowerStore', () => ({
-    useFlowerStore: () => ({ deleteAllFlowers: vi.fn(), deleteNonFavourites: vi.fn() }),
-    STORAGE_KEY_GARDEN: 'garden',
+const localFlowerStore = vi.hoisted(() => ({}));
+vi.mock('../../../src/stores/LocalFlowerStore', () => ({
+    useLocalFlowerStore: () => localFlowerStore,
 }));
 
 describe('AppActions, the fine-tuned classifier', () => {
@@ -34,6 +34,8 @@ describe('AppActions, the fine-tuned classifier', () => {
     const button = (wrapper) => wrapper.get('[data-testid="remove-classifier"]');
 
     beforeEach(() => {
+        localFlowerStore.deleteAllFlowers = vi.fn();
+        localFlowerStore.deleteNonFavourites = vi.fn();
         createTestingPinia({ createSpy: vi.fn });
         SpeciesStore = useSpeciesStore();
         emitter = { emit: vi.fn(), on: vi.fn(), off: vi.fn() };
@@ -152,5 +154,50 @@ describe('AppActions, the actions that need to know how many flowers there are',
         await vi.waitFor(() => expect(ErrorStore.push).toHaveBeenCalledExactlyOnceWith(failure));
 
         expect(progress()).toEqual([]);
+    });
+});
+
+describe('AppActions, the Danger Zone', () => {
+    let emitter;
+
+    const mountActions = () => mount(AppActions, {
+        global: { provide: { emitter }, stubs: { UploadFileModal: true } },
+    });
+    const buttonWith = (wrapper, text) => wrapper.findAll('button').find((b) => b.text() === text);
+    const question = () => emitter.emit.mock.calls.find(([name]) => name === 'showYesNo')[1];
+
+    beforeEach(() => {
+        localFlowerStore.deleteAllFlowers = vi.fn();
+        localFlowerStore.deleteNonFavourites = vi.fn();
+        createTestingPinia({ createSpy: vi.fn });
+        emitter = { emit: vi.fn(), on: vi.fn(), off: vi.fn() };
+    });
+
+    test.each([
+        ['Delete All Flowers', 'deleteAllFlowers', 'deleteNonFavourites'],
+        ['Delete non Favourites', 'deleteNonFavourites', 'deleteAllFlowers'],
+    ])('%s asks first, and when it is confirmed deletes and tells the options to count the space again', async (text, action, other) => {
+        await buttonWith(mountActions(), text).trigger('click');
+        expect(localFlowerStore[action]).not.toHaveBeenCalled();
+
+        await question().onConfirm();
+
+        expect(localFlowerStore[action]).toHaveBeenCalledTimes(1);
+        expect(localFlowerStore[other]).not.toHaveBeenCalled();
+        expect(emitter.emit).toHaveBeenLastCalledWith('AppOptions#recalcSpace');
+    });
+
+    test('the space is counted after the flowers are deleted, not before', async () => {
+        let finish;
+        localFlowerStore.deleteAllFlowers = vi.fn(() => new Promise((resolve) => { finish = resolve; }));
+        await buttonWith(mountActions(), 'Delete All Flowers').trigger('click');
+
+        const done = question().onConfirm();
+        await Promise.resolve();
+        expect(emitter.emit).not.toHaveBeenCalledWith('AppOptions#recalcSpace');
+
+        finish();
+        await done;
+        expect(emitter.emit).toHaveBeenCalledWith('AppOptions#recalcSpace');
     });
 });

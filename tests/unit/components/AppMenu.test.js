@@ -9,13 +9,13 @@ import AppMenu from '../../../src/components/AppMenu.vue';
 import { useRemoteFlowerStore } from '../../../src/stores/RemoteFlowerStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 
-// the menu only reads the settings, the actions of FlowerStore need the wasm
+// the menu only reads the settings, the actions of LocalFlowerStore need the wasm
 const settingsStore = vi.hoisted(() => ({}));
 vi.mock('../../../src/stores/SettingsStore', () => ({
     useSettingsStore: () => settingsStore,
 }));
-vi.mock('../../../src/stores/FlowerStore', () => ({
-    useFlowerStore: () => ({}),
+vi.mock('../../../src/stores/LocalFlowerStore', () => ({
+    useLocalFlowerStore: () => ({}),
 }));
 
 const page = { template: '<div />' };

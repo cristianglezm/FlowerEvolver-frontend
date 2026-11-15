@@ -6,7 +6,7 @@ import { createTestingPinia } from '@pinia/testing';
 import { createRouter, createMemoryHistory } from 'vue-router';
 import Mutations from '../../../src/views/Mutations.vue';
 import PaginationOrInfiniteScroll from '../../../src/components/PaginationOrInfiniteScroll.vue';
-import { useFlowerStore } from '../../../src/stores/FlowerStore';
+import { useLocalFlowerStore } from '../../../src/stores/LocalFlowerStore';
 import { useRemoteFlowerStore } from '../../../src/stores/RemoteFlowerStore';
 import { useSettingsStore } from '../../../src/stores/SettingsStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
@@ -85,7 +85,7 @@ vi.mock('../../../src/components/FlowersTable.vue', () => ({
 }));
 
 describe('Mutations view', () => {
-    let FlowerStore;
+    let LocalFlowerStore;
     let RemoteFlowerStore;
     let SettingsStore;
     let ErrorStore;
@@ -94,7 +94,7 @@ describe('Mutations view', () => {
 
     // a flower with a real genome, so that it can be mutated: it is the flower 1
     const makeOriginal = async () => {
-        await FlowerStore.makeLocalFlower();
+        await LocalFlowerStore.makeLocalFlower();
         return { ...local.flowers[0] };
     };
     // local flowers that are mutations of `original`, with the ids that follow
@@ -136,7 +136,7 @@ describe('Mutations view', () => {
         server.seq = 0;
         server.offline = false;
         createTestingPinia({ stubActions: false, createSpy: vi.fn });
-        FlowerStore = useFlowerStore();
+        LocalFlowerStore = useLocalFlowerStore();
         RemoteFlowerStore = useRemoteFlowerStore();
         SettingsStore = useSettingsStore();
         ErrorStore = useErrorStore();
@@ -211,10 +211,10 @@ describe('Mutations view', () => {
             await mountView('/Mutations/local/1');
             expect(shown()).toEqual([]);
 
-            await FlowerStore.makeLocalMutation(original);
+            await LocalFlowerStore.makeLocalMutation(original);
             await settle();
             expect(shown()).toEqual([2]);
-            await FlowerStore.makeLocalMutation(original);
+            await LocalFlowerStore.makeLocalMutation(original);
             await settle();
 
             expect(shown()).toEqual([3, 2]);
@@ -224,12 +224,12 @@ describe('Mutations view', () => {
         test('a mutation of one of the mutations in the list is not in it: it is a mutation of that one', async () => {
             const original = await makeOriginal();
             await mountView('/Mutations/local/1');
-            await FlowerStore.makeLocalMutation(original);
+            await LocalFlowerStore.makeLocalMutation(original);
             await settle();
             const child = { ...local.flowers[1] };
             expect(shown()).toEqual([2]);
 
-            await FlowerStore.makeLocalMutation(child);
+            await LocalFlowerStore.makeLocalMutation(child);
             await settle();
 
             expect(shown()).toEqual([2]);
@@ -241,10 +241,10 @@ describe('Mutations view', () => {
         test('what is shown is what the tab shows when it is opened again, whatever was mutated', async () => {
             const original = await makeOriginal();
             await mountView('/Mutations/local/1');
-            await FlowerStore.makeLocalMutation(original);
-            await FlowerStore.makeLocalMutation({ ...local.flowers[1] });
-            await FlowerStore.makeLocalMutation(original);
-            await FlowerStore.makeLocalMutation({ ...local.flowers[3] });
+            await LocalFlowerStore.makeLocalMutation(original);
+            await LocalFlowerStore.makeLocalMutation({ ...local.flowers[1] });
+            await LocalFlowerStore.makeLocalMutation(original);
+            await LocalFlowerStore.makeLocalMutation({ ...local.flowers[3] });
             await settle();
             const live = shown();
 
@@ -289,7 +289,7 @@ describe('Mutations view', () => {
 
             wrapper.unmount();
             await mountView('/Mutations/remote/1');
-            await FlowerStore.makeLocalMutation(original);
+            await LocalFlowerStore.makeLocalMutation(original);
             await settle();
             expect(shown()).toEqual([1]);
         });
@@ -299,7 +299,7 @@ describe('Mutations view', () => {
             addLocalMutations(original.id, 3);
             await mountView('/Mutations/local/1');
 
-            await FlowerStore.deleteLocalFlower(3);
+            await LocalFlowerStore.deleteLocalFlower(3);
             await settle();
 
             expect(shown()).toEqual([4, 2]);
@@ -310,7 +310,7 @@ describe('Mutations view', () => {
             addLocalMutations(original.id, 3);
             await mountView('/Mutations/local/1');
 
-            await FlowerStore.deleteAllFlowers();
+            await LocalFlowerStore.deleteAllFlowers();
             await settle();
 
             expect(shown()).toEqual([]);
@@ -333,7 +333,7 @@ describe('Mutations view', () => {
             wrapper.unmount();
             wrapper = undefined;
 
-            await FlowerStore.makeLocalMutation(original);
+            await LocalFlowerStore.makeLocalMutation(original);
             await flushPromises();
 
             expect(ErrorStore.push).not.toHaveBeenCalled();
@@ -418,7 +418,7 @@ describe('Mutations view', () => {
             addLocalMutations(original.id, 4);
             await mountView('/Mutations/local/1');
 
-            await FlowerStore.makeLocalMutation(original);
+            await LocalFlowerStore.makeLocalMutation(original);
             await settle();
 
             expect(shown()).toEqual([6, 5, 4, 3]);

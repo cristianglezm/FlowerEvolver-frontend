@@ -13,7 +13,7 @@ import * as flowerRepository from '../../../src/services/flowerRepository';
 import { classifierJson } from '../helpers/classifier';
 
 // What is under test is the view: what it asks of the store and the tables and what it shows. A flower
-// card is a lot of components and stores, the selection is what it takes from FlowerStore.
+// card is a lot of components and stores, the selection is what it takes from LocalFlowerStore.
 vi.mock('../../../src/components/FlowersTable.vue', () => ({
     default: {
         props: ['flowers', 'isLocal', 'noFlowerMessage'],
@@ -31,8 +31,8 @@ vi.mock('../../../src/services/flowerRepository', () => ({
     bulkGetFlowers: vi.fn(),
 }));
 const flowerStore = vi.hoisted(() => ({}));
-vi.mock('../../../src/stores/FlowerStore', () => ({
-    useFlowerStore: () => flowerStore,
+vi.mock('../../../src/stores/LocalFlowerStore', () => ({
+    useLocalFlowerStore: () => flowerStore,
 }));
 // the list takes the settings and the offsets from here
 const settingsStore = vi.hoisted(() => ({}));

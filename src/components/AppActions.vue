@@ -28,7 +28,8 @@
 
 <script setup>
 import { inject, toRaw, onBeforeUnmount, onMounted } from 'vue';
-import { useFlowerStore, STORAGE_KEY_GARDEN } from '../stores/FlowerStore';
+import { useLocalFlowerStore } from '../stores/LocalFlowerStore';
+import { STORAGE_KEY_GARDEN } from '../services/gardenStorage';
 import { useSettingsStore } from '../stores/SettingsStore';
 import * as flowerRepository from '../services/flowerRepository';
 import UploadFileModal from '../components/UploadFileModal.vue';
@@ -41,7 +42,7 @@ import { useErrorStore } from '../stores/ErrorStore';
 import { useSpeciesStore } from '../stores/SpeciesStore';
 import { useClassifierReset } from '../composables/useClassifierReset';
 
-const FlowerStore = useFlowerStore();
+const LocalFlowerStore = useLocalFlowerStore();
 const SettingsStore = useSettingsStore();
 const ErrorStore = useErrorStore();
 const SpeciesStore = useSpeciesStore();
@@ -123,7 +124,7 @@ const deleteAllFlowers = () => {
         btnNo: 'no',
         btnYes: 'Delete all',
         onConfirm: async () => {
-            await FlowerStore.deleteAllFlowers();
+            await LocalFlowerStore.deleteAllFlowers();
             emitter.emit('AppOptions#recalcSpace');
         },
     });
@@ -135,7 +136,7 @@ const deleteNonFavourites = () => {
         btnNo: 'no',
         btnYes: 'Delete non favourites',
         onConfirm: async () => {
-            await FlowerStore.deleteNonFavourites();
+            await LocalFlowerStore.deleteNonFavourites();
             emitter.emit('AppOptions#recalcSpace');
         }
     });

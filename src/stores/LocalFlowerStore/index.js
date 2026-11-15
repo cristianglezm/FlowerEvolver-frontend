@@ -8,11 +8,9 @@ import { useSpeciesStore } from '../SpeciesStore';
 import { useSettingsStore } from '../SettingsStore';
 import { flowerAdded, flowerRemoved, listReset } from '../../services/listEvents';
 
-export const API = import.meta.env.VITE_APP_API_URL;
 export const URL = import.meta.env.VITE_APP_DOWNLOAD_URL;
-export const STORAGE_KEY_GARDEN = "FlowerEvolverGarden";
 
-export const useFlowerStore = defineStore('FlowerStore', {
+export const useLocalFlowerStore = defineStore('LocalFlowerStore', {
 	state: () => ({
 		localSelected: { index: 0, flowers: [] },
 	}),

@@ -6,13 +6,13 @@ import { createTestingPinia } from '@pinia/testing';
 import { createRouter, createMemoryHistory } from 'vue-router';
 import Favourites from '../../../src/views/Favourites.vue';
 import PaginationOrInfiniteScroll from '../../../src/components/PaginationOrInfiniteScroll.vue';
-import { useFlowerStore } from '../../../src/stores/FlowerStore';
+import { useLocalFlowerStore } from '../../../src/stores/LocalFlowerStore';
 import { useFavouritesStore } from '../../../src/stores/FavouritesStore';
 import { useSettingsStore } from '../../../src/stores/SettingsStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 import { flowerAdded } from '../../../src/services/listEvents';
 
-// The view with the real FlowerStore: a card adds the flower to the favourites or takes it out, and a flower
+// The view with the real LocalFlowerStore: a card adds the flower to the favourites or takes it out, and a flower
 // can be deleted, while the tab is on screen. Only what is behind the store is faked: the tables of the flowers and
 // of the favourites (the favourites table has the id of the flower in each row, and is read the highest first).
 const db = vi.hoisted(() => ({ flowers: [], favourites: new Set() }));
@@ -63,7 +63,7 @@ vi.mock('../../../src/components/FlowersTable.vue', () => ({
 }));
 
 describe('Favourites view', () => {
-    let FlowerStore;
+    let LocalFlowerStore;
     let FavouritesStore;
     let SettingsStore;
     let ErrorStore;
@@ -92,7 +92,7 @@ describe('Favourites view', () => {
         db.flowers = [];
         db.favourites = new Set();
         createTestingPinia({ stubActions: false, createSpy: vi.fn });
-        FlowerStore = useFlowerStore();
+        LocalFlowerStore = useLocalFlowerStore();
         FavouritesStore = useFavouritesStore();
         SettingsStore = useSettingsStore();
         ErrorStore = useErrorStore();
@@ -168,7 +168,7 @@ describe('Favourites view', () => {
             fill(5, [2, 3, 4]);
             await mountView();
 
-            await FlowerStore.deleteLocalFlower(3);
+            await LocalFlowerStore.deleteLocalFlower(3);
             await settle();
 
             expect(shown()).toEqual([4, 2]);
@@ -178,7 +178,7 @@ describe('Favourites view', () => {
             fill(5, [2, 3, 4]);
             await mountView();
 
-            await FlowerStore.deleteAllFlowers();
+            await LocalFlowerStore.deleteAllFlowers();
             await settle();
 
             expect(shown()).toEqual([]);
@@ -190,7 +190,7 @@ describe('Favourites view', () => {
             await mountView();
             expect(shown()).toEqual([5, 4, 2]);
 
-            await FlowerStore.deleteNonFavourites();
+            await LocalFlowerStore.deleteNonFavourites();
             await settle();
 
             // the three flowers are 1, 2 and 3 now, and all of them are favourites

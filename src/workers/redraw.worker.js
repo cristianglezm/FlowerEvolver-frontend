@@ -13,7 +13,7 @@
  *       progress: progress
  *   });
  */
-import { db } from  '../stores/FlowerStore/db';
+import { db } from  '../services/db';
 import { FEParams } from '@cristianglezm/flower-evolver-wasm';
 import { getFlowerEvolver } from '../services/flowerEvolver';
 
