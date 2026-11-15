@@ -115,6 +115,7 @@
 <script setup>
     import { onMounted, ref, reactive, inject, onUnmounted } from "vue";
     import { useFlowerStore } from '../stores/FlowerStore';
+    import { useRemoteFlowerStore } from '../stores/RemoteFlowerStore';
     import { useSettingsStore } from '../stores/SettingsStore';
     import { useFavouritesStore } from '../stores/FavouritesStore';
     import { getFlowerEvolver } from '../services/flowerEvolver';
@@ -205,6 +206,7 @@
     });
     const router = useRouter();
     const FlowerStore = useFlowerStore();
+    const RemoteFlowerStore = useRemoteFlowerStore();
     const SettingsStore = useSettingsStore();
     const FavouritesStore = useFavouritesStore();
     const ErrorStore = useErrorStore();
@@ -280,12 +282,12 @@
         if(props.isLocal){
             FlowerStore.selectLocalFlower({id: props.id, genome: props.genome,image: props.image});
         }else{
-            FlowerStore.selectRemoteFlower({id: props.id, genome: props.genome,image: props.image});
+            RemoteFlowerStore.selectRemoteFlower({id: props.id, genome: props.genome,image: props.image});
         }
         emitter.emit('checkSelected');
     };
     const shareFlower = () => {
-        FlowerStore.shareFlower(props.genome);
+        RemoteFlowerStore.shareFlower(props.genome);
     };
     const describe = () => {
         if(!CaptionerStore.hasModelLoaded){
@@ -344,7 +346,7 @@
         if(props.isLocal){
             return FlowerStore.isLocalFlowerSelected({id: props.id, genome: props.genome, image: props.image})
         }
-        return FlowerStore.isRemoteFlowerSelected({id: props.id, genome: props.genome, image: props.image})
+        return RemoteFlowerStore.isRemoteFlowerSelected({id: props.id, genome: props.genome, image: props.image})
     };
     const toggleFavourite = async (id) => {
         if(props.isLocal){
@@ -469,7 +471,7 @@
         if(props.isLocal){
             FlowerStore.makeLocalMutation({id: props.id, image: props.image, genome: props.genome});
         }else{
-            FlowerStore.makeRemoteMutation({id: props.id, image: props.image, genome: props.genome});
+            RemoteFlowerStore.makeRemoteMutation({id: props.id, image: props.image, genome: props.genome});
         }
     };
 </script>

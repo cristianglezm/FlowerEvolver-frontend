@@ -31,8 +31,8 @@
             <button class="safe-button" data-testid="menu-toggle-chatbot" @click="toggleChatBot(); toggleMenu()">{{ toggleButtonMessage }}</button>
           </nav>
           <nav v-else>
-            <button class="safe-button" data-testid="menu-new-remote-flower" :class="{'disabled': data.blocked}" @click="block(FlowerStore.makeRemoteFlower); toggleMenu()"> New Remote Flower</button>
-            <button class="safe-button" data-testid="menu-remote-reproduce" :class="{'disabled': data.blocked}" @click="block(FlowerStore.remoteReproduce); toggleMenu()"> Remote Reproduce Selected</button>
+            <button class="safe-button" data-testid="menu-new-remote-flower" :class="{'disabled': data.blocked}" @click="block(RemoteFlowerStore.makeRemoteFlower); toggleMenu()"> New Remote Flower</button>
+            <button class="safe-button" data-testid="menu-remote-reproduce" :class="{'disabled': data.blocked}" @click="block(RemoteFlowerStore.remoteReproduce); toggleMenu()"> Remote Reproduce Selected</button>
             <button class="safe-button" data-testid="menu-show-remote-descendants" :class="{'disabled': data.blocked}" @click="block(showDescendants); toggleMenu()"> Show Remote Selected Descendants</button>
             <button class="safe-button" data-testid="menu-toggle-chatbot" @click="toggleChatBot(); toggleMenu()">{{ toggleButtonMessage }}</button>
           </nav>
@@ -73,8 +73,8 @@
         <button class="fixed-button right-fixed-button" data-testid="menu-show-local-descendants" @click="showDescendants()"> Show Local Selected Descendants</button>
       </div>
       <div v-else class="floating-actions-right">
-        <button class="fixed-button right-fixed-button" data-testid="menu-new-remote-flower" :class="{'disabled': data.blocked}" @click="block(FlowerStore.makeRemoteFlower)"> New Remote Flower</button>
-        <button class="fixed-button right-fixed-button" data-testid="menu-remote-reproduce" :class="{'disabled': data.blocked}" @click="block(FlowerStore.remoteReproduce)"> Remote Reproduce Selected</button>
+        <button class="fixed-button right-fixed-button" data-testid="menu-new-remote-flower" :class="{'disabled': data.blocked}" @click="block(RemoteFlowerStore.makeRemoteFlower)"> New Remote Flower</button>
+        <button class="fixed-button right-fixed-button" data-testid="menu-remote-reproduce" :class="{'disabled': data.blocked}" @click="block(RemoteFlowerStore.remoteReproduce)"> Remote Reproduce Selected</button>
         <button class="fixed-button right-fixed-button" data-testid="menu-show-remote-descendants" :class="{'disabled': data.blocked}" @click="block(showDescendants)"> Show Remote Selected Descendants</button>
       </div>
     </div>
@@ -90,6 +90,7 @@ import { useRouter } from 'vue-router';
 import ErrorModal from './ErrorModal.vue';
 import ConfirmModal from './ConfirmModal.vue';
 import { useFlowerStore } from '../stores/FlowerStore';
+import { useRemoteFlowerStore } from '../stores/RemoteFlowerStore';
 import { useSettingsStore } from '../stores/SettingsStore';
 import { useErrorStore } from '../stores/ErrorStore';
 
@@ -106,6 +107,7 @@ let data = reactive({
 });
 const emitter = inject('emitter');
 const FlowerStore = useFlowerStore();
+const RemoteFlowerStore = useRemoteFlowerStore();
 const SettingsStore = useSettingsStore();
 const ErrorStore = useErrorStore();
 const router = useRouter();
@@ -129,7 +131,7 @@ const showDescendants = () => {
             router.push({name:'DescendantsFatherAndMother', params:{father:selected[0], mother:selected[1], isLocal: "local"}});
         }
     }else{
-        let selected = FlowerStore.getRemoteSelected;
+        let selected = RemoteFlowerStore.getRemoteSelected;
         if(selected.length < 1){
             ErrorStore.push('You need to select two flowers');
         }else{

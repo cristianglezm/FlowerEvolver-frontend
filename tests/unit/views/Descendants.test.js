@@ -7,11 +7,12 @@ import { createRouter, createMemoryHistory } from 'vue-router';
 import Descendants from '../../../src/views/Descendants.vue';
 import PaginationOrInfiniteScroll from '../../../src/components/PaginationOrInfiniteScroll.vue';
 import { useFlowerStore } from '../../../src/stores/FlowerStore';
+import { useRemoteFlowerStore } from '../../../src/stores/RemoteFlowerStore';
 import { useSettingsStore } from '../../../src/stores/SettingsStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 import { flowerAdded } from '../../../src/services/listEvents';
 
-// The view with the real FlowerStore and the real wasm: two flowers are selected and reproduced while the tab is on
+// The view with the real stores and the real wasm: two flowers are selected and reproduced while the tab is on
 // screen. The child is a child of the pair that was selected, so it belongs to the tab of that pair (the father
 // first, as the table says) and to the tab of each of the two flowers, and to no other: the tab shows what it shows
 // when it is read again. What is behind the store is faked: the tables of the browser, and the server.
@@ -89,6 +90,7 @@ vi.mock('../../../src/components/FlowersTable.vue', () => ({
 
 describe('Descendants view', () => {
     let FlowerStore;
+    let RemoteFlowerStore;
     let SettingsStore;
     let ErrorStore;
     let router;
@@ -151,6 +153,7 @@ describe('Descendants view', () => {
         server.offline = false;
         createTestingPinia({ stubActions: false, createSpy: vi.fn });
         FlowerStore = useFlowerStore();
+        RemoteFlowerStore = useRemoteFlowerStore();
         SettingsStore = useSettingsStore();
         ErrorStore = useErrorStore();
         vi.spyOn(ErrorStore, 'push');
@@ -336,9 +339,9 @@ describe('Descendants view', () => {
             await mountView('/Descendants/local/1/2');
             const { reproduceRemote } = await import('../../../src/services/flowerApiClient');
 
-            FlowerStore.selectRemoteFlower({ id: 1 });
-            FlowerStore.selectRemoteFlower({ id: 2 });
-            await FlowerStore.remoteReproduce();
+            RemoteFlowerStore.selectRemoteFlower({ id: 1 });
+            RemoteFlowerStore.selectRemoteFlower({ id: 2 });
+            await RemoteFlowerStore.remoteReproduce();
             await settle();
             expect(reproduceRemote).toHaveBeenCalledWith(1, 2);
             expect(shown()).toEqual([]);
@@ -392,15 +395,15 @@ describe('Descendants view', () => {
             await mountView('/Descendants/remote/1/2');
             expect(shown()).toEqual([1]);
 
-            FlowerStore.selectRemoteFlower({ id: 1 });
-            FlowerStore.selectRemoteFlower({ id: 2 });
-            await FlowerStore.remoteReproduce();
+            RemoteFlowerStore.selectRemoteFlower({ id: 1 });
+            RemoteFlowerStore.selectRemoteFlower({ id: 2 });
+            await RemoteFlowerStore.remoteReproduce();
             await settle();
             expect(shown()).toEqual([3, 1]);
 
-            FlowerStore.selectRemoteFlower({ id: 2 });
-            FlowerStore.selectRemoteFlower({ id: 3 });
-            await FlowerStore.remoteReproduce();
+            RemoteFlowerStore.selectRemoteFlower({ id: 2 });
+            RemoteFlowerStore.selectRemoteFlower({ id: 3 });
+            await RemoteFlowerStore.remoteReproduce();
             await settle();
             expect(shown()).toEqual([3, 1]);
             expect(await reopened('/Descendants/remote/1/2')).toEqual([3, 1]);
@@ -410,9 +413,9 @@ describe('Descendants view', () => {
             await mountView('/Descendants/remote/2');
 
             for(const [father, mother] of [[1, 2], [2, 3], [3, 4]]){
-                FlowerStore.selectRemoteFlower({ id: father });
-                FlowerStore.selectRemoteFlower({ id: mother });
-                await FlowerStore.remoteReproduce();
+                RemoteFlowerStore.selectRemoteFlower({ id: father });
+                RemoteFlowerStore.selectRemoteFlower({ id: mother });
+                await RemoteFlowerStore.remoteReproduce();
             }
             await settle();
 

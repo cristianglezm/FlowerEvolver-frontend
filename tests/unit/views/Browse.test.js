@@ -6,11 +6,11 @@ import { createTestingPinia } from '@pinia/testing';
 import { createRouter, createMemoryHistory } from 'vue-router';
 import Browse from '../../../src/views/Browse.vue';
 import PaginationOrInfiniteScroll from '../../../src/components/PaginationOrInfiniteScroll.vue';
-import { useFlowerStore } from '../../../src/stores/FlowerStore';
+import { useRemoteFlowerStore } from '../../../src/stores/RemoteFlowerStore';
 import { useSettingsStore } from '../../../src/stores/SettingsStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 
-// The view with the real FlowerStore: the menu and the cards make, reproduce and mutate remote flowers while the
+// The view with the real RemoteFlowerStore: the menu and the cards make, reproduce and mutate remote flowers while the
 // tab is on screen and the tab has to show them. Only the server is faked (it answers the newest first).
 const server = vi.hoisted(() => ({ rows: [], seq: 0, offline: false }));
 vi.mock('../../../src/services/flowerApiClient', () => {
@@ -52,7 +52,7 @@ vi.mock('../../../src/components/FlowersTable.vue', () => ({
 }));
 
 describe('Browse view', () => {
-    let FlowerStore;
+    let RemoteFlowerStore;
     let SettingsStore;
     let ErrorStore;
     let router;
@@ -82,7 +82,7 @@ describe('Browse view', () => {
         server.seq = 0;
         server.offline = false;
         createTestingPinia({ stubActions: false, createSpy: vi.fn });
-        FlowerStore = useFlowerStore();
+        RemoteFlowerStore = useRemoteFlowerStore();
         SettingsStore = useSettingsStore();
         ErrorStore = useErrorStore();
         vi.spyOn(ErrorStore, 'push');
@@ -118,7 +118,7 @@ describe('Browse view', () => {
             addRows(2);
             await mountView();
 
-            await FlowerStore.makeRemoteFlower();
+            await RemoteFlowerStore.makeRemoteFlower();
             await settle();
 
             expect(shown()).toEqual([3, 2, 1]);
@@ -128,13 +128,13 @@ describe('Browse view', () => {
             addRows(2);
             await mountView();
 
-            FlowerStore.selectRemoteFlower({ id: 1 });
-            FlowerStore.selectRemoteFlower({ id: 2 });
-            await FlowerStore.remoteReproduce();
+            RemoteFlowerStore.selectRemoteFlower({ id: 1 });
+            RemoteFlowerStore.selectRemoteFlower({ id: 2 });
+            await RemoteFlowerStore.remoteReproduce();
             await settle();
             expect(shown()).toEqual([3, 2, 1]);
 
-            await FlowerStore.makeRemoteMutation({ id: 1 });
+            await RemoteFlowerStore.makeRemoteMutation({ id: 1 });
             await settle();
             expect(shown()).toEqual([4, 3, 2, 1]);
             expect(ErrorStore.push).not.toHaveBeenCalled();
@@ -166,7 +166,7 @@ describe('Browse view', () => {
             await mountView();
             server.offline = true;
 
-            await FlowerStore.makeRemoteFlower();
+            await RemoteFlowerStore.makeRemoteFlower();
             await settle();
 
             expect(shown()).toEqual([1]);
@@ -178,7 +178,7 @@ describe('Browse view', () => {
             wrapper.unmount();
             wrapper = undefined;
 
-            await FlowerStore.makeRemoteFlower();
+            await RemoteFlowerStore.makeRemoteFlower();
             await flushPromises();
 
             expect(ErrorStore.push).not.toHaveBeenCalled();
@@ -218,7 +218,7 @@ describe('Browse view', () => {
         test('a flower that is made is at the top of the page that is shown', async () => {
             await mountView();
 
-            await FlowerStore.makeRemoteFlower();
+            await RemoteFlowerStore.makeRemoteFlower();
             await settle();
 
             expect(shown()).toEqual([9, 8, 7, 6]);

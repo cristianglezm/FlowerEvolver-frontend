@@ -15,19 +15,19 @@
 import { onMounted } from 'vue';
 import FlowersTable from '../components/FlowersTable.vue';
 import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
-import { useFlowerStore } from '../stores/FlowerStore';
+import { useRemoteFlowerStore } from '../stores/RemoteFlowerStore';
 import * as flowerApiClient from '../services/flowerApiClient';
 import { usePaginatedList } from '../composables/usePaginatedList';
 import { useRoute } from 'vue-router';
 
 const routes = useRoute();
-const FlowerStore = useFlowerStore();
+const RemoteFlowerStore = useRemoteFlowerStore();
 
 const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginatedList({
     list: 'remote',
     // the count says when the server cannot be reached, and the pages do not: a server that is offline is not
     // an error to show on every page, the list is empty
-    fetchCount: () => FlowerStore.getRemoteFlowersCount(),
+    fetchCount: () => RemoteFlowerStore.getRemoteFlowersCount(),
     fetchPage: ({ limit, offset }) => flowerApiClient.getFlowers({ limit, offset }).catch(() => [])
 });
 

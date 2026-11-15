@@ -7,11 +7,12 @@ import { createRouter, createMemoryHistory } from 'vue-router';
 import Mutations from '../../../src/views/Mutations.vue';
 import PaginationOrInfiniteScroll from '../../../src/components/PaginationOrInfiniteScroll.vue';
 import { useFlowerStore } from '../../../src/stores/FlowerStore';
+import { useRemoteFlowerStore } from '../../../src/stores/RemoteFlowerStore';
 import { useSettingsStore } from '../../../src/stores/SettingsStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 import { flowerAdded } from '../../../src/services/listEvents';
 
-// The view with the real FlowerStore and the real wasm: the card of the flower, or one of the cards of the list,
+// The view with the real stores and the real wasm: the card of the flower, or one of the cards of the list,
 // is mutated while the tab is on screen. A mutation is stored as a mutation of the flower that was mutated, so the
 // tab of a flower shows its own mutations only, the same ones that it shows when it is read again.
 // What is behind the store is faked: the tables of the browser, and the server.
@@ -85,6 +86,7 @@ vi.mock('../../../src/components/FlowersTable.vue', () => ({
 
 describe('Mutations view', () => {
     let FlowerStore;
+    let RemoteFlowerStore;
     let SettingsStore;
     let ErrorStore;
     let router;
@@ -135,6 +137,7 @@ describe('Mutations view', () => {
         server.offline = false;
         createTestingPinia({ stubActions: false, createSpy: vi.fn });
         FlowerStore = useFlowerStore();
+        RemoteFlowerStore = useRemoteFlowerStore();
         SettingsStore = useSettingsStore();
         ErrorStore = useErrorStore();
         vi.spyOn(ErrorStore, 'push');
@@ -279,7 +282,7 @@ describe('Mutations view', () => {
             await mountView('/Mutations/local/1');
             const { mutateRemote } = await import('../../../src/services/flowerApiClient');
 
-            await FlowerStore.makeRemoteMutation({ id: 1 });
+            await RemoteFlowerStore.makeRemoteMutation({ id: 1 });
             await settle();
             expect(mutateRemote).toHaveBeenCalledWith(1);
             expect(shown()).toEqual([]);
@@ -363,11 +366,11 @@ describe('Mutations view', () => {
             await mountView('/Mutations/remote/1');
             expect(shown()).toEqual([1]);
 
-            await FlowerStore.makeRemoteMutation({ id: 1 });
+            await RemoteFlowerStore.makeRemoteMutation({ id: 1 });
             await settle();
             expect(shown()).toEqual([2, 1]);
 
-            await FlowerStore.makeRemoteMutation({ id: 2 });
+            await RemoteFlowerStore.makeRemoteMutation({ id: 2 });
             await settle();
             expect(shown()).toEqual([2, 1]);
             expect(await reopened('/Mutations/remote/1')).toEqual([2, 1]);

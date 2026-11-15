@@ -4,13 +4,11 @@ import { useFlowerStore } from '../../../src/stores/FlowerStore';
 import { useSettingsStore } from '../../../src/stores/SettingsStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 import * as flowerRepository from '../../../src/services/flowerRepository';
-import * as flowerApiClient from '../../../src/services/flowerApiClient';
 import * as speciesRepository from '../../../src/services/speciesRepository';
 import { getFlowerEvolver } from '../../../src/services/flowerEvolver';
 import { listenToList } from '../../../src/services/listEvents';
 
-// flowerRepository (Dexie) and flowerApiClient (axios) are exactly what's worth
-// isolating here - IndexedDB and the network.
+// flowerRepository (Dexie) is exactly what's worth isolating here - IndexedDB.
 vi.mock('../../../src/services/flowerRepository', () => ({
 	ensureOpen: vi.fn(),
 	countFlowers: vi.fn(),
@@ -42,20 +40,6 @@ vi.mock('../../../src/services/flowerRepository', () => ({
 	bulkAddDescriptions: vi.fn(),
 	wipeDatabase: vi.fn(),
 }));
-vi.mock('../../../src/services/flowerApiClient', () => ({
-	API: 'http://test-api.local/',
-	mapAxiosError: vi.fn((e, offlineMessage) => (e.response === undefined ? offlineMessage : e.response.data)),
-	getFlowersCount: vi.fn(),
-	getFlowers: vi.fn(),
-	createFlower: vi.fn(),
-	shareFlower: vi.fn(),
-	reproduceRemote: vi.fn(),
-	getMutationsCount: vi.fn(),
-	getMutations: vi.fn(),
-	mutateRemote: vi.fn(),
-	getDescendantsCount: vi.fn(),
-	getDescendants: vi.fn(),
-}));
 
 // The species of the flowers is the business of SpeciesStore, what matters here is when this store
 // asks for it and what it carries across a wipe.
@@ -79,43 +63,30 @@ describe('FlowerStore', () => {
 	// what the views that show the list of the local flowers are told
 	let announced;
 	let stopListening;
-	// the remote lists: what they were told, in order
-	let toRemote;
-	let toLastAdded;
 	let toFavourites;
 	// the lists of mutations: what they were told, with the relation that came with it
 	let toLocalMutations;
-	let toRemoteMutations;
 	// the lists of descendants
 	let toLocalDescendants;
-	let toRemoteDescendants;
-	let stopRemote;
+	let stopOtherLists;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
 		announced = [];
-		toRemote = [];
-		toLastAdded = [];
 		toFavourites = [];
 		toLocalMutations = [];
-		toRemoteMutations = [];
 		toLocalDescendants = [];
-		toRemoteDescendants = [];
-		stopRemote = [
-			listenToList('remote', { added: (flower) => toRemote.push(flower) }),
-			listenToList('lastAdded', { added: (flower) => toLastAdded.push(flower) }),
+		stopOtherLists = [
 			listenToList('localMutations', {
 				added: (flower, relation) => toLocalMutations.push(['added', flower, relation]),
 				removed: (id) => toLocalMutations.push(['removed', id]),
 				reset: () => toLocalMutations.push(['reset']),
 			}),
-			listenToList('remoteMutations', { added: (flower, relation) => toRemoteMutations.push([flower, relation]) }),
 			listenToList('localDescendants', {
 				added: (flower, relation) => toLocalDescendants.push(['added', flower, relation]),
 				removed: (id) => toLocalDescendants.push(['removed', id]),
 				reset: () => toLocalDescendants.push(['reset']),
 			}),
-			listenToList('remoteDescendants', { added: (flower, relation) => toRemoteDescendants.push([flower, relation]) }),
 			listenToList('favourites', {
 				added: (flower) => toFavourites.push(['added', flower]),
 				removed: (id) => toFavourites.push(['removed', id]),
@@ -138,28 +109,7 @@ describe('FlowerStore', () => {
 
 	afterEach(() => {
 		stopListening();
-		stopRemote.forEach((stop) => stop());
-	});
-
-	describe('counts', () => {
-		test('getRemoteDescendantsCount asks for one parent or for two, and returns 0 and records the error on failure', async () => {
-			flowerApiClient.getDescendantsCount.mockResolvedValueOnce(4).mockResolvedValueOnce(2);
-			await expect(FlowerStore.getRemoteDescendantsCount(7)).resolves.toBe(4);
-			await expect(FlowerStore.getRemoteDescendantsCount(7, 8)).resolves.toBe(2);
-			expect(flowerApiClient.getDescendantsCount.mock.calls).toEqual([[7, undefined], [7, 8]]);
-
-			const failure = new Error('offline');
-			flowerApiClient.getDescendantsCount.mockRejectedValueOnce(failure);
-			await expect(FlowerStore.getRemoteDescendantsCount(7)).resolves.toBe(0);
-			expect(ErrorStore.push).toHaveBeenCalledWith(failure);
-		});
-
-		test('getRemoteFlowersCount returns 0 and records the error on failure', async () => {
-			const err = new Error('network down');
-			flowerApiClient.getFlowersCount.mockRejectedValue(err);
-			await expect(FlowerStore.getRemoteFlowersCount()).resolves.toBe(0);
-			expect(ErrorStore.push).toHaveBeenCalledWith(err);
-		});
+		stopOtherLists.forEach((stop) => stop());
 	});
 
 	describe('local flower lifecycle (real wasm, mocked persistence)', () => {
@@ -610,82 +560,6 @@ describe('FlowerStore', () => {
 				[16, 2, 4.5, 0.5],
 				[8, 1, 2, 0.25],
 			]);
-		});
-	});
-
-	describe('remote actions and error mapping', () => {
-		test('shareFlower surfaces the offline message when the server is unreachable', async () => {
-			flowerApiClient.shareFlower.mockRejectedValue({ response: undefined });
-
-			await FlowerStore.shareFlower('genome-json');
-
-			expect(flowerApiClient.mapAxiosError).toHaveBeenCalledWith({ response: undefined }, 'cannot share flower, server offline');
-			expect(ErrorStore.push).toHaveBeenCalledWith('cannot share flower, server offline');
-		});
-
-		test('makeRemoteFlower announces the new flower to the remote flowers and to the last added', async () => {
-			const flower = { id: 1, genome: 'g', image: 'i' };
-			flowerApiClient.createFlower.mockResolvedValue(flower);
-
-			await FlowerStore.makeRemoteFlower();
-
-			expect(toRemote).toEqual([flower]);
-			expect(toLastAdded).toEqual([flower]);
-		});
-
-		test('makeRemoteFlower announces nothing when the server cannot be reached', async () => {
-			flowerApiClient.createFlower.mockRejectedValue({ response: undefined });
-
-			await FlowerStore.makeRemoteFlower();
-
-			expect(toRemote).toEqual([]);
-			expect(toLastAdded).toEqual([]);
-			expect(ErrorStore.push).toHaveBeenCalledWith('cannot make a remote flower, server offline');
-		});
-
-		test('makeRemoteMutation announces the mutation to the remote flowers and to the last added', async () => {
-			const mutation = { id: 8, genome: 'g', image: 'i' };
-			flowerApiClient.mutateRemote.mockResolvedValue(mutation);
-
-			await FlowerStore.makeRemoteMutation({ id: 4 });
-
-			expect(flowerApiClient.mutateRemote).toHaveBeenCalledWith(4);
-			expect(toRemote).toEqual([mutation]);
-			expect(toLastAdded).toEqual([mutation]);
-			expect(toRemoteMutations).toEqual([[mutation, { original: 4 }]]);
-		});
-
-		test('remoteReproduce announces nothing when the server cannot be reached', async () => {
-			FlowerStore.remoteSelected.flowers = [1, 2];
-			flowerApiClient.reproduceRemote.mockRejectedValue({ response: undefined });
-
-			await FlowerStore.remoteReproduce();
-
-			expect(toRemote).toEqual([]);
-			expect(toRemoteDescendants).toEqual([]);
-			expect(ErrorStore.push).toHaveBeenCalledWith('cannot reproduce remote flowers, server offline.');
-		});
-
-		test('remoteReproduce requires two selected flowers before calling the API', async () => {
-			FlowerStore.remoteSelected.flowers = [1];
-
-			await FlowerStore.remoteReproduce();
-
-			expect(ErrorStore.push).toHaveBeenCalledWith('There are no flowers selected');
-			expect(flowerApiClient.reproduceRemote).not.toHaveBeenCalled();
-		});
-
-		test('remoteReproduce reproduces the two selected flowers', async () => {
-			FlowerStore.remoteSelected.flowers = [1, 2];
-			const child = { id: 3, genome: 'g', image: 'i' };
-			flowerApiClient.reproduceRemote.mockResolvedValue(child);
-
-			await FlowerStore.remoteReproduce();
-
-			expect(flowerApiClient.reproduceRemote).toHaveBeenCalledWith(1, 2);
-			expect(toRemote).toEqual([child]);
-			expect(toLastAdded).toEqual([child]);
-			expect(toRemoteDescendants).toEqual([[child, { father: 1, mother: 2 }]]);
 		});
 	});
 });

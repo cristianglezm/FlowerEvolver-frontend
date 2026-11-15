@@ -4,7 +4,7 @@ import { nextTick } from 'vue';
 import { mount, flushPromises } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import LastAdded from '../../../src/views/LastAdded.vue';
-import { useFlowerStore } from '../../../src/stores/FlowerStore';
+import { useRemoteFlowerStore } from '../../../src/stores/RemoteFlowerStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 import * as listEvents from '../../../src/services/listEvents';
 import { flowerAdded } from '../../../src/services/listEvents';
@@ -41,7 +41,7 @@ vi.mock('../../../src/components/FlowersTable.vue', () => ({
 }));
 
 describe('LastAdded view', () => {
-    let FlowerStore;
+    let RemoteFlowerStore;
     let ErrorStore;
     let wrapper;
 
@@ -70,7 +70,7 @@ describe('LastAdded view', () => {
         server.seq = 0;
         server.offline = false;
         createTestingPinia({ stubActions: false, createSpy: vi.fn });
-        FlowerStore = useFlowerStore();
+        RemoteFlowerStore = useRemoteFlowerStore();
         ErrorStore = useErrorStore();
         vi.spyOn(ErrorStore, 'push');
     });
@@ -116,7 +116,7 @@ describe('LastAdded view', () => {
         addRows(2);
         await mountView();
 
-        await FlowerStore.makeRemoteFlower();
+        await RemoteFlowerStore.makeRemoteFlower();
         await flushPromises();
 
         expect(shown()).toEqual([3, 2, 1]);
@@ -125,7 +125,7 @@ describe('LastAdded view', () => {
     test('and it is not shown twice when the next reading has it', async () => {
         addRows(2);
         await mountView();
-        await FlowerStore.makeRemoteFlower();
+        await RemoteFlowerStore.makeRemoteFlower();
         await flushPromises();
 
         await tick(30000);
@@ -177,7 +177,7 @@ describe('LastAdded view', () => {
         wrapper.unmount();
         wrapper = undefined;
         await tick(90000);
-        await FlowerStore.makeRemoteFlower();
+        await RemoteFlowerStore.makeRemoteFlower();
         await flushPromises();
 
         expect(flowerApiClient.getFlowers).not.toHaveBeenCalled();

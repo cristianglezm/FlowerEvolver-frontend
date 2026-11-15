@@ -21,13 +21,13 @@ import FlowerCard from '../components/FlowerCard.vue';
 import FlowersTable from '../components/FlowersTable.vue';
 import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
 import { useRoute } from 'vue-router';
-import { useFlowerStore } from '../stores/FlowerStore';
+import { useRemoteFlowerStore } from '../stores/RemoteFlowerStore';
 import { useErrorStore } from '../stores/ErrorStore';
 import * as flowerRepository from '../services/flowerRepository';
 import * as flowerApiClient from '../services/flowerApiClient';
 import { usePaginatedList } from '../composables/usePaginatedList';
 
-const FlowerStore = useFlowerStore();
+const RemoteFlowerStore = useRemoteFlowerStore();
 const ErrorStore = useErrorStore();
 const routes = useRoute();
 const originalID = parseInt(routes.params.id);
@@ -54,7 +54,7 @@ const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginated
     fetchCount: () => {
         return isLocal ? flowerRepository.countMutations(originalID)
                        // reports a server that cannot be reached, the pages do not
-                       : FlowerStore.getRemoteMutationsCount(originalID);
+                       : RemoteFlowerStore.getRemoteMutationsCount(originalID);
     },
     fetchPage: ({ limit, offset }) => {
         return isLocal ? readLocal({ limit, offset })
