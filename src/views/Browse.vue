@@ -18,18 +18,21 @@ import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll
 import { useRemoteFlowerStore } from '../stores/RemoteFlowerStore';
 import * as flowerApiClient from '../services/flowerApiClient';
 import { usePaginatedList } from '../composables/usePaginatedList';
+import { usePageInAddress } from '../composables/usePageInAddress';
 import { useRoute } from 'vue-router';
 
 const routes = useRoute();
 const RemoteFlowerStore = useRemoteFlowerStore();
 
-const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginatedList({
+const paged = usePaginatedList({
     list: 'remote',
     // the count says when the server cannot be reached, and the pages do not: a server that is offline is not
     // an error to show on every page, the list is empty
     fetchCount: () => RemoteFlowerStore.getRemoteFlowersCount(),
     fetchPage: ({ limit, offset }) => flowerApiClient.getFlowers({ limit, offset }).catch(() => [])
 });
+const { state, isPaginated, init, nextBatch } = paged;
+const { nextPage, prevPage } = usePageInAddress(paged);
 
 onMounted(() => {
     // ?page= is the page to start at, the pages after it are not a route each

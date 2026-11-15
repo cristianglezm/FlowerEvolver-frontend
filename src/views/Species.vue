@@ -70,9 +70,11 @@ import FineTuneModal from '../components/species/FineTuneModal.vue';
 import SplitModal from '../components/species/SplitModal.vue';
 import SubspeciesMap from '../components/species/SubspeciesMap.vue';
 import { usePaginatedList } from '../composables/usePaginatedList';
+import { usePageInAddress } from '../composables/usePageInAddress';
 import { useClassifierReset } from '../composables/useClassifierReset';
 import { useLocalFlowerStore } from '../stores/LocalFlowerStore';
 import { useSpeciesStore } from '../stores/SpeciesStore';
+import { useShownFlowers } from '../composables/useShownFlowers';
 import { useErrorStore } from '../stores/ErrorStore';
 import * as speciesRepository from '../services/speciesRepository';
 import * as flowerRepository from '../services/flowerRepository';
@@ -80,6 +82,7 @@ import * as flowerRepository from '../services/flowerRepository';
 const routes = useRoute();
 const LocalFlowerStore = useLocalFlowerStore();
 const SpeciesStore = useSpeciesStore();
+const whenShown = useShownFlowers();
 const ErrorStore = useErrorStore();
 const { canReset, askReset } = useClassifierReset();
 const fineTune = ref(null);
@@ -103,7 +106,7 @@ const cell = () => {
     }
     return where;
 };
-const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginatedList({
+const paged = usePaginatedList({
     fetchCount: async () => SpeciesStore.selected === null ? 0 : speciesRepository.countByCell(cell()),
     fetchPage: async ({ limit, offset }) => {
         if(SpeciesStore.selected === null){
@@ -112,8 +115,13 @@ const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginated
         const ids = await speciesRepository.listFlowerIdsByCell({ ...cell(), limit, offset });
         const flowers = await flowerRepository.bulkGetFlowers(ids);
         return flowers.filter((flower) => flower !== undefined);
-    }
+    },
+    // the cards show the species they were classified in, which the store reads when it is asked for them, and
+    // their description
+    onLoaded: ({ items }) => whenShown(items)
 });
+const { state, isPaginated, init, nextBatch } = paged;
+const { nextPage, prevPage } = usePageInAddress(paged);
 
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 const summary = computed(() => {

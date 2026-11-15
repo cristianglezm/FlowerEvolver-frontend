@@ -22,12 +22,15 @@ import FlowersTable from '../components/FlowersTable.vue';
 import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
 import { useRoute } from 'vue-router';
 import { useRemoteFlowerStore } from '../stores/RemoteFlowerStore';
+import { useShownFlowers } from '../composables/useShownFlowers';
 import { useErrorStore } from '../stores/ErrorStore';
 import * as flowerRepository from '../services/flowerRepository';
 import * as flowerApiClient from '../services/flowerApiClient';
 import { usePaginatedList } from '../composables/usePaginatedList';
+import { usePageInAddress } from '../composables/usePageInAddress';
 
 const RemoteFlowerStore = useRemoteFlowerStore();
+const whenShown = useShownFlowers();
 const ErrorStore = useErrorStore();
 const routes = useRoute();
 const originalID = parseInt(routes.params.id);
@@ -45,7 +48,7 @@ const readLocal = async ({ limit, offset }) => {
     return flowers.filter((f) => f !== undefined);
 };
 
-const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginatedList({
+const paged = usePaginatedList({
     // the mutations of the browser and those of the server are not the same list
     list: isLocal ? 'localMutations' : 'remoteMutations',
     // A mutation is stored as a mutation of the flower that was mutated, which can be one of the mutations in this
@@ -59,8 +62,12 @@ const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginated
     fetchPage: ({ limit, offset }) => {
         return isLocal ? readLocal({ limit, offset })
                        : flowerApiClient.getMutations(originalID, { limit, offset }).catch(() => []);
-    }
+    },
+    // the flowers of the server have no species, and no description of the browser
+    onLoaded: isLocal ? ({ items }) => whenShown(items) : undefined
 });
+const { state, isPaginated, init, nextBatch } = paged;
+const { nextPage, prevPage } = usePageInAddress(paged);
 
 onMounted(async () => {
     // ?page= is the page to start at, the pages after it are not a route each

@@ -71,9 +71,14 @@ vi.mock('../../../src/services/flowerApiClient', () => {
     };
 });
 vi.mock('../../../src/services/speciesRepository', () => ({ bulkGetSpecies: vi.fn(async () => []), bulkPutSpecies: vi.fn(async () => {}) }));
-vi.mock('../../../src/stores/SpeciesStore', () => ({
-    useSpeciesStore: () => ({ classifyLater: vi.fn(), removeFlower: vi.fn(async () => {}), invalidate: vi.fn() }),
+// the species of the flowers that are shown is asked for through ensureFor, which is what these tests look at
+const speciesStore = vi.hoisted(() => ({
+    classifyLater: vi.fn(), removeFlower: vi.fn(async () => {}), invalidate: vi.fn(), ensureFor: vi.fn(async () => {}),
 }));
+vi.mock('../../../src/stores/SpeciesStore', () => ({ useSpeciesStore: () => speciesStore }));
+// the descriptions of the flowers that are shown are asked for by id
+const captioner = vi.hoisted(() => ({ loadLocalDescriptionsOf: vi.fn(async () => {}) }));
+vi.mock('../../../src/stores/CaptionerStore', () => ({ useCaptionerStore: () => captioner }));
 vi.mock('../../../src/components/FlowerCard.vue', () => ({
     default: { props: ['id', 'genome', 'image', 'isLocal'], template: '<div class="card" :data-local="isLocal">{{ id }}</div>' },
 }));
@@ -165,6 +170,20 @@ describe('Mutations view', () => {
             wrapper.findComponent(PaginationOrInfiniteScroll).vm.$emit('update-page');
             await settle();
             expect(shown()).toEqual([6, 5, 4, 3, 2]);
+        });
+
+        test('asks for the species of each batch when it is shown, and only of that batch', async () => {
+            const original = await makeOriginal();
+            addLocalMutations(original.id, 5);
+            await mountView('/Mutations/local/1');
+            expect(speciesStore.ensureFor.mock.calls).toEqual([[[6, 5, 4]]]);
+
+            wrapper.findComponent(PaginationOrInfiniteScroll).vm.$emit('update-page');
+            await settle();
+
+            expect(speciesStore.ensureFor.mock.calls).toEqual([[[6, 5, 4]], [[3, 2]]]);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[6, 5, 4]], [[3, 2]]]);
+            expect(ErrorStore.push).not.toHaveBeenCalled();
         });
 
         test('only the mutations of that flower, not those of its mutations or of other flowers', async () => {
@@ -361,6 +380,17 @@ describe('Mutations view', () => {
             expect(shown()).toEqual([4, 3, 2, 1]);
         });
 
+        test('does not ask for their species, the flowers of the server have none', async () => {
+            addServerMutations(1, 4);
+            await mountView('/Mutations/remote/1');
+            wrapper.findComponent(PaginationOrInfiniteScroll).vm.$emit('update-page');
+            await settle();
+
+            expect(shown()).toEqual([4, 3, 2, 1]);
+            expect(speciesStore.ensureFor).not.toHaveBeenCalled();
+            expect(captioner.loadLocalDescriptionsOf).not.toHaveBeenCalled();
+        });
+
         test('a mutation of the flower is at the top and a mutation of one of its mutations is not', async () => {
             addServerMutations(1, 1);
             await mountView('/Mutations/remote/1');
@@ -396,21 +426,50 @@ describe('Mutations view', () => {
             await settle();
         };
 
-        test('local: starts at the page of the route, counts the pages, and the arrows do not push the route', async () => {
+        test('local: starts at the page of the route, counts the pages, and the arrows put the page in the address', async () => {
             const original = await makeOriginal();
             addLocalMutations(original.id, 7);
             await mountView('/Mutations/local/1?page=1');
-            const route = router.currentRoute.value.fullPath;
+            const address = () => router.currentRoute.value.fullPath;
+            const view = wrapper.vm;
 
             expect(shown()).toEqual([5, 4, 3]);
             expect(wrapper.findComponent(PaginationOrInfiniteScroll).props('totalPages')).toBe(3);
+            expect(address()).toBe('/Mutations/local/1?page=1');
 
             await clickArrow('>');
             expect(shown()).toEqual([2]);
+            expect(address()).toBe('/Mutations/local/1?page=2');
+            router.back();
+            await vi.waitFor(() => expect(shown()).toEqual([5, 4, 3]));
             await clickArrow('<');
             await clickArrow('<');
             expect(shown()).toEqual([8, 7, 6]);
-            expect(router.currentRoute.value.fullPath).toBe(route);
+            expect(address()).toBe('/Mutations/local/1');
+            expect(wrapper.vm).toBe(view);
+        });
+
+        test('local: asks for the species of each page when it is shown', async () => {
+            const original = await makeOriginal();
+            addLocalMutations(original.id, 7);
+            await mountView('/Mutations/local/1');
+            await clickArrow('>');
+            await clickArrow('<');
+
+            expect(speciesStore.ensureFor.mock.calls).toEqual([[[8, 7, 6]], [[5, 4, 3]], [[8, 7, 6]]]);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[8, 7, 6]], [[5, 4, 3]], [[8, 7, 6]]]);
+        });
+
+        test('the server: does not ask for the species of its pages', async () => {
+            server.seq = 0;
+            for(let i = 1; i <= 5; ++i){
+                server.flowers.push({ id: i, genome: `${i}.json`, image: `${i}.png` });
+                server.mutations.push({ id: i, original: 1 });
+            }
+            await mountView('/Mutations/remote/1');
+            await clickArrow('>');
+
+            expect(speciesStore.ensureFor).not.toHaveBeenCalled();
         });
 
         test('a mutation of the flower is at the top of the page that is shown', async () => {

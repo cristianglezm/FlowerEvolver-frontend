@@ -15,24 +15,24 @@
 import { onMounted } from 'vue';
 import FlowersTable from '../components/FlowersTable.vue';
 import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
-import { useCaptionerStore } from '../stores/CaptionerStore';
+import { useShownFlowers } from '../composables/useShownFlowers';
 import * as flowerRepository from '../services/flowerRepository';
 import { usePaginatedList } from '../composables/usePaginatedList';
+import { usePageInAddress } from '../composables/usePageInAddress';
 import { useRoute } from 'vue-router';
 
 const routes = useRoute();
-const CaptionerStore = useCaptionerStore();
+const whenShown = useShownFlowers();
 
-const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginatedList({
+const paged = usePaginatedList({
     list: 'favourites',
     fetchCount: () => flowerRepository.countFavourites(),
     fetchPage: ({ limit, offset }) => flowerRepository.listFavourites({ limit, offset }),
-    // the descriptions are paged like the flowers: a page replaces those of the page before, a batch adds to them
-    onLoaded: ({ offset, limit, append }) => {
-        return append ? CaptionerStore.loadAndConcatLocalDescriptions(offset, limit)
-                      : CaptionerStore.loadLocalDescriptions(offset, limit);
-    }
+    // the species and the descriptions of the flowers that are shown
+    onLoaded: ({ items }) => whenShown(items)
 });
+const { state, isPaginated, init, nextBatch } = paged;
+const { nextPage, prevPage } = usePageInAddress(paged);
 
 onMounted(() => {
     // ?page= is the page to start at, the pages after it are not a route each

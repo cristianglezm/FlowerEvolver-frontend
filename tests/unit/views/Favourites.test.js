@@ -50,10 +50,13 @@ vi.mock('../../../src/services/flowerRepository', () => {
 });
 vi.mock('../../../src/services/flowerApiClient', () => ({ API: 'http://test-api.local/', mapAxiosError: vi.fn((e) => e) }));
 vi.mock('../../../src/services/speciesRepository', () => ({ bulkGetSpecies: vi.fn(async (ids) => ids.map(() => undefined)), bulkPutSpecies: vi.fn(async () => {}) }));
-vi.mock('../../../src/stores/SpeciesStore', () => ({
-    useSpeciesStore: () => ({ classifyLater: vi.fn(), removeFlower: vi.fn(async () => {}), invalidate: vi.fn() }),
+// the species of the flowers that are shown is asked for through ensureFor, which is what these tests look at
+const speciesStore = vi.hoisted(() => ({
+    classifyLater: vi.fn(), removeFlower: vi.fn(async () => {}), invalidate: vi.fn(), ensureFor: vi.fn(async () => {}),
 }));
-const captioner = vi.hoisted(() => ({ loadLocalDescriptions: vi.fn(), loadAndConcatLocalDescriptions: vi.fn() }));
+vi.mock('../../../src/stores/SpeciesStore', () => ({ useSpeciesStore: () => speciesStore }));
+// the descriptions of the flowers that are shown are asked for by id
+const captioner = vi.hoisted(() => ({ loadLocalDescriptionsOf: vi.fn(async () => {}) }));
 vi.mock('../../../src/stores/CaptionerStore', () => ({ useCaptionerStore: () => captioner }));
 vi.mock('../../../src/components/FlowersTable.vue', () => ({
     default: {
@@ -81,6 +84,8 @@ describe('Favourites view', () => {
         await flushPromises();
     };
     const shown = () => wrapper.findAll('.flowers li:not(.none)').map((li) => Number(li.text()));
+    // the ids that the species were asked for, in order, batch after batch
+    const askedFor = () => speciesStore.ensureFor.mock.calls.flatMap(([ids]) => ids);
     const settle = async () => {
         await flushPromises();
         await nextTick();
@@ -119,16 +124,45 @@ describe('Favourites view', () => {
             expect(shown()).toEqual([10, 9, 8, 6, 5, 3]);
         });
 
-        test('the descriptions of a batch are added to those of the batches before, not put in their place', async () => {
+        test('asks for the descriptions of the favourites that are shown, not of the flowers that are in their place in the table', async () => {
+            // the favourites are not the first flowers of the table, and the table of descriptions is not theirs
+            fill(10, [2, 5, 9]);
+            await mountView();
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[9, 5, 2]]]);
+        });
+
+        test('asks for the descriptions of each batch, the ones that were not asked for yet', async () => {
             fill(10, [1, 2, 3, 4, 5, 6, 7]);
             await mountView();
-            expect(captioner.loadLocalDescriptions).toHaveBeenCalledExactlyOnceWith(0, 3);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[7, 6, 5]]]);
 
             wrapper.findComponent(PaginationOrInfiniteScroll).vm.$emit('update-page');
             await settle();
 
-            expect(captioner.loadAndConcatLocalDescriptions).toHaveBeenCalledExactlyOnceWith(3, 3);
-            expect(captioner.loadLocalDescriptions).toHaveBeenCalledTimes(1);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[7, 6, 5]], [[4, 3, 2]]]);
+        });
+
+        test('asks for the species of each batch when it is shown, and only of that batch', async () => {
+            fill(10, [2, 3, 5, 6, 8, 9, 10]);
+            await mountView();
+            expect(speciesStore.ensureFor.mock.calls).toEqual([[[10, 9, 8]]]);
+
+            wrapper.findComponent(PaginationOrInfiniteScroll).vm.$emit('update-page');
+            await settle();
+
+            expect(speciesStore.ensureFor.mock.calls).toEqual([[[10, 9, 8]], [[6, 5, 3]]]);
+            expect(ErrorStore.push).not.toHaveBeenCalled();
+        });
+
+        test('does not ask for the species of a flower that is made a favourite, it was shown before', async () => {
+            fill(5, [1]);
+            await mountView();
+            expect(askedFor()).toEqual([1]);
+
+            await FavouritesStore.addFlowerToFav(4);
+            await vi.waitFor(() => expect(shown()).toEqual([4, 1]));
+
+            expect(askedFor()).toEqual([1]);
         });
 
         test('says that there are no favourites', async () => {
@@ -237,9 +271,36 @@ describe('Favourites view', () => {
             expect(wrapper.findComponent(PaginationOrInfiniteScroll).props('totalPages')).toBe(3);
         });
 
-        test('the arrows move one page, in place, and each page takes the place of the descriptions of the one before', async () => {
+        test('asks for the species of each page when it is shown, and again when it is shown again', async () => {
             await mountView();
-            const route = router.currentRoute.value.fullPath;
+            await clickArrow('>');
+            await clickArrow('<');
+
+            expect(speciesStore.ensureFor.mock.calls).toEqual([[[12, 10, 9]], [[7, 6, 4]], [[12, 10, 9]]]);
+        });
+
+        test('the arrows move one page, in place, and the address has the page, so the back button shows the page before', async () => {
+            await mountView();
+            const address = () => router.currentRoute.value.fullPath;
+            const view = wrapper.vm;
+            expect(address()).toBe('/Favourites');
+
+            await clickArrow('>');
+            expect(address()).toBe('/Favourites?page=1');
+            await clickArrow('>');
+            expect(shown()).toEqual([3, 1]);
+            expect(address()).toBe('/Favourites?page=2');
+
+            router.back();
+            await vi.waitFor(() => expect(shown()).toEqual([7, 6, 4]));
+            router.back();
+            await vi.waitFor(() => expect(shown()).toEqual([12, 10, 9]));
+            expect(address()).toBe('/Favourites');
+            expect(wrapper.vm).toBe(view);
+        });
+
+        test('the arrows move one page, in place, and each page has the descriptions of its own flowers asked for', async () => {
+            await mountView();
 
             await clickArrow('>');
             await clickArrow('>');
@@ -247,9 +308,7 @@ describe('Favourites view', () => {
             await clickArrow('<');
             expect(shown()).toEqual([7, 6, 4]);
 
-            expect(router.currentRoute.value.fullPath).toBe(route);
-            expect(captioner.loadAndConcatLocalDescriptions).not.toHaveBeenCalled();
-            expect(captioner.loadLocalDescriptions.mock.calls).toEqual([[0, 3], [3, 3], [6, 3], [3, 3]]);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[12, 10, 9]], [[7, 6, 4]], [[3, 1]], [[7, 6, 4]]]);
         });
     });
 });

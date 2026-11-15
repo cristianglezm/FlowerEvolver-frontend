@@ -2,7 +2,7 @@
   <div id="app-container">
     <AppTitle />
     <AppMenu :is-local="isLocal()" />
-    <router-view :key="routes.fullPath" class="view" />
+    <router-view :key="viewKeyOf(routes)" class="view" />
     <AppFooter />
     <div v-show="isChatBotOpened">
       <ChatBotWidget :emitter="emitter" :chat-template="chat_template" :tools="tools" :documents="documents" :executor="execCommand" />
@@ -22,6 +22,7 @@ import AppTitle from './components/AppTitle.vue';
 import AppMenu from './components/AppMenu.vue';
 import AppFooter from './components/AppFooter.vue';
 import { useRoute } from 'vue-router';
+import { viewKeyOf } from './router/viewKey';
 import { useSettingsStore } from './stores/SettingsStore';
 import { ChatBotWidget, chat_template, tools, documents, execCommand, registerChatBot, unregisterChatBot } from './chatBotIntegration';
 

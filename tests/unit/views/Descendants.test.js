@@ -75,9 +75,14 @@ vi.mock('../../../src/services/flowerApiClient', () => {
     };
 });
 vi.mock('../../../src/services/speciesRepository', () => ({ bulkGetSpecies: vi.fn(async () => []), bulkPutSpecies: vi.fn(async () => {}) }));
-vi.mock('../../../src/stores/SpeciesStore', () => ({
-    useSpeciesStore: () => ({ classifyLater: vi.fn(), removeFlower: vi.fn(async () => {}), invalidate: vi.fn() }),
+// the species of the flowers that are shown is asked for through ensureFor, which is what these tests look at
+const speciesStore = vi.hoisted(() => ({
+    classifyLater: vi.fn(), removeFlower: vi.fn(async () => {}), invalidate: vi.fn(), ensureFor: vi.fn(async () => {}),
 }));
+vi.mock('../../../src/stores/SpeciesStore', () => ({ useSpeciesStore: () => speciesStore }));
+// the descriptions of the flowers that are shown are asked for by id
+const captioner = vi.hoisted(() => ({ loadLocalDescriptionsOf: vi.fn(async () => {}) }));
+vi.mock('../../../src/stores/CaptionerStore', () => ({ useCaptionerStore: () => captioner }));
 vi.mock('../../../src/components/FlowerCard.vue', () => ({
     default: { props: ['id', 'genome', 'image', 'isLocal'], template: '<div class="card" :data-local="isLocal">{{ id }}</div>' },
 }));
@@ -199,6 +204,20 @@ describe('Descendants view', () => {
             await settle();
 
             expect(shown()).toEqual([8, 7, 6, 5, 4]);
+        });
+
+        test('asks for the species of each batch when it is shown, and only of that batch', async () => {
+            await makeParents();
+            addLocalChildren(1, 2, 5);
+            await mountView('/Descendants/local/1');
+            expect(speciesStore.ensureFor.mock.calls).toEqual([[[8, 7, 6]]]);
+
+            wrapper.findComponent(PaginationOrInfiniteScroll).vm.$emit('update-page');
+            await settle();
+
+            expect(speciesStore.ensureFor.mock.calls).toEqual([[[8, 7, 6]], [[5, 4]]]);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[8, 7, 6]], [[5, 4]]]);
+            expect(ErrorStore.push).not.toHaveBeenCalled();
         });
 
         test('says that the flower has no descendants', async () => {
@@ -389,6 +408,17 @@ describe('Descendants view', () => {
             expect(getDescendants).toHaveBeenCalledWith(1, undefined, { limit: 3, offset: 0 });
         });
 
+        test('does not ask for their species, the flowers of the server have none', async () => {
+            addServerChildren(1, 2, 4);
+            await mountView('/Descendants/remote/1');
+            wrapper.findComponent(PaginationOrInfiniteScroll).vm.$emit('update-page');
+            await settle();
+
+            expect(shown()).toEqual([4, 3, 2, 1]);
+            expect(speciesStore.ensureFor).not.toHaveBeenCalled();
+            expect(captioner.loadLocalDescriptionsOf).not.toHaveBeenCalled();
+        });
+
         test('a pair: the father first, and the child of a reproduction is at the top', async () => {
             addServerChildren(1, 2, 1);
             addServerChildren(2, 1, 1);
@@ -443,21 +473,46 @@ describe('Descendants view', () => {
             await settle();
         };
 
-        test('local: starts at the page of the route, counts the pages, and the arrows do not push the route', async () => {
+        test('local: starts at the page of the route, counts the pages, and the arrows put the page in the address', async () => {
             await makeParents();
             addLocalChildren(1, 2, 7);
             await mountView('/Descendants/local/1/2?page=1');
-            const route = router.currentRoute.value.fullPath;
+            const address = () => router.currentRoute.value.fullPath;
+            const view = wrapper.vm;
 
             expect(shown()).toEqual([7, 6, 5]);
             expect(wrapper.findComponent(PaginationOrInfiniteScroll).props('totalPages')).toBe(3);
+            expect(address()).toBe('/Descendants/local/1/2?page=1');
 
             await clickArrow('>');
             expect(shown()).toEqual([4]);
+            expect(address()).toBe('/Descendants/local/1/2?page=2');
+            router.back();
+            await vi.waitFor(() => expect(shown()).toEqual([7, 6, 5]));
             await clickArrow('<');
             await clickArrow('<');
             expect(shown()).toEqual([10, 9, 8]);
-            expect(router.currentRoute.value.fullPath).toBe(route);
+            expect(address()).toBe('/Descendants/local/1/2');
+            expect(wrapper.vm).toBe(view);
+        });
+
+        test('local: asks for the species of each page when it is shown', async () => {
+            await makeParents();
+            addLocalChildren(1, 2, 7);
+            await mountView('/Descendants/local/1/2');
+            await clickArrow('>');
+            await clickArrow('<');
+
+            expect(speciesStore.ensureFor.mock.calls).toEqual([[[10, 9, 8]], [[7, 6, 5]], [[10, 9, 8]]]);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[10, 9, 8]], [[7, 6, 5]], [[10, 9, 8]]]);
+        });
+
+        test('the server: does not ask for the species of its pages', async () => {
+            addServerChildren(1, 2, 5);
+            await mountView('/Descendants/remote/1/2');
+            await clickArrow('>');
+
+            expect(speciesStore.ensureFor).not.toHaveBeenCalled();
         });
 
         test('a child is at the top of the page that is shown', async () => {

@@ -103,14 +103,20 @@ export const usePaginatedList = ({ fetchCount, fetchPage, list, accepts, onLoade
         ++latest;
         state.items = [];
         state.offset = 0;
-        state.page = 0;
+        // the page that is about to be read, and not 0 for a moment: the address has this one
+        state.page = isPaginated.value ? startPage : 0;
         state.totalPages = 0;
         if(isPaginated.value){
             await load(startPage);
+            const asked = latest;
             try{
                 state.totalPages = Math.ceil(await fetchCount() / SettingsStore.settings.limit);
             }catch(e){
                 ErrorStore.push(e);
+            }
+            // a page beyond the last one is the last one, unless the list was started again while it was counted
+            if(asked === latest && state.totalPages > 0 && startPage >= state.totalPages){
+                await load(state.totalPages - 1);
             }
         }else{
             await nextBatch();
@@ -124,6 +130,12 @@ export const usePaginatedList = ({ fetchCount, fetchPage, list, accepts, onLoade
     const prevPage = async () => {
         if(state.page >= 1){
             await load(state.page - 1);
+        }
+    };
+    // any page, for when it is not the next or the previous one (the address says so): the nearest one that exists
+    const goToPage = async (page) => {
+        if(isPaginated.value){
+            await load(Math.min(Math.max(page, 0), Math.max(state.totalPages - 1, 0)));
         }
     };
 
@@ -158,5 +170,5 @@ export const usePaginatedList = ({ fetchCount, fetchPage, list, accepts, onLoade
         }
     }
 
-    return { state, isPaginated, init, nextPage, prevPage, nextBatch, prepend, remove };
+    return { state, isPaginated, init, nextPage, prevPage, goToPage, nextBatch, prepend, remove };
 };

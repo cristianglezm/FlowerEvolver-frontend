@@ -202,17 +202,24 @@ describe('Browse view', () => {
             expect(wrapper.findComponent(PaginationOrInfiniteScroll).props('totalPages')).toBe(3);
         });
 
-        test('the arrows move one page, in place: the route is not pushed again', async () => {
+        test('the arrows move one page, in place, and the address has the page, so the back button shows the page before', async () => {
             await mountView();
-            const route = router.currentRoute.value.fullPath;
+            const address = () => router.currentRoute.value.fullPath;
+            const view = wrapper.vm;
+            expect(address()).toBe('/Browse');
 
             await clickArrow('>');
             await clickArrow('>');
             expect(shown()).toEqual([2, 1]);
+            expect(address()).toBe('/Browse?page=2');
             await clickArrow('<');
             expect(shown()).toEqual([5, 4, 3]);
+            expect(address()).toBe('/Browse?page=1');
 
-            expect(router.currentRoute.value.fullPath).toBe(route);
+            router.back();
+            await vi.waitFor(() => expect(shown()).toEqual([2, 1]));
+            expect(address()).toBe('/Browse?page=2');
+            expect(wrapper.vm).toBe(view);
         });
 
         test('a flower that is made is at the top of the page that is shown', async () => {

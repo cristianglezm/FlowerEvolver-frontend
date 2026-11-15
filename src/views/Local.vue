@@ -17,9 +17,10 @@ import FlowersTable from '../components/FlowersTable.vue';
 import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
 import { useSettingsStore } from '../stores/SettingsStore';
 import { useErrorStore } from '../stores/ErrorStore';
-import { useCaptionerStore } from '../stores/CaptionerStore';
+import { useShownFlowers } from '../composables/useShownFlowers';
 import * as flowerRepository from '../services/flowerRepository';
 import { usePaginatedList } from '../composables/usePaginatedList';
+import { usePageInAddress } from '../composables/usePageInAddress';
 import { useRoute } from 'vue-router';
 import importWorker from '../workers/import.worker?worker';
 import WorkerManager from '../stores/WorkerManager';
@@ -28,7 +29,7 @@ import mitt from 'mitt';
 const routes = useRoute();
 const SettingsStore = useSettingsStore();
 const ErrorStore = useErrorStore();
-const CaptionerStore = useCaptionerStore();
+const whenShown = useShownFlowers();
 const emitter = inject('emitter');
 let channel = mitt();
 let wm = new WorkerManager(channel);
@@ -47,16 +48,15 @@ watch(data, () => {
 
 // The list is this view's own: the menu and the cards say when a flower is made or deleted (list 'local')
 // and the composable applies it.
-const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginatedList({
+const paged = usePaginatedList({
     list: 'local',
     fetchCount: () => flowerRepository.countFlowers(),
     fetchPage: ({ limit, offset }) => flowerRepository.listFlowers({ limit, offset }),
-    // the descriptions are paged like the flowers: a page replaces those of the page before, a batch adds to them
-    onLoaded: ({ offset, limit, append }) => {
-        return append ? CaptionerStore.loadAndConcatLocalDescriptions(offset, limit)
-                      : CaptionerStore.loadLocalDescriptions(offset, limit);
-    }
+    // the species and the descriptions of the flowers that are shown
+    onLoaded: ({ items }) => whenShown(items)
 });
+const { state, isPaginated, init, nextBatch } = paged;
+const { nextPage, prevPage } = usePageInAddress(paged);
 
 onMounted(() => {
     // ?page= is the page to start at, the pages after it are not a route each

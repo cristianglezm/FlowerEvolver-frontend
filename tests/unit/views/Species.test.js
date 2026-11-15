@@ -36,6 +36,9 @@ vi.mock('../../../src/stores/LocalFlowerStore', () => ({
 }));
 // the list takes the settings and the offsets from here
 const settingsStore = vi.hoisted(() => ({}));
+// the descriptions of the flowers that are shown are asked for by id
+const captioner = vi.hoisted(() => ({ loadLocalDescriptionsOf: vi.fn(async () => {}) }));
+vi.mock('../../../src/stores/CaptionerStore', () => ({ useCaptionerStore: () => captioner }));
 vi.mock('../../../src/stores/SettingsStore', () => ({
     useSettingsStore: () => settingsStore,
 }));
@@ -345,6 +348,35 @@ describe('Species view', () => {
             expect(shownFlowers(wrapper)).toEqual(['9', '7', '4']);
         });
 
+        test('have their species asked for when they are shown, so that the cards have it', async () => {
+            SpeciesStore.selected = { x: 1, y: 0 };
+            speciesRepository.countByCell.mockResolvedValue(3);
+            speciesRepository.listFlowerIdsByCell.mockResolvedValue([9, 7, 4]);
+
+            await mountView();
+
+            expect(SpeciesStore.ensureFor).toHaveBeenCalledExactlyOnceWith([9, 7, 4]);
+            expect(captioner.loadLocalDescriptionsOf).toHaveBeenCalledExactlyOnceWith([9, 7, 4]);
+        });
+
+        test('are asked for without the ones that were deleted, and for none when the species has none', async () => {
+            SpeciesStore.selected = { x: 1, y: 0 };
+            speciesRepository.listFlowerIdsByCell.mockResolvedValue([9, 7, 4]);
+            flowerRepository.bulkGetFlowers.mockResolvedValue([{ id: 9 }, undefined, { id: 4 }]);
+            await mountView();
+            expect(SpeciesStore.ensureFor).toHaveBeenCalledExactlyOnceWith([9, 4]);
+            expect(captioner.loadLocalDescriptionsOf).toHaveBeenCalledExactlyOnceWith([9, 4]);
+
+            SpeciesStore.ensureFor.mockClear();
+            captioner.loadLocalDescriptionsOf.mockClear();
+            speciesRepository.listFlowerIdsByCell.mockResolvedValue([]);
+            flowerRepository.bulkGetFlowers.mockResolvedValue([]);
+            SpeciesStore.selected = { x: 0, y: 0 };
+            await mountView();
+            expect(SpeciesStore.ensureFor.mock.calls.flatMap(([ids]) => ids)).toEqual([]);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls.flatMap(([ids]) => ids)).toEqual([]);
+        });
+
         test('leave out the ones that were deleted since the list was read', async () => {
             SpeciesStore.selected = { x: 1, y: 0 };
             speciesRepository.listFlowerIdsByCell.mockResolvedValue([9, 7, 4]);
@@ -367,6 +399,50 @@ describe('Species view', () => {
 
             expect(speciesRepository.listFlowerIdsByCell).toHaveBeenCalledWith({ x: 1, y: 0, fp: 'fp1', limit: 10, offset: 10 });
             expect(speciesRepository.countByCell).toHaveBeenCalledWith({ x: 1, y: 0, fp: 'fp1' });
+        });
+
+        test('move a page at a time with the arrows, which put the page in the address, and the back button shows the page before', async () => {
+            settingsStore.settings.pagination = true;
+            SpeciesStore.selected = { x: 1, y: 0 };
+            speciesRepository.countByCell.mockResolvedValue(25);
+            // page p has the ids that are 100 * p + 1 and 100 * p + 2, and so on
+            speciesRepository.listFlowerIdsByCell.mockImplementation(async ({ offset }) => [offset * 10 + 1, offset * 10 + 2]);
+            const wrapper = await mountView();
+            const address = () => router.currentRoute.value.fullPath;
+            const arrow = async (label) => {
+                await wrapper.findAll('button').find((b) => b.text() === label).trigger('click');
+                await flushPromises();
+            };
+            expect(shownFlowers(wrapper)).toEqual(['1', '2']);
+            expect(address()).toBe('/Species');
+
+            await arrow('>');
+            expect(shownFlowers(wrapper)).toEqual(['101', '102']);
+            expect(address()).toBe('/Species?page=1');
+            await arrow('>');
+            expect(shownFlowers(wrapper)).toEqual(['201', '202']);
+            expect(address()).toBe('/Species?page=2');
+
+            router.back();
+            await vi.waitFor(() => expect(shownFlowers(wrapper)).toEqual(['101', '102']));
+            router.back();
+            await vi.waitFor(() => expect(shownFlowers(wrapper)).toEqual(['1', '2']));
+            expect(address()).toBe('/Species');
+        });
+
+        test('are read from the start when another species is selected, and the address does not keep the page of the one before', async () => {
+            settingsStore.settings.pagination = true;
+            SpeciesStore.selected = { x: 1, y: 0 };
+            speciesRepository.countByCell.mockResolvedValue(25);
+            const wrapper = await mountView('/Species?page=2');
+            expect(router.currentRoute.value.fullPath).toBe('/Species?page=2');
+
+            SpeciesStore.selected = { x: 0, y: 1 };
+            await nextTick();
+            await flushPromises();
+
+            expect(wrapper.exists()).toBe(true);
+            expect(router.currentRoute.value.fullPath).toBe('/Species');
         });
 
         test('are read again from the start when another species is selected', async () => {

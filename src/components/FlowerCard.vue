@@ -50,7 +50,7 @@
         <ThreeFlower :id="props.id" :width="245" :height="350" :genome="props.genome" :emissive="emissive" />
       </div>
       <div v-else>
-        <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="SettingsStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
+        <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="SettingsStore.settings.magnification" loading="lazy" :src="getImage()" :alt="description" class="FlowerImage" />
       </div>
       <p>
         <strong>{{ props.id }}</strong>
@@ -103,7 +103,7 @@
         <ThreeFlower :id="props.id" :width="245" :height="350" :genome="props.genome" :emissive="emissive" />
       </div>
       <div v-else>
-        <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="SettingsStore.settings.magnification" loading="lazy" :src="getImage()" :alt="data.description" class="FlowerImage" />
+        <ZoomableImage :id="'FlImage' + props.id" :lens-size="data.lensSize" :magnification="SettingsStore.settings.magnification" loading="lazy" :src="getImage()" :alt="description" class="FlowerImage" />
       </div>
       <p>
         <strong>{{ props.id }}</strong>
@@ -113,7 +113,7 @@
 </template>
 
 <script setup>
-    import { onMounted, ref, reactive, inject, onUnmounted } from "vue";
+    import { onMounted, ref, reactive, inject, onUnmounted, computed } from "vue";
     import { useLocalFlowerStore } from '../stores/LocalFlowerStore';
     import { useRemoteFlowerStore } from '../stores/RemoteFlowerStore';
     import { useSettingsStore } from '../stores/SettingsStore';
@@ -166,12 +166,22 @@
         }
         return number;
     };
-    const parseParams = () => {
-        if(props.genome === ""){
+    // The params of the petals are in the genome. The card of the browser has it as a prop, the card of the server
+    // downloads it. A genome that cannot be read leaves the params as they were.
+    const parseParams = (genome) => {
+        if(!genome){
             return;
         }
-        let json = JSON.parse(props.genome);
-        data.params = json.Flower.petals;
+        let petals;
+        try{
+            petals = JSON.parse(genome).Flower.petals;
+        }catch{
+            return;
+        }
+        if(!petals){
+            return;
+        }
+        data.params = petals;
         data.params.radius = clamp(data.params.radius, 4, 256);
         data.params.numLayers = Math.max(1, data.params.numLayers);
         data.params.P = validateFloat(data.params.P, 6.0);
@@ -211,29 +221,42 @@
     const FavouritesStore = useFavouritesStore();
     const ErrorStore = useErrorStore();
     const CaptionerStore = useCaptionerStore();
+    // The description of a flower of the browser is the one the store has: the list that shows the card loads it,
+    // and that can be after the card is shown.
+    const description = computed(() => {
+        const described = props.isLocal ? CaptionerStore.getLocalDescription(props.id) : undefined;
+        return described === undefined ? data.description : "Flower " + props.id + " - " + described;
+    });
     const emitter = inject('emitter');
     onMounted(() => {
         if(props.isLocal){
-            parseParams();
+            parseParams(props.genome);
             FavouritesStore.isFavourited(props.id)
                 .then((isFav) => {
                     if(isFav){
                         data.heartIconSrc = loadImage("heart_full.png","x32");
                     }
                 });
-            if(CaptionerStore.localDescriptions.has(props.id)){
-                data.description = "Flower " + props.id + " - " + CaptionerStore.getLocalDescription(props.id);
-            }
             setTimeout(async () => {
                 const fe = await getFlowerEvolver();
                 data.stats = fe.getFlowerStats(props.genome, 0.3, 23, 1000, 0);
             }, 100);
         }else{
             setTimeout(async () => {
-                let blob = await fetch(data.DOWNLOAD_URL + props.genome);
-                let genome = await blob.text();
-                const fe = await getFlowerEvolver();
-                data.stats = fe.getFlowerStats(genome, 0.3, 23, 1000, 0);
+                // A server that does not answer is not an error to show: there is one of these per card, and the
+                // card goes on with the default params and no stats.
+                try{
+                    const response = await fetch(data.DOWNLOAD_URL + props.genome);
+                    if(!response.ok){
+                        return;
+                    }
+                    const genome = await response.text();
+                    parseParams(genome);
+                    const fe = await getFlowerEvolver();
+                    data.stats = fe.getFlowerStats(genome, 0.3, 23, 1000, 0);
+                }catch{
+                    // nothing to show, see above
+                }
             }, 100);
         }
         CaptionerStore.channel.on('captioner#done', (e) => {

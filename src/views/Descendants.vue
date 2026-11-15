@@ -41,9 +41,12 @@
     import * as flowerRepository from '../services/flowerRepository';
     import * as flowerApiClient from '../services/flowerApiClient';
     import { usePaginatedList } from '../composables/usePaginatedList';
+    import { usePageInAddress } from '../composables/usePageInAddress';
+    import { useShownFlowers } from '../composables/useShownFlowers';
     import { useRoute } from 'vue-router';
 
     const RemoteFlowerStore = useRemoteFlowerStore();
+    const whenShown = useShownFlowers();
     const ErrorStore = useErrorStore();
     const routes = useRoute();
     const isLocal = routes.params.isLocal === "local";
@@ -71,7 +74,7 @@
                              : flowerRepository.countDescendantsByParents(fatherID, motherID);
     };
 
-    const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginatedList({
+    const paged = usePaginatedList({
         // the descendants of the browser and those of the server are not the same list
         list: isLocal ? 'localDescendants' : 'remoteDescendants',
         // A reproduction makes a child of the two flowers that were selected, whichever list is on screen. The list
@@ -93,8 +96,12 @@
         fetchPage: ({ limit, offset }) => {
             return isLocal ? readLocal({ limit, offset })
                            : flowerApiClient.getDescendants(fatherID, motherID, { limit, offset }).catch(() => []);
-        }
+        },
+        // the flowers of the server have no species, and no description of the browser
+        onLoaded: isLocal ? ({ items }) => whenShown(items) : undefined
     });
+    const { state, isPaginated, init, nextBatch } = paged;
+    const { nextPage, prevPage } = usePageInAddress(paged);
 
     const remoteCard = (id) => ({ id, genome: id + '.json', image: id + '.png' });
 
