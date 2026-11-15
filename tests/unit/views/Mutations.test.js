@@ -426,21 +426,27 @@ describe('Mutations view', () => {
             await settle();
         };
 
-        test('local: starts at the page of the route, counts the pages, and the arrows do not push the route', async () => {
+        test('local: starts at the page of the route, counts the pages, and the arrows put the page in the address', async () => {
             const original = await makeOriginal();
             addLocalMutations(original.id, 7);
             await mountView('/Mutations/local/1?page=1');
-            const route = router.currentRoute.value.fullPath;
+            const address = () => router.currentRoute.value.fullPath;
+            const view = wrapper.vm;
 
             expect(shown()).toEqual([5, 4, 3]);
             expect(wrapper.findComponent(PaginationOrInfiniteScroll).props('totalPages')).toBe(3);
+            expect(address()).toBe('/Mutations/local/1?page=1');
 
             await clickArrow('>');
             expect(shown()).toEqual([2]);
+            expect(address()).toBe('/Mutations/local/1?page=2');
+            router.back();
+            await vi.waitFor(() => expect(shown()).toEqual([5, 4, 3]));
             await clickArrow('<');
             await clickArrow('<');
             expect(shown()).toEqual([8, 7, 6]);
-            expect(router.currentRoute.value.fullPath).toBe(route);
+            expect(address()).toBe('/Mutations/local/1');
+            expect(wrapper.vm).toBe(view);
         });
 
         test('local: asks for the species of each page when it is shown', async () => {

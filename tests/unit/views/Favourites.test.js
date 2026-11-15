@@ -279,9 +279,28 @@ describe('Favourites view', () => {
             expect(speciesStore.ensureFor.mock.calls).toEqual([[[12, 10, 9]], [[7, 6, 4]], [[12, 10, 9]]]);
         });
 
+        test('the arrows move one page, in place, and the address has the page, so the back button shows the page before', async () => {
+            await mountView();
+            const address = () => router.currentRoute.value.fullPath;
+            const view = wrapper.vm;
+            expect(address()).toBe('/Favourites');
+
+            await clickArrow('>');
+            expect(address()).toBe('/Favourites?page=1');
+            await clickArrow('>');
+            expect(shown()).toEqual([3, 1]);
+            expect(address()).toBe('/Favourites?page=2');
+
+            router.back();
+            await vi.waitFor(() => expect(shown()).toEqual([7, 6, 4]));
+            router.back();
+            await vi.waitFor(() => expect(shown()).toEqual([12, 10, 9]));
+            expect(address()).toBe('/Favourites');
+            expect(wrapper.vm).toBe(view);
+        });
+
         test('the arrows move one page, in place, and each page has the descriptions of its own flowers asked for', async () => {
             await mountView();
-            const route = router.currentRoute.value.fullPath;
 
             await clickArrow('>');
             await clickArrow('>');
@@ -289,7 +308,6 @@ describe('Favourites view', () => {
             await clickArrow('<');
             expect(shown()).toEqual([7, 6, 4]);
 
-            expect(router.currentRoute.value.fullPath).toBe(route);
             expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[12, 10, 9]], [[7, 6, 4]], [[3, 1]], [[7, 6, 4]]]);
         });
     });

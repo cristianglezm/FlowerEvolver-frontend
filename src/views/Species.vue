@@ -70,6 +70,7 @@ import FineTuneModal from '../components/species/FineTuneModal.vue';
 import SplitModal from '../components/species/SplitModal.vue';
 import SubspeciesMap from '../components/species/SubspeciesMap.vue';
 import { usePaginatedList } from '../composables/usePaginatedList';
+import { usePageInAddress } from '../composables/usePageInAddress';
 import { useClassifierReset } from '../composables/useClassifierReset';
 import { useLocalFlowerStore } from '../stores/LocalFlowerStore';
 import { useSpeciesStore } from '../stores/SpeciesStore';
@@ -105,7 +106,7 @@ const cell = () => {
     }
     return where;
 };
-const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginatedList({
+const paged = usePaginatedList({
     fetchCount: async () => SpeciesStore.selected === null ? 0 : speciesRepository.countByCell(cell()),
     fetchPage: async ({ limit, offset }) => {
         if(SpeciesStore.selected === null){
@@ -119,6 +120,8 @@ const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginated
     // their description
     onLoaded: ({ items }) => whenShown(items)
 });
+const { state, isPaginated, init, nextBatch } = paged;
+const { nextPage, prevPage } = usePageInAddress(paged);
 
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 const summary = computed(() => {

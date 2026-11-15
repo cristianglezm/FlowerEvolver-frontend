@@ -125,6 +125,61 @@ describe('usePaginatedList', () => {
             expect(list.state.items[0]).toBe(1);
         });
 
+        test('init has the page it is going to read as the page while it reads it, and 0 when it is not told', async () => {
+            const slow = gate();
+            const fetchPage = vi.fn(() => slow.promise);
+            const list = usePaginatedList({ fetchCount: async () => 35, fetchPage });
+
+            const starting = list.init(2);
+            expect(list.state.page).toBe(2);
+            slow.open([21]);
+            await starting;
+            expect(list.state.page).toBe(2);
+
+            list.init();
+            expect(list.state.page).toBe(0);
+        });
+
+        test('goToPage shows that page, in place, and the pages after it are still there to go to', async () => {
+            const list = usePaginatedList(makeList(35));
+            await list.init();
+
+            await list.goToPage(3);
+            expect(list.state.page).toBe(3);
+            expect(list.state.items).toEqual([31, 32, 33, 34, 35]);
+
+            await list.goToPage(1);
+            expect(list.state.page).toBe(1);
+            expect(list.state.items[0]).toBe(11);
+            expect(list.state.totalPages).toBe(4);
+        });
+
+        test('goToPage goes to the nearest page that exists', async () => {
+            const list = usePaginatedList(makeList(35));
+            await list.init();
+
+            await list.goToPage(40);
+            expect(list.state.page).toBe(3);
+
+            await list.goToPage(-2);
+            expect(list.state.page).toBe(0);
+        });
+
+        test('goToPage is stale like any page: one that arrives after a newer one was asked for is not shown', async () => {
+            const slow = gate();
+            const fetchPage = vi.fn(async ({ offset }) => offset === 10 ? slow.promise : [offset + 1]);
+            const list = usePaginatedList({ fetchCount: async () => 35, fetchPage });
+            await list.init();
+
+            const first = list.goToPage(1);
+            await list.goToPage(2);
+            slow.open([11]);
+            await first;
+
+            expect(list.state.page).toBe(2);
+            expect(list.state.items).toEqual([21]);
+        });
+
         test('init starts over, the state of the previous list is gone', async () => {
             const list = usePaginatedList(makeList(30));
             await list.init();
@@ -140,6 +195,19 @@ describe('usePaginatedList', () => {
     describe('infinite scroll', () => {
         beforeEach(() => {
             settingsStore.settings.pagination = false;
+        });
+
+        test('goToPage and a page in init are not for it: there are no pages', async () => {
+            const { fetchPage, fetchCount } = makeList(25);
+            const list = usePaginatedList({ fetchCount, fetchPage });
+
+            await list.init(2);
+            expect(list.state.page).toBe(0);
+            expect(list.state.items).toHaveLength(10);
+
+            await list.goToPage(2);
+            expect(list.state.items).toHaveLength(10);
+            expect(fetchPage).toHaveBeenCalledTimes(1);
         });
 
         test('init loads the first batch and does not count', async () => {

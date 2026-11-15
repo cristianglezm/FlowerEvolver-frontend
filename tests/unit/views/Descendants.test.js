@@ -473,21 +473,27 @@ describe('Descendants view', () => {
             await settle();
         };
 
-        test('local: starts at the page of the route, counts the pages, and the arrows do not push the route', async () => {
+        test('local: starts at the page of the route, counts the pages, and the arrows put the page in the address', async () => {
             await makeParents();
             addLocalChildren(1, 2, 7);
             await mountView('/Descendants/local/1/2?page=1');
-            const route = router.currentRoute.value.fullPath;
+            const address = () => router.currentRoute.value.fullPath;
+            const view = wrapper.vm;
 
             expect(shown()).toEqual([7, 6, 5]);
             expect(wrapper.findComponent(PaginationOrInfiniteScroll).props('totalPages')).toBe(3);
+            expect(address()).toBe('/Descendants/local/1/2?page=1');
 
             await clickArrow('>');
             expect(shown()).toEqual([4]);
+            expect(address()).toBe('/Descendants/local/1/2?page=2');
+            router.back();
+            await vi.waitFor(() => expect(shown()).toEqual([7, 6, 5]));
             await clickArrow('<');
             await clickArrow('<');
             expect(shown()).toEqual([10, 9, 8]);
-            expect(router.currentRoute.value.fullPath).toBe(route);
+            expect(address()).toBe('/Descendants/local/1/2');
+            expect(wrapper.vm).toBe(view);
         });
 
         test('local: asks for the species of each page when it is shown', async () => {

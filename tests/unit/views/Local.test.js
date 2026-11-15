@@ -9,7 +9,7 @@ import PaginationOrInfiniteScroll from '../../../src/components/PaginationOrInfi
 import { useLocalFlowerStore } from '../../../src/stores/LocalFlowerStore';
 import { useSettingsStore } from '../../../src/stores/SettingsStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
-import { flowerAdded } from '../../../src/services/listEvents';
+import { flowerAdded, listReset } from '../../../src/services/listEvents';
 
 // What is under test is the view with the real LocalFlowerStore and the real wasm, the way the e2e specs use it: a
 // flower is made, mutated, reproduced or deleted by the menu or a card while the Local tab is on screen, and the
@@ -150,6 +150,17 @@ describe('Local view', () => {
 
             expect(speciesStore.ensureFor.mock.calls).toEqual([[[7, 6, 5]], [[4, 3, 2]]]);
             expect(ErrorStore.push).not.toHaveBeenCalled();
+        });
+
+        test('has no pages, so the address is not touched when the next batch is shown', async () => {
+            addRows(7);
+            await mountView();
+
+            wrapper.findComponent(PaginationOrInfiniteScroll).vm.$emit('update-page');
+            await settle();
+
+            expect(shown()).toEqual([7, 6, 5, 4, 3, 2]);
+            expect(router.currentRoute.value.fullPath).toBe('/Local');
         });
 
         test('does not ask for the species of a flower that is made, the store that makes it classifies it', async () => {
@@ -310,20 +321,99 @@ describe('Local view', () => {
             expect(shown()).toEqual([8, 7, 6]);
         });
 
-        test('the arrows move one page, in place: the route is not pushed again', async () => {
+        const address = () => router.currentRoute.value.fullPath;
+
+        test('the arrows move one page, in place, and the address has the page: the first page has none', async () => {
             await mountView();
-            const route = router.currentRoute.value.fullPath;
+            expect(address()).toBe('/Local');
 
             await clickArrow('>');
             expect(shown()).toEqual([5, 4, 3]);
+            expect(address()).toBe('/Local?page=1');
             await clickArrow('>');
             expect(shown()).toEqual([2, 1]);
+            expect(address()).toBe('/Local?page=2');
             await clickArrow('<');
             expect(shown()).toEqual([5, 4, 3]);
+            expect(address()).toBe('/Local?page=1');
+            await clickArrow('<');
+            expect(shown()).toEqual([8, 7, 6]);
+            expect(address()).toBe('/Local');
 
-            expect(router.currentRoute.value.fullPath).toBe(route);
-            // the descriptions of each page, the ones of the flowers on it
-            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[8, 7, 6]], [[5, 4, 3]], [[2, 1]], [[5, 4, 3]]]);
+            // the descriptions of each page, the ones of the flowers on it, and the address did not read a page again
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[8, 7, 6]], [[5, 4, 3]], [[2, 1]], [[5, 4, 3]], [[8, 7, 6]]]);
+        });
+
+        test('the back button shows the page before and forward the page after, in place', async () => {
+            await mountView();
+            await clickArrow('>');
+            await clickArrow('>');
+            const view = wrapper.vm;
+
+            router.back();
+            await vi.waitFor(() => expect(shown()).toEqual([5, 4, 3]));
+            router.back();
+            await vi.waitFor(() => expect(shown()).toEqual([8, 7, 6]));
+            router.forward();
+            await vi.waitFor(() => expect(shown()).toEqual([5, 4, 3]));
+
+            expect(address()).toBe('/Local?page=1');
+            expect(wrapper.vm).toBe(view);
+            expect(ErrorStore.push).not.toHaveBeenCalled();
+        });
+
+        test('a link to a page of the view shows that page, one to another view reads nothing', async () => {
+            await mountView();
+
+            await router.push('/Local?page=2');
+            await settle();
+            expect(shown()).toEqual([2, 1]);
+
+            const asked = captioner.loadLocalDescriptionsOf.mock.calls.length;
+            router.addRoute({ path: '/Favourites', component: { template: '<div />' } });
+            await router.push('/Favourites');
+            await settle();
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toHaveLength(asked);
+            expect(shown()).toEqual([2, 1]);
+        });
+
+        test('a page beyond the last one is the last one, and the address says so', async () => {
+            await mountView();
+
+            await router.push('/Local?page=9');
+            await settle();
+
+            expect(shown()).toEqual([2, 1]);
+            expect(address()).toBe('/Local?page=2');
+        });
+
+        test('a list that starts again by itself starts at the first page, and the address is replaced and not pushed', async () => {
+            await mountView('/Local?page=1');
+            expect(shown()).toEqual([5, 4, 3]);
+            const push = vi.spyOn(router, 'push');
+            const replace = vi.spyOn(router, 'replace');
+
+            listReset('local');
+            await settle();
+
+            expect(shown()).toEqual([8, 7, 6]);
+            expect(address()).toBe('/Local');
+            expect(push).not.toHaveBeenCalled();
+            expect(replace).toHaveBeenCalledTimes(1);
+        });
+
+        test('opened at a page, the address is not touched', async () => {
+            const push = vi.spyOn(router, 'push');
+            await mountView('/Local?page=1');
+            push.mockClear();
+            const replace = vi.spyOn(router, 'replace');
+
+            await settle();
+
+            expect(shown()).toEqual([5, 4, 3]);
+            expect(address()).toBe('/Local?page=1');
+            expect(push).not.toHaveBeenCalled();
+            expect(replace).not.toHaveBeenCalled();
         });
 
         test('a flower that is made is at the top of the page that is shown', async () => {

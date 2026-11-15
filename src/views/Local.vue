@@ -20,6 +20,7 @@ import { useErrorStore } from '../stores/ErrorStore';
 import { useShownFlowers } from '../composables/useShownFlowers';
 import * as flowerRepository from '../services/flowerRepository';
 import { usePaginatedList } from '../composables/usePaginatedList';
+import { usePageInAddress } from '../composables/usePageInAddress';
 import { useRoute } from 'vue-router';
 import importWorker from '../workers/import.worker?worker';
 import WorkerManager from '../stores/WorkerManager';
@@ -47,13 +48,15 @@ watch(data, () => {
 
 // The list is this view's own: the menu and the cards say when a flower is made or deleted (list 'local')
 // and the composable applies it.
-const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginatedList({
+const paged = usePaginatedList({
     list: 'local',
     fetchCount: () => flowerRepository.countFlowers(),
     fetchPage: ({ limit, offset }) => flowerRepository.listFlowers({ limit, offset }),
     // the species and the descriptions of the flowers that are shown
     onLoaded: ({ items }) => whenShown(items)
 });
+const { state, isPaginated, init, nextBatch } = paged;
+const { nextPage, prevPage } = usePageInAddress(paged);
 
 onMounted(() => {
     // ?page= is the page to start at, the pages after it are not a route each
