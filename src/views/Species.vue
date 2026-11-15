@@ -112,6 +112,10 @@ const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginated
         const ids = await speciesRepository.listFlowerIdsByCell({ ...cell(), limit, offset });
         const flowers = await flowerRepository.bulkGetFlowers(ids);
         return flowers.filter((flower) => flower !== undefined);
+    },
+    // the cards show the species they were classified in, which the store reads when it is asked for them
+    onLoaded: ({ items }) => {
+        SpeciesStore.ensureFor(items.map((flower) => flower.id));
     }
 });
 

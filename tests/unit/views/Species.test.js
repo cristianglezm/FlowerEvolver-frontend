@@ -345,6 +345,31 @@ describe('Species view', () => {
             expect(shownFlowers(wrapper)).toEqual(['9', '7', '4']);
         });
 
+        test('have their species asked for when they are shown, so that the cards have it', async () => {
+            SpeciesStore.selected = { x: 1, y: 0 };
+            speciesRepository.countByCell.mockResolvedValue(3);
+            speciesRepository.listFlowerIdsByCell.mockResolvedValue([9, 7, 4]);
+
+            await mountView();
+
+            expect(SpeciesStore.ensureFor).toHaveBeenCalledExactlyOnceWith([9, 7, 4]);
+        });
+
+        test('are asked for without the ones that were deleted, and for none when the species has none', async () => {
+            SpeciesStore.selected = { x: 1, y: 0 };
+            speciesRepository.listFlowerIdsByCell.mockResolvedValue([9, 7, 4]);
+            flowerRepository.bulkGetFlowers.mockResolvedValue([{ id: 9 }, undefined, { id: 4 }]);
+            await mountView();
+            expect(SpeciesStore.ensureFor).toHaveBeenCalledExactlyOnceWith([9, 4]);
+
+            SpeciesStore.ensureFor.mockClear();
+            speciesRepository.listFlowerIdsByCell.mockResolvedValue([]);
+            flowerRepository.bulkGetFlowers.mockResolvedValue([]);
+            SpeciesStore.selected = { x: 0, y: 0 };
+            await mountView();
+            expect(SpeciesStore.ensureFor.mock.calls.flatMap(([ids]) => ids)).toEqual([]);
+        });
+
         test('leave out the ones that were deleted since the list was read', async () => {
             SpeciesStore.selected = { x: 1, y: 0 };
             speciesRepository.listFlowerIdsByCell.mockResolvedValue([9, 7, 4]);

@@ -338,6 +338,13 @@ describe('SpeciesStore', () => {
             expect(SpeciesStore.rowFor(3)).toMatchObject({ x: 1, y: 1, fp: 'fp1' });
         });
 
+        test('has nothing to do for no flowers, and does not start the classifier for them', async () => {
+            await expect(SpeciesStore.ensureFor([])).resolves.toBeUndefined();
+
+            expect(client.getModel).not.toHaveBeenCalled();
+            expect(SpeciesStore.isReady).toBe(false);
+        });
+
         test('never fails, the page just has no badges', async () => {
             client.getModel.mockRejectedValue(new Error('worker failed'));
             await expect(SpeciesStore.ensureFor([1])).resolves.toBeUndefined();

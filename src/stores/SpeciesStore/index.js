@@ -218,6 +218,10 @@ export const useSpeciesStore = defineStore('SpeciesStore', {
          * The ones that have it are only read. Never fails.
          */
         ensureFor(ids){
+            // an empty list (the first page of an empty tab) is not worth starting the classifier for
+            if(ids.length === 0){
+                return Promise.resolve();
+            }
             return track((async () => {
                 try{
                     await this.start();

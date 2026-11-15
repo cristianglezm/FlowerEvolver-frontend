@@ -47,9 +47,11 @@ vi.mock('../../../src/services/flowerRepository', () => {
 });
 vi.mock('../../../src/services/flowerApiClient', () => ({ API: 'http://test-api.local/', mapAxiosError: vi.fn((e) => e) }));
 vi.mock('../../../src/services/speciesRepository', () => ({ bulkGetSpecies: vi.fn(async () => []), bulkPutSpecies: vi.fn(async () => {}) }));
-vi.mock('../../../src/stores/SpeciesStore', () => ({
-    useSpeciesStore: () => ({ classifyLater: vi.fn(), removeFlower: vi.fn(async () => {}), invalidate: vi.fn() }),
+// the species of the flowers that are shown is asked for through ensureFor, which is what these tests look at
+const speciesStore = vi.hoisted(() => ({
+    classifyLater: vi.fn(), removeFlower: vi.fn(async () => {}), invalidate: vi.fn(), ensureFor: vi.fn(async () => {}),
 }));
+vi.mock('../../../src/stores/SpeciesStore', () => ({ useSpeciesStore: () => speciesStore }));
 const captioner = vi.hoisted(() => ({ loadLocalDescriptions: vi.fn(), loadAndConcatLocalDescriptions: vi.fn() }));
 vi.mock('../../../src/stores/CaptionerStore', () => ({ useCaptionerStore: () => captioner }));
 // a flower card is a lot of components and stores, the view only hands it the flowers
@@ -91,6 +93,8 @@ describe('Local view', () => {
         return wrapper;
     };
     const shown = () => wrapper.findAll('.flowers li:not(.none)').map((li) => Number(li.text()));
+    // the ids that the species were asked for, in order, batch after batch
+    const askedFor = () => speciesStore.ensureFor.mock.calls.flatMap(([ids]) => ids);
     const settle = async () => {
         await flushPromises();
         await nextTick();
@@ -134,6 +138,30 @@ describe('Local view', () => {
             // the next batch adds to the descriptions, it does not take the ones of the first away
             expect(captioner.loadAndConcatLocalDescriptions).toHaveBeenCalledExactlyOnceWith(3, 3);
             expect(captioner.loadLocalDescriptions).toHaveBeenCalledTimes(1);
+        });
+
+        test('asks for the species of each batch when it is shown, and only of that batch', async () => {
+            addRows(7);
+            await mountView();
+            expect(speciesStore.ensureFor.mock.calls).toEqual([[[7, 6, 5]]]);
+
+            wrapper.findComponent(PaginationOrInfiniteScroll).vm.$emit('update-page');
+            await settle();
+
+            expect(speciesStore.ensureFor.mock.calls).toEqual([[[7, 6, 5]], [[4, 3, 2]]]);
+            expect(ErrorStore.push).not.toHaveBeenCalled();
+        });
+
+        test('does not ask for the species of a flower that is made, the store that makes it classifies it', async () => {
+            await mountView();
+            expect(askedFor()).toEqual([]);
+
+            await LocalFlowerStore.makeLocalFlower();
+            await settle();
+
+            expect(shown()).toEqual([1]);
+            expect(speciesStore.classifyLater).toHaveBeenCalledExactlyOnceWith(1);
+            expect(askedFor()).toEqual([]);
         });
 
         test('says that there are no flowers', async () => {
@@ -266,6 +294,14 @@ describe('Local view', () => {
             expect(shown()).toEqual([5, 4, 3]);
             expect(captioner.loadLocalDescriptions).toHaveBeenCalledExactlyOnceWith(3, 3);
             expect(wrapper.findComponent(PaginationOrInfiniteScroll).props('totalPages')).toBe(3);
+        });
+
+        test('asks for the species of each page when it is shown, and again when it is shown again', async () => {
+            await mountView();
+            await clickArrow('>');
+            await clickArrow('<');
+
+            expect(speciesStore.ensureFor.mock.calls).toEqual([[[8, 7, 6]], [[5, 4, 3]], [[8, 7, 6]]]);
         });
 
         test('starts at the first page when the route has no page, or not a number', async () => {
