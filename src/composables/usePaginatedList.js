@@ -108,10 +108,15 @@ export const usePaginatedList = ({ fetchCount, fetchPage, list, accepts, onLoade
         state.totalPages = 0;
         if(isPaginated.value){
             await load(startPage);
+            const asked = latest;
             try{
                 state.totalPages = Math.ceil(await fetchCount() / SettingsStore.settings.limit);
             }catch(e){
                 ErrorStore.push(e);
+            }
+            // a page beyond the last one is the last one, unless the list was started again while it was counted
+            if(asked === latest && state.totalPages > 0 && startPage >= state.totalPages){
+                await load(state.totalPages - 1);
             }
         }else{
             await nextBatch();

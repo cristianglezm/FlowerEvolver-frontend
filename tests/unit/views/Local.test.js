@@ -387,6 +387,18 @@ describe('Local view', () => {
             expect(address()).toBe('/Local?page=2');
         });
 
+        test('opened at a page beyond the last one, the last one is shown and the address says so, without a place in the history', async () => {
+            const push = vi.spyOn(router, 'push');
+            await mountView('/Local?page=9');
+            push.mockClear();
+
+            await settle();
+
+            expect(shown()).toEqual([2, 1]);
+            expect(address()).toBe('/Local?page=2');
+            expect(push).not.toHaveBeenCalled();
+        });
+
         test('a list that starts again by itself starts at the first page, and the address is replaced and not pushed', async () => {
             await mountView('/Local?page=1');
             expect(shown()).toEqual([5, 4, 3]);

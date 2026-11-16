@@ -140,6 +140,80 @@ describe('usePaginatedList', () => {
             expect(list.state.page).toBe(0);
         });
 
+        test('init at a page beyond the last one shows the last one, and does not read more than it has to', async () => {
+            const { fetchPage, fetchCount } = makeList(35);
+            const list = usePaginatedList({ fetchCount, fetchPage });
+
+            await list.init(9);
+
+            expect(list.state.page).toBe(3);
+            expect(list.state.totalPages).toBe(4);
+            expect(list.state.items).toEqual([31, 32, 33, 34, 35]);
+            // the page that was asked for, which is empty, and the last one
+            expect(fetchPage.mock.calls.map(([{ offset }]) => offset)).toEqual([90, 30]);
+        });
+
+        test('init at the page just after the last one shows the last one', async () => {
+            const { fetchPage, fetchCount } = makeList(30);
+            const list = usePaginatedList({ fetchCount, fetchPage });
+
+            await list.init(3);
+
+            expect(list.state.page).toBe(2);
+            expect(list.state.items).toHaveLength(10);
+            expect(list.state.items[0]).toBe(21);
+        });
+
+        test('init at the last page, or at one before it, reads the page once', async () => {
+            const { fetchPage, fetchCount } = makeList(35);
+            const list = usePaginatedList({ fetchCount, fetchPage });
+
+            await list.init(3);
+            expect(list.state.page).toBe(3);
+            await list.init(1);
+            expect(list.state.page).toBe(1);
+
+            expect(fetchPage).toHaveBeenCalledTimes(2);
+        });
+
+        test('init at any page of a list with nothing in it stays where it was told, there is no page to go to', async () => {
+            const { fetchPage, fetchCount } = makeList(0);
+            const list = usePaginatedList({ fetchCount, fetchPage });
+
+            await list.init(4);
+
+            expect(list.state.page).toBe(4);
+            expect(list.state.items).toEqual([]);
+            expect(fetchPage).toHaveBeenCalledTimes(1);
+        });
+
+        test('init at a page beyond the last one does not read the last one when the list was started again meanwhile', async () => {
+            const counting = gate();
+            const fetchPage = vi.fn(async ({ offset }) => [offset + 1]);
+            let calls = 0;
+            const fetchCount = vi.fn(() => ++calls === 1 ? counting.promise : Promise.resolve(35));
+            const list = usePaginatedList({ fetchCount, fetchPage });
+
+            const first = list.init(9);
+            await vi.waitFor(() => expect(fetchCount).toHaveBeenCalledTimes(1));
+            await list.init(1);
+            counting.open(35);
+            await first;
+
+            expect(list.state.page).toBe(1);
+            expect(fetchPage.mock.calls.map(([{ offset }]) => offset)).toEqual([90, 10]);
+        });
+
+        test('init does not go to the last page when the pages could not be counted', async () => {
+            const { fetchPage } = makeList(35);
+            const list = usePaginatedList({ fetchCount: async () => { throw new Error('cannot count'); }, fetchPage });
+
+            await list.init(9);
+
+            expect(list.state.page).toBe(9);
+            expect(fetchPage).toHaveBeenCalledTimes(1);
+        });
+
         test('goToPage shows that page, in place, and the pages after it are still there to go to', async () => {
             const list = usePaginatedList(makeList(35));
             await list.init();
