@@ -19,7 +19,7 @@
           uses: actions/checkout@v7
 
         - name: Clean install dependencies
-          run: npm ci
+          run: npm ci --ignore-scripts
 
         - name: Run deploy script
           shell: sh

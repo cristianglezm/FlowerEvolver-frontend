@@ -1,6 +1,6 @@
 import { test as base } from '@playwright/test';
 
-const DEFAULT_SETTINGS = {
+export const DEFAULT_SETTINGS = {
 	params: { radius: 64, numLayers: 3, P: 6.0, bias: 1.0 },
 	mutationRates: { addNodeRate: 0.2, addConnRate: 0.3, removeConnRate: 0.2, perturbWeightsRate: 0.6, enableRate: 0.35, disableRate: 0.3, actTypeRate: 0.4 },
 	loadDemoFlowers: false,

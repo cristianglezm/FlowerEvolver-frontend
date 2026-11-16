@@ -57,10 +57,9 @@ describe('RemoteFlowerStore', () => {
 			await expect(RemoteFlowerStore.getRemoteDescendantsCount(7, 8)).resolves.toBe(2);
 			expect(flowerApiClient.getDescendantsCount.mock.calls).toEqual([[7, undefined], [7, 8]]);
 
-			const failure = new Error('offline');
-			flowerApiClient.getDescendantsCount.mockRejectedValueOnce(failure);
+			flowerApiClient.getDescendantsCount.mockRejectedValueOnce(new Error('offline'));
 			await expect(RemoteFlowerStore.getRemoteDescendantsCount(7)).resolves.toBe(0);
-			expect(ErrorStore.push).toHaveBeenCalledWith(failure);
+			expect(ErrorStore.push).toHaveBeenCalledExactlyOnceWith('cannot get the remote descendants, server offline');
 		});
 
 		test('getRemoteFlowersCount returns the count, and 0 and records the error on failure', async () => {
@@ -68,10 +67,9 @@ describe('RemoteFlowerStore', () => {
 			await expect(RemoteFlowerStore.getRemoteFlowersCount()).resolves.toBe(12);
 			expect(ErrorStore.push).not.toHaveBeenCalled();
 
-			const err = new Error('network down');
-			flowerApiClient.getFlowersCount.mockRejectedValue(err);
+			flowerApiClient.getFlowersCount.mockRejectedValue(new Error('network down'));
 			await expect(RemoteFlowerStore.getRemoteFlowersCount()).resolves.toBe(0);
-			expect(ErrorStore.push).toHaveBeenCalledWith(err);
+			expect(ErrorStore.push).toHaveBeenCalledExactlyOnceWith('cannot get the remote flowers, server offline');
 		});
 
 		test('getRemoteMutationsCount asks for the mutations of the flower, and returns 0 and records the error on failure', async () => {
@@ -80,10 +78,33 @@ describe('RemoteFlowerStore', () => {
 			expect(flowerApiClient.getMutationsCount).toHaveBeenCalledExactlyOnceWith(7);
 			expect(ErrorStore.push).not.toHaveBeenCalled();
 
-			const err = new Error('network down');
-			flowerApiClient.getMutationsCount.mockRejectedValue(err);
+			flowerApiClient.getMutationsCount.mockRejectedValue(new Error('network down'));
 			await expect(RemoteFlowerStore.getRemoteMutationsCount(7)).resolves.toBe(0);
-			expect(ErrorStore.push).toHaveBeenCalledWith(err);
+			expect(ErrorStore.push).toHaveBeenCalledExactlyOnceWith('cannot get the remote mutations, server offline');
+		});
+
+		test.each([
+			['getRemoteFlowersCount', 'getFlowersCount', []],
+			['getRemoteMutationsCount', 'getMutationsCount', [7]],
+			['getRemoteDescendantsCount', 'getDescendantsCount', [7, 8]],
+		])('%s shows what the server says when it answers with an error, not that it is offline', async (action, call, args) => {
+			flowerApiClient[call].mockRejectedValue({ response: { status: 500, data: 'the database is down' } });
+
+			await expect(RemoteFlowerStore[action](...args)).resolves.toBe(0);
+
+			expect(ErrorStore.push).toHaveBeenCalledExactlyOnceWith('the database is down');
+		});
+
+		test.each([
+			['getRemoteFlowersCount', 'getFlowersCount', []],
+			['getRemoteMutationsCount', 'getMutationsCount', [7]],
+			['getRemoteDescendantsCount', 'getDescendantsCount', [7, 8]],
+		])('%s does not push an object that the person would have to read', async (action, call, args) => {
+			flowerApiClient[call].mockRejectedValue(Object.assign(new Error('Network Error'), { code: 'ERR_NETWORK' }));
+
+			await RemoteFlowerStore[action](...args);
+
+			expect(typeof ErrorStore.push.mock.calls[0][0]).toBe('string');
 		});
 	});
 

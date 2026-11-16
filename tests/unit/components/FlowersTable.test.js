@@ -32,6 +32,11 @@ describe('FlowersTable', () => {
         expect(remote.attributes('data-local')).toBe('false');
     });
 
+    test('is the list that the specs of the app look at, and only when there is something to list', () => {
+        expect(mountTable(flowers(1)).find('[data-testid="flowers-list"]').exists()).toBe(true);
+        expect(mountTable([]).find('[data-testid="flowers-list"]').exists()).toBe(false);
+    });
+
     test('says there are no flowers, with the message it was given, and has no cards', () => {
         const wrapper = mountTable([]);
 
