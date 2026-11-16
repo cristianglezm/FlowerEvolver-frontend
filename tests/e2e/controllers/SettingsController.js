@@ -38,4 +38,18 @@ export class SettingsController {
 		await this.page.getByRole('button', { name: 'Delete All Flowers' }).click();
 		await this.#confirm();
 	}
+
+	async deleteNonFavourites(){
+		await this.page.getByRole('button', { name: 'Delete non Favourites' }).click();
+		await this.#confirm();
+	}
+
+	async importGardenFlowers(){
+		await this.page.getByRole('button', { name: 'Import garden Flowers' }).click();
+	}
+
+	// the garden is drawn by the app when it starts, and keeps its flowers in the session when it is done
+	async waitForGarden(){
+		await this.page.waitForFunction(() => globalThis.sessionStorage.getItem('FlowerEvolverGarden') !== null, null, { timeout: 90_000 });
+	}
 }

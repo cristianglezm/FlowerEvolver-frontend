@@ -1,5 +1,5 @@
 <template>
-  <div v-if="props.flowers && props.flowers.length" class="grid">
+  <div v-if="props.flowers && props.flowers.length" class="grid" data-testid="flowers-list">
     <div v-for="flower in props.flowers" :key="flower.id">
       <FlowerCard :id="flower.id" :genome="flower.genome" :image="flower.image" :isLocal="props.isLocal" />
     </div>

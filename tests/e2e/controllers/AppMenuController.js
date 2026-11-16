@@ -48,6 +48,11 @@ export class AppMenuController {
 	async toggleChatBot(){
 		await this.#click('menu-toggle-chatbot');
 	}
+	// a tab of the navigation by its name: Local, Last Added, Browse, Favourites, Species
+	async openTab(name){
+		await this.#openMobileMenuIfPresent();
+		await this.page.getByRole('link', { name, exact: true }).click();
+	}
 	async openSpecies(){
 		await this.#openMobileMenuIfPresent();
 		await this.page.getByRole('link', { name: 'Species' }).click();
