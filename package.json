@@ -22,7 +22,7 @@
         "@huggingface/inference": "^4.13.32",
         "@huggingface/jinja": "^0.5.11",
         "@huggingface/transformers": "^3.8.1",
-        "axios": "^1.21.0",
+        "axios": "^1.21.1",
         "dexie": "^4.4.7",
         "jszip": "^3.10.2",
         "kokoro-js": "^1.2.1",
