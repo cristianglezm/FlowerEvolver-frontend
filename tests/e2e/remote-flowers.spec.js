@@ -88,8 +88,10 @@ test.describe('the flowers of the server', () => {
 		const menu = new AppMenuController(page);
 		const browse = new ListViewController(page);
 		await browse.goto('/#/Browse');
-		await browse.card(0).select();
-		await browse.card(1).select();
+		// the children are the newest flowers, 7 and 6: 5 and 4 are the third and the fourth
+		await browse.expectIds([7, 6, 5, 4, 3, 2, 1]);
+		await browse.card(2).select();
+		await browse.card(3).select();
 
 		await menu.showRemoteDescendants();
 

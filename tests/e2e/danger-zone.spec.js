@@ -25,8 +25,10 @@ test('Delete non Favourites keeps the favourites, and Delete All Flowers leaves 
 	await menu.openTab('Local');
 	await local.expectFlowerCount(1);
 	await local.card(0).expectImageLoaded();
+	// what is kept is written to the table again, so the flower has the number that comes next
+	const kept = await local.card(0).id();
 	await menu.openTab('Favourites');
-	await favourites.expectIds([2]);
+	await favourites.expectIds([kept]);
 
 	await settings.goto();
 	await settings.deleteAllFlowers();

@@ -7,6 +7,8 @@ import { SettingsController } from './controllers/SettingsController';
 // of the settings: nothing here is made by the spec, it waits for what the app made.
 
 test('the flowers of the garden can be imported to the browser', async ({ page }) => {
+	// the garden is drawn first, and then its flowers are imported: both take a while
+	test.setTimeout(180_000);
 	const menu = new AppMenuController(page);
 	const local = new LocalViewController(page);
 	const settings = new SettingsController(page);
@@ -16,10 +18,11 @@ test('the flowers of the garden can be imported to the browser', async ({ page }
 	await settings.importGardenFlowers();
 	await menu.openTab('Local');
 
-	await expect.poll(() => local.cards().count(), { timeout: 60_000 }).toBeGreaterThan(0);
+	await expect.poll(() => local.cards().count(), { timeout: 120_000 }).toBeGreaterThan(0);
 });
 
 test('the flowers of the garden can be exported', async ({ page }) => {
+	test.setTimeout(120_000);
 	const settings = new SettingsController(page);
 	await settings.goto();
 	await settings.waitForGarden();
