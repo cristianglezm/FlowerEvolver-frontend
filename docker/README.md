@@ -110,6 +110,45 @@ or uncomment `COMPOSE_FILE=docker-compose.yml:docker-compose.podman.yml` in `doc
   instead of the one of the browser. Then the rate limit of the backend counts every client as one. `podman compose --env-file docker/.env logs
   frontend` shows which address nginx sees; for a single tester it does not matter.
 
+## When something is unhealthy ##
+
+`docker compose ps` says which service is `unhealthy` or `starting`. What the check itself said is kept by Docker, with the
+error of the command (a refused connection, a 404, a timeout, no such file):
+
+```bash
+docker compose --env-file docker/.env ps
+docker inspect --format '{{ json .State.Health }}' flowerevolver-backend-1      # the last five probes and their output
+docker compose --env-file docker/.env logs --tail 100 backend describe
+# the same request as the check, by hand
+docker compose --env-file docker/.env exec backend python -c "import urllib.request; print(urllib.request.urlopen('http://127.0.0.1:5000/healthz').read())"
+docker compose --env-file docker/.env exec describe python -c "import urllib.request; print(urllib.request.urlopen('http://127.0.0.1:8000/healthz').read())"
+```
+
+* `starting` for minutes is normal for `describe` (its models are loaded by every worker before it answers, the check waits
+  5 minutes before it counts failures) and for `backend` (it waits for MySQL and applies the migrations, 3 minutes).
+* `restarting`, or a gunicorn line such as `Worker failed to boot` in the logs, is a service that dies: its logs say why
+  (the database, a setting with no value, memory: `docker stats`, Kafka needs about 1 GB).
+* The frontend does not wait for the backend to be healthy: the pages are there and the calls to `/api` answer `502 Bad
+  Gateway` until it is.
+* `Control server error: [Errno 13] Permission denied: '/home/fe'` in the backend is noise of gunicorn 25.1 or later in an
+  image that has no home for its user, it goes on serving. It is gone in the images built from the backend with
+  `control_socket_disable`; until then `XDG_RUNTIME_DIR: /tmp` in the `environment` of `backend` silences it.
+
+## Reaching the stack through an SSH tunnel ##
+
+When the ports of the server are closed to you, tunnel the https one. **The address of the api is compiled into the
+frontend**, so the page and `PUBLIC_URL` have to agree on the port, or the page loads and every call goes to a port of your
+own computer where nothing listens:
+
+```bash
+ssh -L 8443:127.0.0.1:443 user@your-server        # on your computer; a port above 1024 needs no root
+```
+
+then, in `docker/.env` **on the server**, `PUBLIC_URL=https://localhost:8443` (with `DOMAIN=localhost`), build the frontend again
+(`docker compose --env-file docker/.env up -d --build frontend`) and browse https://localhost:8443, accepting the self-signed
+certificate. Use the https address: the redirect of http goes to the port of the server, not to the one of the tunnel. The
+tunnel of Grafana and Prometheus (above) is a different one and needs none of this.
+
 ## Updating ##
 
 ```bash

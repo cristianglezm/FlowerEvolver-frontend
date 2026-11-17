@@ -27,9 +27,13 @@ services:
     volumes:
       - certbot_www:/var/www/certbot:ro
       - certbot_certs:/etc/letsencrypt:ro
+    # The site is files and a proxy: nginx looks for the backend by name when a request comes (a variable in
+    # proxy_pass and a resolver), so it does not need it to be healthy to start. Waiting for that kept the whole
+    # site down while the backend was starting, or when it was not healthy; now the pages are there and the calls
+    # to the api answer 502 until it is.
     depends_on:
       backend:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/healthz"]
       interval: 15s
@@ -107,8 +111,9 @@ services:
       interval: 15s
       timeout: 6s
       retries: 5
-      # reset.sh waits for MySQL and applies the migrations before gunicorn starts
-      start_period: 90s
+      # reset.sh waits for MySQL and applies the migrations before gunicorn starts. The failures of the start period are
+      # not counted and the first answer makes it healthy, so a long one only delays the news of a broken one.
+      start_period: 180s
 
   db:
     image: docker.io/library/mysql:8.4
@@ -151,7 +156,8 @@ services:
       interval: 15s
       timeout: 6s
       retries: 5
-      start_period: 120s
+      # every worker loads its models (about 800 MB) before it answers, which takes minutes on a small server
+      start_period: 300s
 
   redis:
     image: docker.io/library/redis:7-alpine
