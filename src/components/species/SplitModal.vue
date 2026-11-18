@@ -6,21 +6,18 @@
       sub-species. Every sub-species needs at least {{ MIN_PER_CELL }} flowers. You can cancel, and nothing is changed.
     </p>
     <div class="fields">
-      <div class="labelInputArea">
-        <ToolTip :info="'How many sub-species are in a row, from 1 to 6.'" />
-        <label for="split-columns">Columns: </label>
-        <input id="split-columns" v-model.number="data.width" type="number" min="1" max="6" step="1" data-testid="split-columns">
-      </div>
-      <div class="labelInputArea">
-        <ToolTip :info="'How many rows of sub-species there are, from 1 to 6.'" />
-        <label for="split-rows">Rows: </label>
-        <input id="split-rows" v-model.number="data.height" type="number" min="1" max="6" step="1" data-testid="split-rows">
-      </div>
-      <div class="labelInputArea">
-        <ToolTip :info="'How many times the flowers are shown to the map, more takes longer and tells them apart better.'" />
-        <label for="split-epochs">Epochs: </label>
-        <input id="split-epochs" v-model.number="data.epochs" type="number" min="1" step="1" data-testid="split-epochs">
-      </div>
+      <NumberField
+        v-model="data.width" input-id="split-columns" label="Columns: " testid="split-columns" :min="1" :max="6" :step="1"
+        tooltip="How many sub-species are in a row, from 1 to 6."
+      />
+      <NumberField
+        v-model="data.height" input-id="split-rows" label="Rows: " testid="split-rows" :min="1" :max="6" :step="1"
+        tooltip="How many rows of sub-species there are, from 1 to 6."
+      />
+      <NumberField
+        v-model="data.epochs" input-id="split-epochs" label="Epochs: " testid="split-epochs" :min="1" :step="1"
+        tooltip="How many times the flowers are shown to the map, more takes longer and tells them apart better."
+      />
     </div>
     <p v-if="invalid !== ''" class="invalid" data-testid="split-invalid">{{ invalid }}</p>
     <TrainingPanel
@@ -43,7 +40,7 @@
 import { computed, reactive, ref } from 'vue';
 import { useSpeciesStore } from '../../stores/SpeciesStore';
 import TrainingPanel from './TrainingPanel.vue';
-import ToolTip from '../ToolTip.vue';
+import NumberField from '../ui/NumberField.vue';
 
 // what SpeciesTrainer needs for every sub-species
 const MIN_PER_CELL = 3;
@@ -121,28 +118,11 @@ defineExpose({ open, close });
         margin: 0 0 0.8rem 0;
         font-size: 0.9rem;
     }
-    /* the same as the parameters of Settings: tooltip, label, and the number in a pill */
-    .labelInputArea{
-        display: block;
-        padding-top: 0.31rem;
-    }
-    .labelInputArea label{
-        width: 9.6rem;
-        display: inline-block;
-        margin: 0rem 0rem 0rem 0.93rem;
-    }
-    .labelInputArea input[type=number]{
-        vertical-align: top;
-        background-color: green;
-        color: lightgreen;
-        border: solid lightgreen;
-        border-radius: 8rem;
-        margin: 0.125rem 0rem 0rem 0.125rem;
-        width: 20%;
-        text-align: center;
-    }
     .fields{
         margin-bottom: 0.6rem;
+        /* a dialog is narrow: the labels and the pills have the same size on every screen */
+        --fe-field-label-width: 9.6rem;
+        --fe-field-control-width: 20%;
     }
     .invalid{
         margin: 0 0 0.6rem 0;

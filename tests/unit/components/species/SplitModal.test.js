@@ -43,6 +43,19 @@ describe('SplitModal', () => {
         expect(dialog().open).toBe(false);
     });
 
+    test('has the fields of the settings, with their labels and the limits that their spinners have', async () => {
+        open();
+        await wrapper.vm.$nextTick();
+
+        expect(['columns', 'rows', 'epochs'].map((name) => wrapper.get(`label[for="split-${name}"]`).text()))
+            .toEqual(['Columns:', 'Rows:', 'Epochs:']);
+        expect(wrapper.findAll('.tipInfo')).toHaveLength(3);
+        expect(field('columns').attributes()).toMatchObject({ type: 'number', min: '1', max: '6', step: '1' });
+        expect(field('rows').attributes()).toMatchObject({ type: 'number', min: '1', max: '6', step: '1' });
+        expect(field('epochs').attributes()).toMatchObject({ type: 'number', min: '1', step: '1' });
+        expect(field('epochs').attributes()).not.toHaveProperty('max');
+    });
+
     test('says which species it is for and how many flowers it has', async () => {
         open();
         await wrapper.vm.$nextTick();

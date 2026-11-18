@@ -7,21 +7,18 @@
       and the classifier you had is put back. The sub-species you made are removed when it is kept.
     </p>
     <div class="fields">
-      <div class="labelInputArea">
-        <ToolTip :info="'How many times every flower is shown to the classifier, more takes longer and adapts the species more.'" />
-        <label for="finetune-epochs">Epochs: </label>
-        <input id="finetune-epochs" v-model.number="data.epochs" type="number" min="1" step="1" data-testid="finetune-epochs">
-      </div>
-      <div class="labelInputArea">
-        <ToolTip :info="'How far the species move towards the flowers in the first epoch, it gets smaller with each one.'" />
-        <label for="finetune-lr">Learning rate: </label>
-        <input id="finetune-lr" v-model.number="data.baseLR" type="number" min="0.01" step="0.05" data-testid="finetune-lr">
-      </div>
-      <div class="labelInputArea">
-        <ToolTip :info="'How many neighbouring species move along with the one a flower belongs to, in the first epoch.'" />
-        <label for="finetune-radius">Radius: </label>
-        <input id="finetune-radius" v-model.number="data.baseRadius" type="number" min="0.5" step="0.5" data-testid="finetune-radius">
-      </div>
+      <NumberField
+        v-model="data.epochs" input-id="finetune-epochs" label="Epochs: " testid="finetune-epochs" :min="1" :step="1"
+        tooltip="How many times every flower is shown to the classifier, more takes longer and adapts the species more."
+      />
+      <NumberField
+        v-model="data.baseLR" input-id="finetune-lr" label="Learning rate: " testid="finetune-lr" :min="0.01" :step="0.05"
+        tooltip="How far the species move towards the flowers in the first epoch, it gets smaller with each one."
+      />
+      <NumberField
+        v-model="data.baseRadius" input-id="finetune-radius" label="Radius: " testid="finetune-radius" :min="0.5" :step="0.5"
+        tooltip="How many neighbouring species move along with the one a flower belongs to, in the first epoch."
+      />
     </div>
     <p v-if="invalid !== ''" class="invalid" data-testid="finetune-invalid">{{ invalid }}</p>
     <TrainingPanel
@@ -44,7 +41,7 @@
 import { computed, reactive, ref } from 'vue';
 import { useSpeciesStore } from '../../stores/SpeciesStore';
 import TrainingPanel from './TrainingPanel.vue';
-import ToolTip from '../ToolTip.vue';
+import NumberField from '../ui/NumberField.vue';
 
 const SpeciesStore = useSpeciesStore();
 const dialog = ref(null);
@@ -106,29 +103,11 @@ defineExpose({ open, close });
         margin: 0 0 0.8rem 0;
         font-size: 0.9rem;
     }
-    /* the same as the parameters of Settings: tooltip, label, and the number in a pill */
-    .labelInputArea{
-        display: block;
-        padding-top: 0.31rem;
-    }
-    .labelInputArea label{
-        width: 9.6rem;
-        display: inline-block;
-        margin: 0rem 0rem 0rem 0.93rem;
-    }
-    .labelInputArea input[type=number]{
-        vertical-align: top;
-        background-color: green;
-        color: lightgreen;
-        border: solid lightgreen;
-        border-radius: 8rem;
-        margin: 0.125rem 0rem 0rem 0.125rem;
-        width: 20%;
-        text-align: center;
-        appearance: textfield;
-    }
     .fields{
         margin-bottom: 0.6rem;
+        /* a dialog is narrow: the labels and the pills have the same size on every screen */
+        --fe-field-label-width: 9.6rem;
+        --fe-field-control-width: 20%;
     }
     .invalid{
         margin: 0 0 0.6rem 0;

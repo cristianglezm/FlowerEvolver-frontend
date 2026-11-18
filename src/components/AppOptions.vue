@@ -26,23 +26,22 @@
       <label for="loadKokoroModel">Load Kokoro: </label>
       <input id="loadKokoroModel" v-model="SettingsStore.settings.loadKokoroModel" type="checkbox" @change="saveSettings(); loadKokoroModel();">
     </div>
-    <div id="magnification-option" class="option-box labelInputArea">
-      <ToolTip :info="'Adjust the zoom magnification to enhance the view.'" />
-      <label for="magnification-range">Magnification:</label>
-      <input id="magnification-range" v-model="SettingsStore.settings.magnification" type="range" min="4" max="16" step="2" @change="validateMagnification()">
-      <span>{{ SettingsStore.settings.magnification }}x</span>
-    </div>
+    <RangeField
+      id="magnification-option" v-model="SettingsStore.settings.magnification" class="option-box"
+      input-id="magnification-range" label="Magnification:" tooltip="Adjust the zoom magnification to enhance the view."
+      :min="4" :max="16" :step="2" suffix="x" @change="validateMagnification()"
+    />
     <div id="persists-option" class="option-box labelInputArea">
       <ToolTip :info="'it will keep data even when low on space'" />
       <label for="persist">Persistent storage: </label>
       <input id="persist" v-model="data.persisted" type="checkbox" @change="persist()">
     </div>
     <div>
-      <div id="limit-settings" class="option-box labelInputArea">
-        <ToolTip :info="'limit for how many flowers it will load at a time.'" />
-        <label for="setLimit">Limit per Page: </label>
-        <input id="setLimit" v-model.number="SettingsStore.settings.limit" type="number" min="1" @change="validateLimit()">
-      </div>
+      <NumberField
+        id="limit-settings" v-model="SettingsStore.settings.limit" class="option-box" input-id="setLimit"
+        label="Limit per Page: " tooltip="limit for how many flowers it will load at a time." :min="1"
+        :validate="validateLimit" @change="saveSettings()"
+      />
       <div style="color: lightgreen; text-align: center;"> 
         <ToolTip :info="'Space used by the flowers (usage / quota) if persistent storage is enabled it will use a bit more space, the model adds around 240mb'" />
         {{ data.spaceUsage.toFixed(2) }} / {{ data.spaceQuota.toFixed(2) }} MB
@@ -55,6 +54,8 @@
 
 import { reactive, inject, onBeforeUnmount, onMounted } from 'vue';
 import ToolTip from '../components/ToolTip.vue';
+import NumberField from './ui/NumberField.vue';
+import RangeField from './ui/RangeField.vue';
 import { useSettingsStore } from '../stores/SettingsStore';
 
 const SettingsStore = useSettingsStore();
@@ -118,10 +119,7 @@ onBeforeUnmount(() => {
 const saveSettings = () => {
     SettingsStore.saveSettings();
 };
-const validateLimit = () => {
-    SettingsStore.settings.limit = validateInteger(SettingsStore.settings.limit, 100);
-    saveSettings();
-};
+const validateLimit = (limit) => validateInteger(limit, 100);
 const validateMagnification = () => {
     let magnification = SettingsStore.settings.magnification;
     SettingsStore.settings.magnification = Math.min(16, Math.max(validateInteger(magnification, 4), 4));
@@ -184,82 +182,6 @@ const validateInteger = (number, Default) => {
     .labelInputArea input[type="checkbox"]:checked::before {
         transform: scale(1);
     }
-    .labelInputArea input[type=number]{
-        vertical-align:top;
-        background-color: green;
-        color: lightgreen;
-        border: solid lightgreen;
-        border-radius: 8rem;
-        margin: 0.125rem 0rem 0rem 0.125rem;
-        width: 15%;
-        text-align: center;
-    }
-    .labelInputArea input[type=range]{
-        background-color: transparent;
-        vertical-align: top;
-        width: 10%;
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-    }
-    .labelInputArea input[type=range]::-webkit-slider-runnable-track{
-        background-color: lightgreen;
-        height: 4px;
-    }
-
-    .labelInputArea input[type=range]::-moz-range-track{
-        background-color: lightgreen;
-        height: 4px;
-    }
-    .labelInputArea input[type=range]::-ms-track{
-        background-color: transparent;
-        border-color: transparent;
-        color: transparent;
-        height: 4px;
-    }
-
-    .labelInputArea input[type=range]::-ms-fill-lower{
-        background-color: lightgreen;
-    }
-
-    .labelInputArea input[type=range]::-ms-fill-upper{
-        background-color: transparent;
-    }
-
-    .labelInputArea input[type=range]::-webkit-slider-thumb{
-        background-color: green;
-        border: 2px solid lightgreen;
-        cursor: pointer;
-        transform: scale(1.5);
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        -webkit-appearance: none;
-        margin-top: -6px;
-        box-shadow: 1px 2px 10px 1px rgba(47, 57, 53, 0.8);
-    }
-    .labelInputArea input[type=range]::-moz-range-thumb{
-        background-color: green;
-        border: 2px solid lightgreen;
-        cursor: pointer;
-        transform: scale(1.5);
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        -moz-appearance: none;
-        box-shadow: 1px 2px 10px 1px rgba(47, 57, 53, 0.8);
-    }
-    .labelInputArea input[type=range]::-ms-thumb{
-        background-color: green;
-        border: 2px solid lightgreen;
-        cursor: pointer;
-        transform: scale(1.5);
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        -ms-appearance: none;
-        box-shadow: 1px 2px 10px 1px rgba(47, 57, 53, 0.8);
-    }
     .safe-button{
         position: relative;
         font-size: 1.25rem;
@@ -319,13 +241,6 @@ const validateInteger = (number, Default) => {
             grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
             width: 100%;
         }
-        .labelInputArea input[type=number]{
-            width: 20%;
-        }
-    }
-    input[type=number] {
-        appearance: textfield;
-        box-shadow: inset 0rem 0rem 0.3rem 0.125rem black;
     }
 
 </style>

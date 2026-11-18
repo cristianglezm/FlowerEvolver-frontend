@@ -1,0 +1,18 @@
+/*
+ * The colours of the application. A component asks for one of these by name, so a colour is changed in one place and
+ * what it is for is said where it is used. The ones that are used only once are not here yet: they are named when
+ * their component moves to the ones of components/ui.
+ */
+:root {
+    --fe-green: green;
+    --fe-lightgreen: lightgreen;
+    --fe-black: black;
+    --fe-white: white;
+    --fe-whitesmoke: whitesmoke;
+    /* the dark background of the flower cards, the fixed buttons and the dialogs */
+    --fe-surface: rgb(37, 39, 41);
+    --fe-danger: red;
+    --fe-danger-dark: darkred;
+    /* the shadow of the thumb of a range */
+    --fe-shadow: rgba(47, 57, 53, 0.8);
+}

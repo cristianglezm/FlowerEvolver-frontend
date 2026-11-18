@@ -46,6 +46,15 @@ describe('FineTuneModal', () => {
     });
 
     describe('the parameters', () => {
+        test('are the fields of the settings, with their labels and the limits that their spinners have', () => {
+            expect(['epochs', 'lr', 'radius'].map((name) => wrapper.get(`label[for="finetune-${name}"]`).text()))
+                .toEqual(['Epochs:', 'Learning rate:', 'Radius:']);
+            expect(wrapper.findAll('.tipInfo')).toHaveLength(3);
+            expect(field('epochs').attributes()).toMatchObject({ type: 'number', min: '1', step: '1' });
+            expect(field('lr').attributes()).toMatchObject({ type: 'number', min: '0.01', step: '0.05' });
+            expect(field('radius').attributes()).toMatchObject({ type: 'number', min: '0.5', step: '0.5' });
+        });
+
         test('are 3 epochs, a learning rate of 0.3 and a radius of 1 to start with, and they are used', async () => {
             expect(field('epochs').element.value).toBe('3');
             expect(field('lr').element.value).toBe('0.3');
