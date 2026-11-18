@@ -90,6 +90,8 @@ const validateMutationRates = () => {
         background-color: green;
         /* a rate goes from 0 to 100, and the slider of the zoom, that goes through 7 values, is too short for it */
         --fe-range-width: 30%;
+        /* and on a phone it leaves no room for the label and the value */
+        --fe-range-width-tiny: 15%;
     }
     .safe-button{
         position: relative;

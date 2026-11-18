@@ -34,8 +34,8 @@
  * @prop {Boolean} disabled - the slider cannot be used.
  * @emits change - (value) the value, when the slider is let go.
  *
- * The width of the slider is `--fe-range-width` (10%) and `--fe-range-width-narrow` (up to 1280px, 10% too) on any
- * element above it.
+ * The width of the slider is `--fe-range-width` (10%), `--fe-range-width-narrow` (up to 1280px, the same when it is not
+ * given) and `--fe-range-width-tiny` (up to 448px, the narrow one when it is not given) on any element above it.
  */
 import { computed, ref, watch } from 'vue';
 import FieldRow from './FieldRow.vue';
@@ -133,6 +133,11 @@ const onChange = () => {
     @media only screen and (max-width: 1280px){
         .range-input{
             width: var(--fe-range-width-narrow, var(--fe-range-width, 10%));
+        }
+    }
+    @media only screen and (max-width: 448px){
+        .range-input{
+            width: var(--fe-range-width-tiny, var(--fe-range-width-narrow, var(--fe-range-width, 10%)));
         }
     }
     .range-input::-webkit-slider-runnable-track{
