@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 /**
  * The Settings view (Settings.vue) hosts AppActions.vue, which is where
  * export/import/delete-all-flowers live.
@@ -46,6 +47,39 @@ export class SettingsController {
 
 	async importGardenFlowers(){
 		await this.page.getByRole('button', { name: 'Import garden Flowers' }).click();
+	}
+
+	// how many flowers are in the database of the browser
+	async flowersInDatabase(){
+		return this.page.evaluate(async () => {
+			const db = await new Promise((resolve, reject) => {
+				const request = globalThis.indexedDB.open('FlowerEvolver');
+				request.onsuccess = () => resolve(request.result);
+				request.onerror = () => reject(request.error);
+			});
+			try{
+				return await new Promise((resolve, reject) => {
+					const request = db.transaction('flowers', 'readonly').objectStore('flowers').count();
+					request.onsuccess = () => resolve(request.result);
+					request.onerror = () => reject(request.error);
+				});
+			}finally{
+				db.close();
+			}
+		});
+	}
+
+	// An import runs in a worker that the tab of the settings ends when it is left, so it is waited for here: there are
+	// flowers and no more of them are coming, which is what the database says after it has stopped growing for a while.
+	async waitForImportToFinish(){
+		let last = -1;
+		let steady = 0;
+		await expect.poll(async () => {
+			const count = await this.flowersInDatabase();
+			steady = count > 0 && count === last ? steady + 1 : 0;
+			last = count;
+			return steady;
+		}, { timeout: 120_000, intervals: [500] }).toBeGreaterThanOrEqual(3);
 	}
 
 	// the garden is drawn by the app when it starts, and keeps its flowers in the session when it is done

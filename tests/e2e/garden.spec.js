@@ -16,6 +16,8 @@ test('the flowers of the garden can be imported to the browser', async ({ page }
 	await settings.waitForGarden();
 
 	await settings.importGardenFlowers();
+	// leaving the tab of the settings ends the import, and it starts a moment after the click
+	await settings.waitForImportToFinish();
 	await menu.openTab('Local');
 
 	await expect.poll(() => local.cards().count(), { timeout: 120_000 }).toBeGreaterThan(0);
