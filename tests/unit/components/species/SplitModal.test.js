@@ -4,6 +4,7 @@ import { markRaw } from 'vue';
 import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import SplitModal from '../../../../src/components/species/SplitModal.vue';
+import ModalDialog from '../../../../src/components/ui/ModalDialog.vue';
 import { useSpeciesStore } from '../../../../src/stores/SpeciesStore';
 import { SpeciesModel } from '../../../../src/services/SpeciesModel';
 import { classifierJson } from '../../helpers/classifier';
@@ -41,6 +42,44 @@ describe('SplitModal', () => {
 
         await close().trigger('click');
         expect(dialog().open).toBe(false);
+    });
+
+    test('is the dialog of the application, a narrow one, titled with the species that it was opened for', async () => {
+        open({ x: 1, y: 0 });
+        await wrapper.vm.$nextTick();
+        const base = wrapper.getComponent(ModalDialog);
+
+        expect(base.props('size')).toBe('form');
+        expect(base.props('closable')).toBe(false);
+        expect(base.props('title')).toBe(`Split ${SpeciesStore.nameOf(1, 0)}`);
+        expect(wrapper.get('h2').text()).toBe(`Split ${SpeciesStore.nameOf(1, 0)}`);
+        expect(wrapper.get('[data-testid="split-modal"]').element).toBe(dialog());
+    });
+
+    test('is locked while it runs, and not before or after', async () => {
+        const locked = () => wrapper.getComponent(ModalDialog).props('locked');
+        expect(locked()).toBe(false);
+
+        SpeciesStore.isTuning = true;
+        await wrapper.vm.$nextTick();
+        expect(locked()).toBe(true);
+
+        SpeciesStore.isTuning = false;
+        await wrapper.vm.$nextTick();
+        expect(locked()).toBe(false);
+    });
+
+    test('has the fields of the settings, with their labels and the limits that their spinners have', async () => {
+        open();
+        await wrapper.vm.$nextTick();
+
+        expect(['columns', 'rows', 'epochs'].map((name) => wrapper.get(`label[for="split-${name}"]`).text()))
+            .toEqual(['Columns:', 'Rows:', 'Epochs:']);
+        expect(wrapper.findAll('.tipInfo')).toHaveLength(3);
+        expect(field('columns').attributes()).toMatchObject({ type: 'number', min: '1', max: '6', step: '1' });
+        expect(field('rows').attributes()).toMatchObject({ type: 'number', min: '1', max: '6', step: '1' });
+        expect(field('epochs').attributes()).toMatchObject({ type: 'number', min: '1', step: '1' });
+        expect(field('epochs').attributes()).not.toHaveProperty('max');
     });
 
     test('says which species it is for and how many flowers it has', async () => {
@@ -163,12 +202,14 @@ describe('SplitModal', () => {
             open();
             SpeciesStore.training.kind = 'split';
             SpeciesStore.training.ran = 'split';
+            await wrapper.vm.$nextTick();
             const escape = new Event('cancel', { cancelable: true });
 
             dialog().dispatchEvent(escape);
             expect(escape.defaultPrevented).toBe(true);
 
             SpeciesStore.training.kind = null;
+            await wrapper.vm.$nextTick();
             const again = new Event('cancel', { cancelable: true });
             dialog().dispatchEvent(again);
             expect(again.defaultPrevented).toBe(false);

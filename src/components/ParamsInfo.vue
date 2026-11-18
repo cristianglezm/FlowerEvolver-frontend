@@ -43,7 +43,7 @@
 
 <style scoped>
     .close{
-        color: lightgreen;
+        color: var(--fe-lightgreen);
         margin-right: 1%;
         font-size: 1.8rem;
         font-weight: bold;
@@ -51,22 +51,22 @@
         position: relative;
     }
     .pIcon{
-        background-color: green;
-        border: solid lightgreen;
+        background-color: var(--fe-green);
+        border: solid var(--fe-lightgreen);
         border-radius: 50%;
         display: inline-grid;
         place-items: center;
         width: 1.75rem;
         height: 1.75rem;
         cursor: pointer;
-        color: lightgreen;
+        color: var(--fe-lightgreen);
         font-weight: bold;
         user-select: none;
     }
     .ParamsInfo{
-        color: lightgreen;
-        background-color: green;
-        border: solid lightgreen;
+        color: var(--fe-lightgreen);
+        background-color: var(--fe-green);
+        border: solid var(--fe-lightgreen);
         border-radius: 1.25rem;
         padding: 0.6rem;
         overflow: auto;

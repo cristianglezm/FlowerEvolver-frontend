@@ -1,20 +1,14 @@
 <template>
-  <dialog :id="props.id">
-    <div class="uploadFile-container center">
-      <div class="inlined">
-        <h2>{{ data.title }} </h2>
-        <span class="close" @click="closeModal()">&times;</span>
-      </div>
-      <label for="uploadFiles" class="FileInput">
-        <input id="uploadFiles" type="file" multiple accept="application/json, .json" @change="updateMessage()">
-        <p>{{ data.message }}</p>
-      </label>
-      <div>
-        <button @click="closeModal()">{{ data.btnCancel }}</button>
-        <button @click="validateFileType()">{{ data.btnUpload }}</button>
-      </div>
+  <ModalDialog :id="props.id" ref="dialog" :title="data.title" closable @dismiss="closeModal()">
+    <label for="uploadFiles" class="FileInput">
+      <input id="uploadFiles" ref="fileInput" type="file" multiple accept="application/json, .json" @change="updateMessage()">
+      <p>{{ data.message }}</p>
+    </label>
+    <div class="actions">
+      <SafeButton @click="closeModal()">{{ data.btnCancel }}</SafeButton>
+      <SafeButton @click="validateFileType()">{{ data.btnUpload }}</SafeButton>
     </div>
-  </dialog>
+  </ModalDialog>
 </template>
 
 <script setup>
@@ -46,7 +40,10 @@
  *     },
  * });
  */
-import { reactive, onMounted, onBeforeUnmount } from 'vue';
+import { reactive, ref, onMounted, onBeforeUnmount } from 'vue';
+import { listen } from '../services/listen';
+import ModalDialog from './ui/ModalDialog.vue';
+import SafeButton from './ui/SafeButton.vue';
 import { useErrorStore } from '../stores/ErrorStore';
 
 const props = defineProps({
@@ -64,21 +61,23 @@ const props = defineProps({
     },
 });
 const data = reactive({});
+const dialog = ref(null);
+const fileInput = ref(null);
 
 const ErrorStore = useErrorStore();
 
 const openModal = () => {
-    data.dialog.showModal();
+    dialog.value.open();
 };
 
 const closeModal = () => {
-    data.dialog.close();
+    dialog.value.close();
 };
 const updateMessage = () => {
-    let length = data.files.files.length;
+    let length = fileInput.value.files.length;
     data.message = length + " files selected (";
     for(let i = 0;i<length; ++i){
-        data.message += data.files.files[i].name;
+        data.message += fileInput.value.files[i].name;
         if(i != length - 1){
             data.message += ", ";
         }
@@ -87,132 +86,60 @@ const updateMessage = () => {
 };
 const validateFileType = () => {
     const allowedTypes = ['application/json', '.json'];
-    let length = data.files.files.length;
+    let length = fileInput.value.files.length;
     let valid = true;
     let notValidFile = '';
     for(let i = 0;i<length;++i){
-        let type = data.files.files[i].type;
+        let type = fileInput.value.files[i].type;
         if(!allowedTypes.includes(type)){
             valid = false;
-            notValidFile = data.files.files[i].name;
+            notValidFile = fileInput.value.files[i].name;
         }
     }
     if(valid){
-        data.onUpload(data.dialog, data.files.files);
+        data.onUpload(dialog.value, fileInput.value.files);
     }else{
         closeModal();
         ErrorStore.push(notValidFile + " file was not valid, valid files are (.json)");
     }
 };
+const stops = [];
 onMounted(() => {
     data.message = "select files to import (Flower, Generation, Session)";
-    data.dialog = document.getElementById(props.id);
-    data.files = document.getElementById("uploadFiles");
-    props.channel.on(props.on, (e) => {
+    stops.push(listen(props.channel, props.on, (e) => {
         data.title = e.title;
         data.btnCancel = e.btnCancel;
         data.btnUpload = e.btnUpload;
         data.onUpload = e.onUpload;
         openModal();
-    });
+    }));
 });
 
 onBeforeUnmount(() => {
-    props.channel.off(props.on);
+    stops.splice(0).forEach((stop) => stop());
 });
 </script>
 
 <style scoped>
-    .inlined{
-        display: flex;
-        flex-flow: row nowrap;
-    }
-    .inlined h2{
-        width: 100%;
-        text-align: center;
-    }
-    .center{
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-    }
-    .uploadFile-container{
-        background-color: green;
-        color: lightgreen;
-        position: fixed;
-        border: solid;
-        border-color: lightgreen;
-        border-radius: 0.31rem;
-        box-shadow: 0rem 1rem 2rem 0rem black;
-        overflow: auto;
-        overflow-wrap: break-word;
-        z-index: 1;
-        padding: 0.12rem;
-        width: 50%;
-        display: flex;
-        flex-flow: column nowrap;
-    }
     .FileInput{
         display: inline-block;
-        background-color: green;
-        border: solid lightgreen;
+        background-color: var(--fe-green);
+        border: solid var(--fe-lightgreen);
         margin: 0.6rem;
         padding: 0.3rem 0.6rem;
         cursor: pointer;
         overflow: auto;
         overflow-wrap: break-word;
-        box-shadow: inset 0rem 0rem 0.6rem 0.125rem black;
+        box-shadow: inset 0rem 0rem 0.6rem 0.125rem var(--fe-black);
     }
     .FileInput input{
         display: none;
     }
-    .uploadFile-container p{
+    p{
         overflow: auto;
         overflow-wrap: break-word;
     }
-    .uploadFile-container button{
-        background-color: green;
-        color: lightgreen;
-        border-color: lightgreen;
-        position: relative;
-        left: 35%;
-        cursor: pointer;
-        margin-bottom: 0.6rem;
-        margin-left: 0.31rem;
-        font-size: 1.25rem;
-        border-radius: 2.1rem;
-    }
-    @media only screen and (max-width: 1280px){
-        .uploadFile-container{
-            width: 90%;
-        }
-        .uploadFile-container button{
-            left: 20%;
-            transform: translate(20%);
-            font-size: 0.9rem;
-        }
-    }
-    .uploadFile-container button:hover{
-        border-color: green;
-        background-color: lightgreen;
-        color: green;
-    }
-    .close{
-        color: lightgreen;
-        margin-right: 1%;
-        float: right;
-        font-size: 2.37rem;
-        font-weight: bold;
-    }
-    .close:hover,
-    .close:focus{
-        color: black;
-        text-decoration: none;
-        cursor: pointer;
-    }
-    ::backdrop{
-        background-color: white;
-        opacity: 0.55;
+    .actions{
+        --fe-button-margin: 0 0.31rem 0.6rem 0.31rem;
     }
 </style>

@@ -5,16 +5,15 @@
     <template v-else>
       <div class="toolbar">
         <p class="summary" data-testid="species-summary">{{ summary }}</p>
-        <div class="labelInputArea">
-          <ToolTip :info="'if checked the species that have no flowers are left out of the map.'" />
-          <label for="species-hide-empty">Hide empty species: </label>
-          <input id="species-hide-empty" v-model="data.hideEmpty" type="checkbox" data-testid="species-hide-empty">
-        </div>
+        <CheckboxField
+          v-model="data.hideEmpty" class="hide-empty" input-id="species-hide-empty" testid="species-hide-empty"
+          label="Hide empty species: " tooltip="if checked the species that have no flowers are left out of the map."
+        />
         <div class="actions">
-          <button type="button" class="safe-button" data-testid="species-finetune" @click="fineTune.open()"> Fine-tune... </button>
-          <button v-if="SpeciesStore.hasTuned" type="button" class="unsafe-button" :disabled="!canReset" data-testid="species-reset" @click="askReset()">
+          <SafeButton data-testid="species-finetune" size="small" @click="fineTune.open()"> Fine-tune... </SafeButton>
+          <UnsafeButton v-if="SpeciesStore.hasTuned" :disabled="!canReset" data-testid="species-reset" size="small" @click="askReset()">
             Use the built-in classifier
-          </button>
+          </UnsafeButton>
         </div>
       </div>
       <FineTuneModal ref="fineTune" />
@@ -62,7 +61,6 @@
 import { computed, inject, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import FlowersTable from '../components/FlowersTable.vue';
-import ToolTip from '../components/ToolTip.vue';
 import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
 import SpeciesMap from '../components/species/SpeciesMap.vue';
 import SpeciesDetail from '../components/species/SpeciesDetail.vue';
@@ -78,6 +76,9 @@ import { useShownFlowers } from '../composables/useShownFlowers';
 import { useErrorStore } from '../stores/ErrorStore';
 import * as speciesRepository from '../services/speciesRepository';
 import * as flowerRepository from '../services/flowerRepository';
+import SafeButton from '../components/ui/SafeButton.vue';
+import CheckboxField from '../components/ui/CheckboxField.vue';
+import UnsafeButton from '../components/ui/UnsafeButton.vue';
 
 const routes = useRoute();
 const LocalFlowerStore = useLocalFlowerStore();
@@ -275,8 +276,8 @@ watch(() => SpeciesStore.status, (now, before) => {
 
 <style scoped>
     .Species{
-        background-color: rgb(37, 39, 41);
-        color: lightgreen;
+        background-color: var(--fe-surface);
+        color: var(--fe-lightgreen);
     }
     .toolbar{
         display: flex;
@@ -290,69 +291,15 @@ watch(() => SpeciesStore.status, (now, before) => {
         margin: 0;
     }
     /* the same as the options of Settings: tooltip, label, and the check in a green box */
-    .labelInputArea label{
-        display: inline-block;
-        margin: 0rem 0.4rem 0rem 0.93rem;
-    }
-    .labelInputArea input[type=checkbox]{
-        background-color: green;
-        color: lightgreen;
-        border: solid lightgreen;
-        cursor: pointer;
-        display: inline-grid;
-        place-content: center;
-        grid-template-columns: 0.5em auto;
-        gap: 0.1em;
-        font-size: 2rem;
-        font-weight: bold;
-        vertical-align: middle;
-        -webkit-appearance: none;
-        appearance: none;
-        box-shadow: inset 0rem 0rem 0.2rem 0.125rem black;
-    }
-    .labelInputArea input[type="checkbox"]::before{
-        content: "";
-        width: 0.65em;
-        height: 0.65em;
-        transform: scale(0);
-        transition: 120ms transform cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        box-shadow: inset 2em 2em lightgreen;
-        transform-origin: top left;
-        clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-    }
-    .labelInputArea input[type="checkbox"]:checked::before{
-        transform: scale(1);
+    .hide-empty{
+        /* the label is as wide as its text here, not as the ones of the settings */
+        --fe-field-label-width: auto;
+        --fe-field-label-width-narrow: auto;
     }
     .actions{
+        --fe-button-margin: 0;
         display: flex;
         gap: 0.6rem;
-    }
-    .safe-button, .unsafe-button{
-        font-size: 0.9rem;
-        border-radius: 1.2rem;
-        cursor: pointer;
-    }
-    .safe-button{
-        border: 0.1rem solid lightgreen;
-        background-color: green;
-        color: lightgreen;
-    }
-    .safe-button:hover{
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
-    .unsafe-button{
-        border: 0.1rem solid red;
-        background-color: darkred;
-        color: white;
-    }
-    .unsafe-button:hover:not(:disabled){
-        background-color: red;
-    }
-    .unsafe-button:disabled{
-        opacity: 0.5;
-        cursor: not-allowed;
     }
     .parents{
         margin: 0;

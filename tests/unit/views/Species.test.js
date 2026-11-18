@@ -186,6 +186,25 @@ describe('Species view', () => {
             expect((await mountView()).find('[data-testid="species-progress"]').exists()).toBe(false);
         });
 
+        test('the toggle to leave out the empty ones has its label and its tooltip', async () => {
+            const wrapper = await mountView();
+
+            expect(wrapper.get('label[for="species-hide-empty"]').text()).toBe('Hide empty species:');
+            expect(wrapper.get('#species-hide-empty').attributes('type')).toBe('checkbox');
+            expect(wrapper.get('#species-hide-empty').element.checked).toBe(false);
+            expect(wrapper.get('[data-testid="species-hide-empty"]').element.id).toBe('species-hide-empty');
+        });
+
+        test('the species with no flowers come back when the toggle is unchecked', async () => {
+            const wrapper = await mountView();
+            await wrapper.get('[data-testid="species-hide-empty"]').setValue(true);
+            expect(wrapper.find('[data-testid="species-card-0-0"]').exists()).toBe(false);
+
+            await wrapper.get('[data-testid="species-hide-empty"]').setValue(false);
+
+            expect(wrapper.find('[data-testid="species-card-0-0"]').exists()).toBe(true);
+        });
+
         test('the species with no flowers can be left out', async () => {
             const wrapper = await mountView();
             expect(card(wrapper, 0, 0).exists()).toBe(true);

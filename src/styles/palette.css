@@ -1,0 +1,46 @@
+/*
+ * The colours of the application. A component asks for one of these by name, so a colour is changed in one place and
+ * what it is for is said where it is used. What the chart library draws is given colours, not names (Charts.vue), and
+ * the chat widget has its own until its package replaces it.
+ */
+:root {
+    --fe-green: green;
+    --fe-lightgreen: lightgreen;
+    --fe-black: black;
+    --fe-white: white;
+    --fe-whitesmoke: whitesmoke;
+    /* the dark background of the flower cards, the fixed buttons and the dialogs */
+    --fe-surface: rgb(37, 39, 41);
+    --fe-danger: red;
+    --fe-danger-dark: darkred;
+    /* the shadow of the thumb of a range */
+    --fe-shadow: rgba(47, 57, 53, 0.8);
+
+    /* the part of a bar that is still to be done, in the progress dialogs and in the training panel */
+    --fe-progress-track: rgba(4, 97, 43, 0.986);
+
+    /* the shadow of a flower card and of the menu on a phone */
+    --fe-shadow-card: rgba(12, 13, 12, 0.5);
+    /* the glow of a card that is selected */
+    --fe-shadow-selected: rgba(0, 128, 0, 0.5);
+    /* the shadow of the floating buttons */
+    --fe-shadow-fixed: rgba(47, 50, 52, 0.8);
+    /* the shadow of the switch between the browser and the server */
+    --fe-shadow-switch: rgb(47, 38, 37);
+
+    /* the track of the scrollbar of the page */
+    --fe-scrollbar-track: rgb(47, 50, 52);
+    /* the ring of the spinner that is not turning */
+    --fe-spinner-track: #444;
+
+    /* the bar of the tabs of the menu, and the menu that opens over the page on a phone */
+    --fe-menu-bar: rgb(1, 88, 1);
+    --fe-menu-overlay: rgb(0, 128, 0, 0.8);
+
+    /* the charts of the species: the background, the border of a chart and of the map, and the lines of the grid */
+    --fe-chart-bg: #0b0b0b;
+    --fe-chart-border: #234;
+    --fe-chart-grid: #456;
+    /* the badge of a flower that does not belong to its species */
+    --fe-atypical: #ffb347;
+}

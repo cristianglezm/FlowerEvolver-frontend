@@ -17,8 +17,14 @@
     <div id="captioner-device-option" class="option-box labelInputArea">
       <ToolTip :info="'where to run the model'" />
       <label for="captioner-device"> Device: </label>
-      <input id="captioner-device-cpu" v-model="data.modelOptions.device" type="radio" name="captioner-device" value="CPU" @change="onChange()"> CPU
-      <input id="captioner-device-gpu" v-model="data.modelOptions.device" type="radio" name="captioner-device" :disabled="isGPUAvailable() === false" value="GPU" @change="onChange()"> GPU
+      <RadioField
+        v-model="data.modelOptions.device" name="captioner-device" value="CPU" input-id="captioner-device-cpu"
+        label="CPU" @change="onChange()"
+      />
+      <RadioField
+        v-model="data.modelOptions.device" name="captioner-device" value="GPU" input-id="captioner-device-gpu"
+        label="GPU" :disabled="isGPUAvailable() === false" @change="onChange()"
+      />
     </div>
     <div id="captioner-model-encoder-type" class="option-box labelInputArea">
       <ToolTip :info="'select which quantification the encoder will have.'" />
@@ -39,25 +45,28 @@
       </select>
     </div>
     <div style="text-align: center;">
-      <button class="safe-button" :class="{ 'disabled': isModelLoaded() }" @click="loadModel"> {{ data.btnTitle }}</button>
+      <SafeButton :disabled="isModelLoaded()" @click="loadModel"> {{ data.btnTitle }}</SafeButton>
     </div>
     <div v-if="data.openCache && isModelDownloaded()" style="text-align: center;">
-      <button class="safe-button" @click="data.openCache = false"> Close </button>
+      <SafeButton @click="data.openCache = false"> Close </SafeButton>
       <CacheManager :cacheName="data.cacheKey" @on-delete-host="reloadCache(); forceReload();" @on-delete-files="reloadCache" />
     </div>
     <div v-else style="text-align: center;">
-      <button class="safe-button" :class="{'disabled': !isModelDownloaded() }" :disabled="!isModelDownloaded()" @click="openCacheManager()"> Manage model cache </button>
+      <SafeButton :disabled="!isModelDownloaded()" @click="openCacheManager()"> Manage model cache </SafeButton>
     </div>
   </div>
 </template>
 
 <script setup>
   import { computed, inject, nextTick, onMounted, onUnmounted, reactive } from 'vue';
+  import { listen } from '../services/listen';
   import { Captioner, isGPUAvailable, CACHE_KEY as CAPTIONER_CACHE_KEY } from '../stores/CaptionerStore/Captioner'
   import { useCaptionerStore } from '../stores/CaptionerStore';
   import { CacheManager as CM } from '../stores/CacheManager';
   import CacheManager from './CacheManager.vue';
   import ToolTip from './ToolTip.vue';
+  import SafeButton from './ui/SafeButton.vue';
+  import RadioField from './ui/RadioField.vue';
 
   const emitter = inject('emitter');
   const CaptionerStore = useCaptionerStore();
@@ -141,6 +150,7 @@
       data.openCache = true;
     }
   }
+  const stops = [];
   onMounted(() => {
     CaptionerStore.saveModelOptions();
     setTimeout(() => {
@@ -150,47 +160,31 @@
         data.btnTitle = "Download Model";
       }
     }, 500);
-    emitter.on('CaptionerModelOptions#updateBtnTitle', () => {
+    stops.push(listen(emitter, 'CaptionerModelOptions#updateBtnTitle', () => {
       nextTick(() => {
         reloadCache();
         setCorrectBtnTitle();
       });
-    });
-    emitter.on('modelOptions#forceReload', () => {
+    }));
+    stops.push(listen(emitter, 'modelOptions#forceReload', () => {
       data.forceReload = true;
-    });
+    }));
   });
   onUnmounted(() => {
-    emitter.off('CaptionerModelOptions#updateBtnTitle');
-    emitter.off('modelOptions#forceReload');
+    stops.splice(0).forEach((stop) => stop());
   });
 </script>
 
 <style scoped>
   .ModelOptions-container{
-    background-color: green;
-    border: solid lightgreen;
+    background-color: var(--fe-green);
+    border: solid var(--fe-lightgreen);
     border-radius: 2rem;
     margin: 1em 1em;
     padding: 1em 1em;
   }
   .ModelOptions-container h2{
     text-align: center;
-  }
-  .safe-button{
-      position: relative;
-      font-size: 1.25rem;
-      border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
-      margin: 0.6rem 0.6rem 0rem 1.25rem;
-      cursor: pointer;
-      border-color: lightgreen;
-      background-color: green;
-      color: lightgreen;
-  }
-  .safe-button:hover{
-      background-color: lightgreen;
-      border-color: green;
-      color: green;
   }
   .option-box {
       margin-bottom: 0.6rem;
@@ -206,72 +200,39 @@
   }
   .labelInputArea input[type=text]{
         vertical-align:top;
-        background-color: green;
-        color: lightgreen;
-        border: solid lightgreen;
+        background-color: var(--fe-green);
+        color: var(--fe-lightgreen);
+        border: solid var(--fe-lightgreen);
         border-radius: 8rem;
         margin: 0.125rem 0rem 0rem 0.125rem;
         text-align: center;
-        box-shadow: inset 0rem 0rem 0.3rem 0.125rem black;
+        box-shadow: inset 0rem 0rem 0.3rem 0.125rem var(--fe-black);
         width: 50%;
         font-size: 1.25rem;
     }
-    .labelInputArea input[type=radio]{
-        background-color: green;
-        color:lightgreen;
-        border: solid lightgreen;
-        border-radius: 1.25rem;
-        cursor: pointer;
-        display: inline-grid;
-        place-content: center;
-        grid-template-columns: 0.5em auto;
-        gap: 0.1em;
-        font-size: 2rem;
-        font-weight: bold;
-        -webkit-appearance: none;
-        appearance: none;
-        box-shadow: inset 0rem 0rem 0.2rem 0.125rem black;
-    }
-    .labelInputArea input[type="radio"]::before{
-        content: "";
-        width: 0.60em;
-        height: 0.65em;
-        transform: scale(0);
-        transition: 120ms transform cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        box-shadow: inset 2em 2em lightgreen;
-        transform-origin: top left;
-        clip-path: circle(9px);
-    }
-    .labelInputArea input[type="radio"]:checked::before{
-        transform: scale(1);
-    }
-    .labelInputArea input[type="radio"]:disabled{
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
     .styled-select{
-        background-color: green;
-        color: lightgreen;
-        border: solid lightgreen;
+        background-color: var(--fe-green);
+        color: var(--fe-lightgreen);
+        border: solid var(--fe-lightgreen);
         padding: 0.5rem;
         font-size: 1.25rem;
         cursor: pointer;
-        box-shadow: inset 0rem 0rem 0.3rem 0.125rem black;
+        box-shadow: inset 0rem 0rem 0.3rem 0.125rem var(--fe-black);
         border-radius: 1.25rem;
         text-align: center;
     }
     .styled-select::selection{
-      background-color: green;
-      color:lightgreen;
+      background-color: var(--fe-green);
+      color:var(--fe-lightgreen);
       cursor: pointer;
     }
     .styled-select:hover{
-        background-color: lightgreen;
-        color: green;
+        background-color: var(--fe-lightgreen);
+        color: var(--fe-green);
     }
     .styled-select:focus{
-        background-color: lightgreen;
-        color: green;
+        background-color: var(--fe-lightgreen);
+        color: var(--fe-green);
         border-radius: 2.5em;
         cursor: pointer;
     }
@@ -286,12 +247,12 @@
       transform: rotateX(0.5turn) translateY(-2px);
     }
     .styled-select select::selection, .styled-select option:checked{
-      background-color: green;
-      color: lightgreen;
+      background-color: var(--fe-green);
+      color: var(--fe-lightgreen);
     }
     .styled-select option:hover{
-      background-color: green;
-      color:lightgreen;
+      background-color: var(--fe-green);
+      color:var(--fe-lightgreen);
       cursor: pointer;
     }
     .disabled{
@@ -299,10 +260,6 @@
       opacity: 0.5;
     }
     @media only screen and (max-width: 1280px){
-      .safe-button{
-          font-size: 0.9rem;
-          margin: 0.6rem 0.6rem 0rem 1.25rem;
-      }
       .labelInputArea label{
           width: 5rem;
           display: inline-block;
@@ -311,12 +268,6 @@
       .labelInputArea input[type=text]{
           width: 48%;
           font-size: 0.9rem;
-      }
-      .labelInputArea input[type=radio]{
-          font-size: 0.9rem;
-      }
-      .labelInputArea input[type="radio"]::before{
-          clip-path: circle(3px);
       }
       .styled-select{
           padding: 0.2rem;

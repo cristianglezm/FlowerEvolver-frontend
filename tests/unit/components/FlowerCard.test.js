@@ -4,6 +4,9 @@ import { nextTick } from 'vue';
 import { mount, flushPromises } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import FlowerCard from '../../../src/components/FlowerCard.vue';
+import FavouriteButton from '../../../src/components/ui/FavouriteButton.vue';
+import ChevronButton from '../../../src/components/ui/ChevronButton.vue';
+import ThreeFlower from '../../../src/components/ThreeFlower.vue';
 import { useCaptionerStore } from '../../../src/stores/CaptionerStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 
@@ -11,7 +14,7 @@ import { useErrorStore } from '../../../src/stores/ErrorStore';
 // tests, they are replaced by what the card asks of them, and the store of the descriptions is the real one.
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: vi.fn() }) }));
 // three.js is only for the 3D view, and its add-ons cannot be loaded by the tests
-vi.mock('../../../src/components/ThreeFlower.vue', () => ({ default: { template: '<div />' } }));
+vi.mock('../../../src/components/ThreeFlower.vue', () => ({ default: { props: ['emissive', 'genome'], template: '<div class="three" />' } }));
 const { getFlowerStats } = vi.hoisted(() => ({ getFlowerStats: vi.fn(() => ({})) }));
 vi.mock('../../../src/services/flowerEvolver', () => ({
 	getFlowerEvolver: async () => ({ getFlowerStats }),
@@ -26,13 +29,14 @@ vi.mock('../../../src/workers/captioner.worker?worker', () => ({
 }));
 vi.mock('../../../src/stores/LocalFlowerStore', () => ({ useLocalFlowerStore: () => ({ isLocalFlowerSelected: () => false }) }));
 vi.mock('../../../src/stores/RemoteFlowerStore', () => ({ useRemoteFlowerStore: () => ({ isRemoteFlowerSelected: () => false }) }));
-vi.mock('../../../src/stores/FavouritesStore', () => ({ useFavouritesStore: () => ({ isFavourited: async () => false }) }));
+const favourites = vi.hoisted(() => ({ isFavourited: vi.fn(), addFlowerToFav: vi.fn(), removeFlowerFromFav: vi.fn() }));
+vi.mock('../../../src/stores/FavouritesStore', () => ({ useFavouritesStore: () => favourites }));
 vi.mock('../../../src/stores/SettingsStore', () => ({ useSettingsStore: () => ({ settings: { magnification: 2 } }) }));
 
 const stubs = {
 	ZoomableImage: { template: '<img class="flower-image" />' },
 	ParamsInfo: true,
-	StatsInfo: true,
+	StatsInfo: { template: '<div />' },
 	FloatingPanel: true,
 	SpeciesBadge: true,
 };
@@ -54,6 +58,7 @@ describe('FlowerCard, the text of its image', () => {
 	const alt = () => wrapper.get('.flower-image').attributes('alt');
 
 	beforeEach(() => {
+		favourites.isFavourited.mockReset().mockResolvedValue(false);
 		createTestingPinia({ stubActions: false, createSpy: vi.fn });
 		// the card asks for its stats 100 ms after it is shown: a real timer would fire in a later test
 		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
@@ -156,8 +161,7 @@ describe('FlowerCard, the params of its flower', () => {
 	};
 	// what the card gives to ParamsInfo once the "+" button has opened the panel
 	const shownParams = async () => {
-		const plus = wrapper.findAll('button').find((b) => b.text() === '+');
-		await plus.trigger('click');
+		await wrapper.get('[data-testid="flower-more"]').trigger('click');
 		return wrapper.getComponent(ParamsInfoStub).props('params');
 	};
 	// the remote card downloads its genome 100 ms after it is shown
@@ -167,6 +171,7 @@ describe('FlowerCard, the params of its flower', () => {
 	};
 
 	beforeEach(() => {
+		favourites.isFavourited.mockReset().mockResolvedValue(false);
 		createTestingPinia({ stubActions: false, createSpy: vi.fn });
 		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
 		vi.stubEnv('VITE_APP_DOWNLOAD_URL', 'http://server/download/');
@@ -275,5 +280,198 @@ describe('FlowerCard, the params of its flower', () => {
 
 		expect(getFlowerStats).toHaveBeenCalledTimes(1);
 		expect(getFlowerStats.mock.calls[0][0]).toBe(genome);
+	});
+});
+
+describe('FlowerCard, its heart', () => {
+	const emitter = { on: vi.fn(), off: vi.fn(), emit: vi.fn() };
+	let wrapper;
+	const mountCard = (props = {}) => {
+		wrapper = mount(FlowerCard, {
+			props: { id: 5, genome: GENOME, image: 'data:image/png;base64,', isLocal: true, ...props },
+			global: { provide: { emitter }, stubs: { ZoomableImage: true, ParamsInfo: true, StatsInfo: { template: '<div />' }, FloatingPanel: true, SpeciesBadge: true } },
+		});
+		return wrapper;
+	};
+	const heart = () => wrapper.getComponent(FavouriteButton);
+
+	beforeEach(() => {
+		favourites.isFavourited.mockReset().mockResolvedValue(false);
+		favourites.addFlowerToFav.mockReset().mockResolvedValue(undefined);
+		favourites.removeFlowerFromFav.mockReset();
+		createTestingPinia({ stubActions: false, createSpy: vi.fn });
+		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+	});
+
+	afterEach(() => {
+		wrapper?.unmount();
+		wrapper = undefined;
+		vi.useRealTimers();
+	});
+
+	test('is not known until the database has answered, then it is the answer', async () => {
+		mountCard();
+		expect(heart().props('favourited')).toBeNull();
+
+		await flushPromises();
+
+		expect(favourites.isFavourited).toHaveBeenCalledWith(5);
+		expect(heart().props('favourited')).toBe(false);
+	});
+
+	test('is full for a flower that is a favourite', async () => {
+		favourites.isFavourited.mockResolvedValue(true);
+
+		mountCard();
+		await flushPromises();
+
+		expect(heart().props('favourited')).toBe(true);
+		expect(heart().attributes('data-testid')).toBe('flower-favourite');
+	});
+
+	test('makes the flower a favourite when it is clicked, and the heart answers before the database does', async () => {
+		let saved;
+		favourites.addFlowerToFav.mockReturnValue(new Promise((resolve) => { saved = resolve; }));
+		mountCard();
+		await flushPromises();
+
+		await heart().trigger('click');
+		await flushPromises();
+
+		expect(heart().props('favourited')).toBe(true);
+		expect(favourites.addFlowerToFav).toHaveBeenCalledExactlyOnceWith(5);
+		expect(favourites.removeFlowerFromFav).not.toHaveBeenCalled();
+		saved();
+	});
+
+	test('takes the flower out of the favourites when it is clicked and it is one', async () => {
+		favourites.isFavourited.mockResolvedValue(true);
+		mountCard();
+		await flushPromises();
+
+		await heart().trigger('click');
+		await flushPromises();
+
+		expect(heart().props('favourited')).toBe(false);
+		expect(favourites.removeFlowerFromFav).toHaveBeenCalledExactlyOnceWith(5);
+		expect(favourites.addFlowerToFav).not.toHaveBeenCalled();
+	});
+
+	test('of a flower of the server is disabled, empty, and does not touch the favourites', async () => {
+		mountCard({ isLocal: false, genome: '5.json' });
+		await flushPromises();
+
+		expect(heart().element.disabled).toBe(true);
+		expect(heart().props('favourited')).toBe(false);
+		expect(heart().attributes('data-testid')).toBeUndefined();
+		await heart().trigger('click');
+		await flushPromises();
+		expect(favourites.isFavourited).not.toHaveBeenCalled();
+		expect(favourites.addFlowerToFav).not.toHaveBeenCalled();
+	});
+});
+
+describe.each([
+	['of the browser', true, '5'],
+	['of the server', false, '5.json'],
+])('FlowerCard %s, its menus', (_, isLocal, genome) => {
+	const emitter = { on: vi.fn(), off: vi.fn(), emit: vi.fn() };
+	const PanelStub = { template: '<div class="panel"><slot /></div>' };
+	let wrapper;
+	const mountCard = () => {
+		wrapper = mount(FlowerCard, {
+			props: { id: 5, genome: isLocal ? GENOME : genome, image: 'data:image/png;base64,', isLocal },
+			global: { provide: { emitter }, stubs: { ZoomableImage: true, ParamsInfo: true, StatsInfo: { template: '<div />' }, FloatingPanel: PanelStub, SpeciesBadge: true } },
+		});
+		return wrapper;
+	};
+	const byId = (id) => wrapper.find(`[data-testid="${id}"]`);
+	const chevron = () => wrapper.getComponent(ChevronButton);
+
+	beforeEach(() => {
+		favourites.isFavourited.mockReset().mockResolvedValue(false);
+		createTestingPinia({ stubActions: false, createSpy: vi.fn });
+		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+		vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
+	});
+
+	afterEach(() => {
+		wrapper?.unmount();
+		wrapper = undefined;
+		vi.useRealTimers();
+		vi.unstubAllGlobals();
+	});
+
+	test('the chevron opens the main menu, turns over, and closes it when it is clicked again', async () => {
+		mountCard();
+		expect(byId('flower-mutate').exists()).toBe(false);
+		expect(chevron().props('open')).toBe(false);
+
+		await byId('flower-menu-toggle').trigger('click');
+		expect(byId('flower-mutate').exists()).toBe(true);
+		expect(chevron().props('open')).toBe(true);
+
+		await byId('flower-menu-toggle').trigger('click');
+		expect(byId('flower-mutate').exists()).toBe(false);
+		expect(chevron().props('open')).toBe(false);
+	});
+
+	test('a link of the main menu closes it', async () => {
+		mountCard();
+		await byId('flower-menu-toggle').trigger('click');
+
+		await wrapper.findAll('.main-menu a').find((a) => a.text() === 'Show Mutations').trigger('click');
+
+		expect(byId('flower-mutate').exists()).toBe(false);
+		expect(chevron().props('open')).toBe(false);
+	});
+
+	test('the + opens the secondary menu with 3D and E3D, and closes it when it is clicked again', async () => {
+		mountCard();
+		expect(byId('flower-3d').exists()).toBe(false);
+
+		await byId('flower-more').trigger('click');
+		expect(byId('flower-3d').exists()).toBe(true);
+		expect(byId('flower-e3d').exists()).toBe(true);
+		expect(byId('flower-more').text()).toBe('+');
+
+		await byId('flower-more').trigger('click');
+		expect(byId('flower-3d').exists()).toBe(false);
+	});
+
+	test('3D shows the flower in 3D, and closes the menu', async () => {
+		mountCard();
+		expect(wrapper.findComponent(ThreeFlower).exists()).toBe(false);
+		await byId('flower-more').trigger('click');
+
+		await byId('flower-3d').trigger('click');
+
+		expect(wrapper.findComponent(ThreeFlower).props('emissive')).toBe(false);
+		expect(byId('flower-3d').exists()).toBe(false);
+	});
+
+	test('E3D shows it with the emissive 3D, and pressing it again goes back to the image', async () => {
+		mountCard();
+		await byId('flower-more').trigger('click');
+		await byId('flower-e3d').trigger('click');
+		expect(wrapper.findComponent(ThreeFlower).props('emissive')).toBe(true);
+
+		await byId('flower-more').trigger('click');
+		await byId('flower-e3d').trigger('click');
+
+		expect(wrapper.findComponent(ThreeFlower).exists()).toBe(false);
+	});
+
+	test('the buttons of the secondary menu are green buttons with no margin of their own', async () => {
+		mountCard();
+		await byId('flower-more').trigger('click');
+
+		for(const id of ['flower-more', 'flower-3d', 'flower-e3d']){
+			expect(byId(id).classes()).toContain('safe-button');
+			expect(byId(id).element.tagName).toBe('BUTTON');
+		}
+		expect(byId('flower-more').classes()).toContain('symbol');
+		expect(byId('flower-3d').classes()).toContain('compact');
+		expect(byId('flower-e3d').classes()).toContain('compact');
 	});
 });

@@ -107,7 +107,7 @@ const hideLens = () => {
   width: 100px;
   height: 100px;
   position: absolute;
-  border: 2px solid lightgreen;
+  border: 2px solid var(--fe-lightgreen);
   border-radius: 50%;
   background-repeat: no-repeat;
   pointer-events: none;

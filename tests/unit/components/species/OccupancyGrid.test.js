@@ -16,7 +16,7 @@ describe('OccupancyGrid', () => {
     test('is black where there are no flowers and lighter the more there are', () => {
         const colors = mountGrid([0, 1, 4]).findAll('i').map((square) => square.element.style.background);
 
-        expect(colors[0]).toBe('rgb(11, 11, 11)');
+        expect(colors[0]).toBe('var(--fe-chart-bg)');
         const light = (color) => Number(color.match(/\d+/g)[1]);
         expect(light(colors[1])).toBeGreaterThan(80);
         expect(light(colors[2])).toBeGreaterThan(light(colors[1]));
@@ -46,6 +46,6 @@ describe('OccupancyGrid', () => {
 
     test('with no flowers at all every square is black, there is nothing to divide by', () => {
         const colors = mountGrid([0, 0, 0, 0, 0, 0]).findAll('i').map((square) => square.element.style.background);
-        expect(new Set(colors)).toEqual(new Set(['rgb(11, 11, 11)']));
+        expect(new Set(colors)).toEqual(new Set(['var(--fe-chart-bg)']));
     });
 });

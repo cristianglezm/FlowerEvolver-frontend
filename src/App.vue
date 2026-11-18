@@ -62,8 +62,8 @@ onUnmounted(() => {
 }
 html {
   font-family: 'MonaspaceRadon-Regular', Arial, Helvetica, sans-serif;
-  background-color: green !important;
-  scrollbar-color: lightgreen rgb(47, 50, 52);
+  background-color: var(--fe-green) !important;
+  scrollbar-color: var(--fe-lightgreen) var(--fe-scrollbar-track);
   width: 100%;
   height: 100%;
   overflow-x: hidden;

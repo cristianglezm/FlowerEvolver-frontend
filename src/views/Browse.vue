@@ -43,6 +43,6 @@ onMounted(() => {
 
 <style scoped>
     .Browse{
-        background-color: rgb(37, 39, 41);
+        background-color: var(--fe-surface);
     }
 </style>

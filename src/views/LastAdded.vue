@@ -47,6 +47,6 @@ onUnmounted(() => {
 
 <style scoped>
     .LastAdded{
-        background-color: rgb(37, 39, 41);
+        background-color: var(--fe-surface);
     }
 </style>

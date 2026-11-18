@@ -18,15 +18,15 @@ const props = defineProps({
   .loading-overlay{
     padding: 5px;
     display: flex;
-    background-color: rgb(37, 39, 41);
+    background-color: var(--fe-surface);
     flex-flow: column nowrap;
     align-items: center;
     justify-content: center;
-    color: lightgreen;
+    color: var(--fe-lightgreen);
   }
   .spinner{
-     border: 4px solid #444;
-     border-top: 4px solid lightgreen;
+     border: 4px solid var(--fe-spinner-track);
+     border-top: 4px solid var(--fe-lightgreen);
      border-radius: 50%;
      width: 40px;
      height: 40px;

@@ -130,12 +130,12 @@
 
 <style scoped>
     .Descendants{
-        background-color: black;
+        background-color: var(--fe-black);
     }
     .header{
         text-align: center;
-        color: lightgreen;
-        background-color: green;
+        color: var(--fe-lightgreen);
+        background-color: var(--fe-green);
     }
     .fatherFlower{
         position: relative;

@@ -1,5 +1,5 @@
 <template>
-  <div style="background-color: rgb(37, 39, 41); padding: 0.6rem;">
+  <div style="background-color: var(--fe-surface); padding: 0.6rem;">
     <div id="settings-container">
       <div class="grid-x4">
         <CreationParams />
@@ -39,8 +39,8 @@ import CaptionerModelOptions from '../components/CaptionerModelOptions.vue';
 
 <style scoped>
     #settings-container{
-        color: lightgreen;
-        background-color: rgb(37, 39, 41);
+        color: var(--fe-lightgreen);
+        background-color: var(--fe-surface);
         font-size: 1.25rem;
     }
     .grid-x4{

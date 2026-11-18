@@ -5,7 +5,7 @@
         <div class="bar" :style="{ width: percent + '%' }" />
       </div>
       <span class="phase" data-testid="training-phase">{{ phase }}</span>
-      <button type="button" class="safe-button" data-testid="training-cancel" @click="emit('cancel')"> Cancel </button>
+      <SafeButton data-testid="training-cancel" size="small" @click="emit('cancel')"> Cancel </SafeButton>
     </div>
     <p v-if="props.training.result" class="result" :class="props.training.result.outcome" data-testid="training-result">{{ props.training.result.message }}</p>
     <QeChart v-if="props.training.qe.length > 0" :values="props.training.qe" />
@@ -36,6 +36,7 @@
 import { computed } from 'vue';
 import QeChart from './QeChart.vue';
 import OccupancyGrid from './OccupancyGrid.vue';
+import SafeButton from '../ui/SafeButton.vue';
 
 const props = defineProps({
     training: {
@@ -70,6 +71,7 @@ const phase = computed(() => {
 
 <style scoped>
     .TrainingPanel{
+        --fe-button-margin: 0;
         display: flex;
         flex-direction: column;
         gap: 0.6rem;
@@ -83,12 +85,12 @@ const phase = computed(() => {
     /* the look of ProgressModal: the lightgreen bar in its dark track */
     .progress-bar{
         flex: 1 1 100%;
-        background-color: rgba(4, 97, 43, 0.986);
-        box-shadow: inset 0rem 0rem 0.6rem 0.125rem black;
+        background-color: var(--fe-progress-track);
+        box-shadow: inset 0rem 0rem 0.6rem 0.125rem var(--fe-black);
         margin: 0.6rem 0;
     }
     .bar{
-        background-color: lightgreen;
+        background-color: var(--fe-lightgreen);
         height: 3.125rem;
     }
     .phase{
@@ -98,7 +100,7 @@ const phase = computed(() => {
         margin: 0;
     }
     .result.failed{
-        color: red;
+        color: var(--fe-danger);
     }
     .pair{
         display: flex;
@@ -111,18 +113,5 @@ const phase = computed(() => {
     figcaption{
         font-size: 0.8rem;
         text-align: center;
-    }
-    .safe-button{
-        font-size: 0.9rem;
-        border-radius: 1.2rem;
-        border: 0.1rem solid lightgreen;
-        background-color: green;
-        color: lightgreen;
-        cursor: pointer;
-    }
-    .safe-button:hover{
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
     }
 </style>

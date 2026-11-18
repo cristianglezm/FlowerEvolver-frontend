@@ -3,6 +3,7 @@ import { createPinia } from 'pinia';
 import { getFlowerEvolver } from './services/flowerEvolver';
 import router from './router';
 import App from './App.vue';
+import './styles/palette.css';
 import mitt from 'mitt';
 import { registerSW } from 'virtual:pwa-register';
 

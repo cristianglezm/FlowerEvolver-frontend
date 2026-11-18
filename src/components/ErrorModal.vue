@@ -5,7 +5,7 @@
       <div v-if="id === (ErrorStore.getLength - 1)" class="ErrorModal-content">
         <p>
           {{ error }}
-          <span style="border-radius: 128px; background-color: red; padding: 2px;">
+          <span style="border-radius: 128px; background-color: var(--fe-danger); padding: 2px;">
             {{ ErrorStore.getLength }}
           </span>
         </p>
@@ -56,13 +56,13 @@ const popError = () => {
         transform: translate(-50%, -50%);
     }
     .ErrorModal{
-        background-color: green;
-        color: lightgreen;
+        background-color: var(--fe-green);
+        color: var(--fe-lightgreen);
         position: fixed;
         border: solid;
-        border-color: lightgreen;
+        border-color: var(--fe-lightgreen);
         border-radius: 0.31rem;
-        box-shadow: 0rem 1rem 2rem 0rem black;
+        box-shadow: 0rem 1rem 2rem 0rem var(--fe-black);
         overflow: auto;
         z-index: 11;
         margin: auto;
@@ -84,21 +84,21 @@ const popError = () => {
         overflow: auto;
     }
     .ErrorModal button{
-        background-color: green;
-        color: lightgreen;
-        border-color: lightgreen;
+        background-color: var(--fe-green);
+        color: var(--fe-lightgreen);
+        border-color: var(--fe-lightgreen);
         position: relative;
         left: 45%;
         margin-bottom: 0.6rem;
         cursor: pointer;
     }
     .ErrorModal button:hover{
-        color: green;
-        border-color: green;
-        background-color: lightgreen;
+        color: var(--fe-green);
+        border-color: var(--fe-green);
+        background-color: var(--fe-lightgreen);
     }
     .close{
-        color: lightgreen;
+        color: var(--fe-lightgreen);
         margin-right: 0.31rem;
         float: right;
         font-size: 2.3rem;
@@ -106,7 +106,7 @@ const popError = () => {
     }
     .close:hover,
     .close:focus{
-        color: black;
+        color: var(--fe-black);
         text-decoration: none;
         cursor: pointer;
     }

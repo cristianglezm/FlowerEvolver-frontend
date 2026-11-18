@@ -88,12 +88,12 @@ onMounted(async () => {
 
 <style scoped>
     .Mutations{
-        background-color: black;
+        background-color: var(--fe-black);
     }
     .header{
         text-align: center;
-        color: lightgreen;
-        background-color: green;
+        color: var(--fe-lightgreen);
+        background-color: var(--fe-green);
     }
     .mutFlower{
         position: relative;

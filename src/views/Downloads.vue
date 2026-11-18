@@ -25,7 +25,7 @@
 <style scoped>
     .Downloads{
         display: grid;
-        background-color: rgb(37, 39, 41);
+        background-color: var(--fe-surface);
     }
     .blocks{
         margin: 3.1rem 1.5rem 3.1rem 1.5rem;
@@ -41,22 +41,22 @@
         position: relative;
     }
     .blocks a{
-        border: outset lightgreen;
+        border: outset var(--fe-lightgreen);
         text-align: center;
         text-decoration: none;
         text-indent: 0.6rem;
         font-size: 2.6rem;
         padding: 0.1rem 0.6rem 0rem 0rem;
         margin: 0.6rem 0rem 0rem 0.3rem;
-        color: lightgreen;
+        color: var(--fe-lightgreen);
         border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
-        background-color: green;
+        background-color: var(--fe-green);
         cursor: pointer;
     }
     .blocks a:hover{
-        color: green;
-        background-color: lightgreen;
-        border: inset green;
+        color: var(--fe-green);
+        background-color: var(--fe-lightgreen);
+        border: inset var(--fe-green);
     }
     @media only screen and (max-width: 1280px){
         .blocks{
@@ -64,7 +64,7 @@
             display: grid;
             grid-template-columns: auto auto;
             grid-gap: 0.6rem;
-            background-color: green;
+            background-color: var(--fe-green);
             font-size: 1.5rem;
             padding: 0.6rem;
             border-radius: 0.75rem;
@@ -76,14 +76,14 @@
             font-size: 1.5rem;
             padding: 0.1rem 0.6rem 0rem 0rem;
             margin: 0.6rem 0rem 0rem 0.3rem;
-            color: lightgreen;
+            color: var(--fe-lightgreen);
             border-radius: 0.75rem 0.75rem 0.75rem 0.75rem;
-            border-color: lightgreen;
-            background-color: green;
+            border-color: var(--fe-lightgreen);
+            background-color: var(--fe-green);
             display: inline flex;
         }
     }
     #linux, #windows{
-        color: lightgreen;
+        color: var(--fe-lightgreen);
     }
 </style>

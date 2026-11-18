@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div style="display: flex; flex-flow: column nowrap; gap: 2rem; color: lightgreen; background-color: rgb(37, 39, 41)">
+    <div style="display: flex; flex-flow: column nowrap; gap: 2rem; color: var(--fe-lightgreen); background-color: var(--fe-surface)">
       <Spinner v-if="loading" :message="'Loading Charts..'" />
       <div v-else>
         <h2>Creation Parameters</h2>
@@ -266,7 +266,7 @@ onMounted(() => {
   }
   h2{
     margin: 1rem 0 0.5rem;
-    color: lightgreen;
+    color: var(--fe-lightgreen);
     text-align: center;
     padding: 2px;
   }

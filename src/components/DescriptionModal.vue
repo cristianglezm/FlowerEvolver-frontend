@@ -1,22 +1,16 @@
 <template>
-  <dialog :id="props.id">
-    <div class="descriptionModal-container center">
-      <div class="inlined">
-        <h2>Flower {{ data.FlowerID }}</h2>
-        <span class="close" @click="closeModal()">&times;</span>
-      </div>
-      <img id="descForFlower" loading="lazy" :src="data.FlowerImage" :alt="data.description" class="FlowerImage">
-      <div v-if="data.loading" class="loadingEffect">
-        <p style="text-align: center;"><strong> processing </strong></p>
-      </div>
-      <div v-else class="description-caption">
-        <p>{{ data.description }}</p>
-      </div>
-      <div>
-        <button @click="closeModal()"> Ok. </button>
-      </div>
+  <ModalDialog :id="props.id" ref="dialog" :title="`Flower ${data.FlowerID}`" closable @dismiss="closeModal()" @close="reset()">
+    <img id="descForFlower" loading="lazy" :src="data.FlowerImage" :alt="data.description" class="FlowerImage">
+    <div v-if="data.loading" class="loadingEffect">
+      <p><strong> processing </strong></p>
     </div>
-  </dialog>
+    <div v-else class="description-caption">
+      <p>{{ data.description }}</p>
+    </div>
+    <div class="actions">
+      <SafeButton @click="closeModal()">Ok.</SafeButton>
+    </div>
+  </ModalDialog>
 </template>
 
 <script setup>
@@ -48,7 +42,10 @@
  *    description: 'A beautiful flower description.',
  * });
  */
-import { reactive, onMounted, onBeforeUnmount } from 'vue';
+import { reactive, ref, onMounted, onBeforeUnmount } from 'vue';
+import { listen } from '../services/listen';
+import ModalDialog from './ui/ModalDialog.vue';
+import SafeButton from './ui/SafeButton.vue';
 
 const props = defineProps({
     id: {
@@ -71,36 +68,41 @@ const props = defineProps({
 
 const data = reactive({
     FlowerImage: "",
+    FlowerID: "",
     loading: true,
     description: "processing",
 });
+const dialog = ref(null);
+
+const stops = [];
 
 onMounted(() => {
-    props.channel.on(props.on, (e) => {
+    stops.push(listen(props.channel, props.on, (e) => {
         data.FlowerImage = e.FlowerImage;
         data.FlowerID = e.FlowerID;
         openModal();
-    });
-    props.channel.on(props.update, (e) => {
+    }));
+    stops.push(listen(props.channel, props.update, (e) => {
         data.loading = e.loading;
         data.description = e.description;
-    });
-    data.dialog = document.getElementById(props.id);
+    }));
 });
 
 onBeforeUnmount(() => {
-    props.channel.off(props.on);
-    props.channel.off(props.update);
+    stops.splice(0).forEach((stop) => stop());
 });
 
 const openModal = () => {
-    data.dialog.showModal();
+    dialog.value.open();
 };
 
 const closeModal = () => {
+    dialog.value.close();
+};
+// Whatever closes it, Esc too, leaves it ready for the next flower
+const reset = () => {
     data.loading = true;
     data.description = "processing";
-    data.dialog.close();
 };
 
 </script>
@@ -133,54 +135,10 @@ const closeModal = () => {
         height: 25%;
         align-self: center;
     }
-    .inlined{
-        display: flex;
-        flex-flow: row nowrap;
-    }
-    .inlined h2{
-        width: 100%;
-        align-self: center;
-    }
-    .center{
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-    }
-    .descriptionModal-container{
-        background-color: green;
-        color: lightgreen;
-        position: fixed;
-        border: solid;
-        border-color: lightgreen;
-        border-radius: 0.31rem;
-        box-shadow: 0rem 2rem 4rem 0rem rgba(0,0,0,1);
-        overflow: auto;
-        overflow-wrap: break-word;
-        z-index: 11;
-        padding: 0.125rem;
-        width: 50%;
-        max-width: 90%;
-        max-height: 90%;
-        display: flex;
-        flex-flow: column nowrap;
-        text-align: center;
-    }
-    .descriptionModal-container p{
+    p{
         overflow: auto;
         overflow-wrap: break-word;
         font-size: 1.6rem;
-    }
-    .descriptionModal-container button{
-        background-color: green;
-        color: lightgreen;
-        border-color: lightgreen;
-        position: relative;
-        margin-bottom: 0.6rem;
-        cursor: pointer;
-        margin-left: 0.31rem;
-        font-size: 1.25rem;
-        border-radius: 2.1rem;
     }
     .description-caption{
         overflow: auto;
@@ -189,41 +147,12 @@ const closeModal = () => {
         padding-right: 1rem;
         text-align: center;
     }
+    .actions{
+        --fe-button-margin: 0 0.31rem 0.6rem 0.31rem;
+    }
     @media only screen and (max-width: 1280px){
-        .descriptionModal-container{
-            width: 90%;
-        }
-        .descriptionModal-container button{
-            transform: translate(20%);
+        p{
             font-size: 0.9rem;
         }
-        .descriptionModal-container p{
-            font-size: 0.9rem;
-        }
-        .inlined h2{
-            font-size: 1.2rem;
-        }
-    }
-    .descriptionModal-container button:hover{
-        border-color: green;
-        background-color: lightgreen;
-        color: green;
-    }
-    .close{
-        color: lightgreen;
-        margin-right: 1%;
-        float: right;
-        font-size: 2.3rem;
-        font-weight: bold;
-    }
-    .close:hover,
-    .close:focus{
-        color: black;
-        text-decoration: none;
-        cursor: pointer;
-    }
-    ::backdrop{
-        background-color: white;
-        opacity: 0.55;
     }
 </style>

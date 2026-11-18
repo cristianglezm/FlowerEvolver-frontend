@@ -73,30 +73,30 @@ const close = () => {
   display: inline-block;
 }
 .close{
-  color: lightgreen;
+  color: var(--fe-lightgreen);
   font-size: 1.8rem;
   font-weight: bold;
   cursor: pointer;
   line-height: 1;
 }
 .sIcon{
-  background-color: green;
-  border: solid lightgreen;
+  background-color: var(--fe-green);
+  border: solid var(--fe-lightgreen);
   border-radius: 50%;
   display: inline-grid;
   place-items: center;
   width: 1.75rem;
   height: 1.75rem;
   cursor: pointer;
-  color: lightgreen;
+  color: var(--fe-lightgreen);
   font-weight: bold;
   user-select: none;
 }
 .StatsPanel{
   width: 250px;
-  color: lightgreen;
-  background-color: green;
-  border: 1px solid lightgreen;
+  color: var(--fe-lightgreen);
+  background-color: var(--fe-green);
+  border: 1px solid var(--fe-lightgreen);
   border-radius: 1rem;
   padding: 0.8rem 1rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -106,13 +106,13 @@ const close = () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.5rem;
-  border-bottom: 1px solid lightgreen;
+  border-bottom: 1px solid var(--fe-lightgreen);
   padding-bottom: 0.5rem;
 }
 h2, h3{
   margin: 0;
   padding: 0;
-  color: lightgreen;
+  color: var(--fe-lightgreen);
 }
 .effects-title{
   margin-top: 1rem;

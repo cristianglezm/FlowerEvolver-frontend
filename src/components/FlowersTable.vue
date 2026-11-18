@@ -34,18 +34,18 @@ const props = defineProps({
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(15%, 1fr));
         grid-gap: 1rem;
-        background-color: black;
+        background-color: var(--fe-black);
     }
     @media only screen and (max-width: 1280px){
         .grid{
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(40%, 1fr));
             grid-gap: 1rem;
-            background-color: black;
+            background-color: var(--fe-black);
         }
     }
     .error{
-        color: lightgreen;
+        color: var(--fe-lightgreen);
         font-size: 1.2rem;
         text-align: center;
         padding-bottom: 0.8rem;

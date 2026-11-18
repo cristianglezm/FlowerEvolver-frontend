@@ -47,7 +47,7 @@ const squares = computed(() => {
         return {
             color: count > 0
                 ? `rgb(${Math.round(40 + 160 * share)}, ${Math.round(80 + 170 * share)}, ${Math.round(40 + 60 * share)})`
-                : '#0b0b0b',
+                : 'var(--fe-chart-bg)',
             title: `${count} ${count === 1 ? 'flower' : 'flowers'} at ${i % props.width}, ${Math.floor(i / props.width)}`
         };
     });
@@ -59,8 +59,8 @@ const squares = computed(() => {
         display: grid;
         gap: 1px;
         width: fit-content;
-        background-color: #234;
-        border: 1px solid #234;
+        background-color: var(--fe-chart-border);
+        border: 1px solid var(--fe-chart-border);
     }
     .OccupancyGrid i{
         display: block;
