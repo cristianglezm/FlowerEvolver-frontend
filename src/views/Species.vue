@@ -11,10 +11,10 @@
           <input id="species-hide-empty" v-model="data.hideEmpty" type="checkbox" data-testid="species-hide-empty">
         </div>
         <div class="actions">
-          <button type="button" class="safe-button" data-testid="species-finetune" @click="fineTune.open()"> Fine-tune... </button>
-          <button v-if="SpeciesStore.hasTuned" type="button" class="unsafe-button" :disabled="!canReset" data-testid="species-reset" @click="askReset()">
+          <SafeButton data-testid="species-finetune" size="small" @click="fineTune.open()"> Fine-tune... </SafeButton>
+          <UnsafeButton v-if="SpeciesStore.hasTuned" :disabled="!canReset" data-testid="species-reset" size="small" @click="askReset()">
             Use the built-in classifier
-          </button>
+          </UnsafeButton>
         </div>
       </div>
       <FineTuneModal ref="fineTune" />
@@ -78,6 +78,8 @@ import { useShownFlowers } from '../composables/useShownFlowers';
 import { useErrorStore } from '../stores/ErrorStore';
 import * as speciesRepository from '../services/speciesRepository';
 import * as flowerRepository from '../services/flowerRepository';
+import SafeButton from '../components/ui/SafeButton.vue';
+import UnsafeButton from '../components/ui/UnsafeButton.vue';
 
 const routes = useRoute();
 const LocalFlowerStore = useLocalFlowerStore();
@@ -324,35 +326,9 @@ watch(() => SpeciesStore.status, (now, before) => {
         transform: scale(1);
     }
     .actions{
+        --fe-button-margin: 0;
         display: flex;
         gap: 0.6rem;
-    }
-    .safe-button, .unsafe-button{
-        font-size: 0.9rem;
-        border-radius: 1.2rem;
-        cursor: pointer;
-    }
-    .safe-button{
-        border: 0.1rem solid lightgreen;
-        background-color: green;
-        color: lightgreen;
-    }
-    .safe-button:hover{
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
-    .unsafe-button{
-        border: 0.1rem solid red;
-        background-color: darkred;
-        color: white;
-    }
-    .unsafe-button:hover:not(:disabled){
-        background-color: red;
-    }
-    .unsafe-button:disabled{
-        opacity: 0.5;
-        cursor: not-allowed;
     }
     .parents{
         margin: 0;

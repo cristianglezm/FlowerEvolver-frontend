@@ -3,25 +3,25 @@
   <div id="actions-settings">
     <div id="actions-safe">
       <h2 style="color:lightgreen;">Actions</h2>
-      <button class="safe-button" @click="showRedrawFlowers()"> Redraw local Flowers </button>
+      <SafeButton @click="showRedrawFlowers()"> Redraw local Flowers </SafeButton>
       <div class="columns">
         <div class="column">
-          <button class="safe-button" @click="showExport('favourites')"> Export favourite flowers </button>
-          <button class="safe-button" @click="showExport('garden')"> Export garden Flowers </button>
-          <button class="safe-button" @click="showExport('all')"> Export local Flowers </button>
+          <SafeButton @click="showExport('favourites')"> Export favourite flowers </SafeButton>
+          <SafeButton @click="showExport('garden')"> Export garden Flowers </SafeButton>
+          <SafeButton @click="showExport('all')"> Export local Flowers </SafeButton>
         </div>
         <div class="column">
-          <button class="safe-button" @click="showImport(true)"> Import Flowers to favourites </button>
-          <button class="safe-button" @click="importGarden()"> Import garden Flowers </button>
-          <button class="safe-button" @click="showImport(false)"> Import Flowers </button>
+          <SafeButton @click="showImport(true)"> Import Flowers to favourites </SafeButton>
+          <SafeButton @click="importGarden()"> Import garden Flowers </SafeButton>
+          <SafeButton @click="showImport(false)"> Import Flowers </SafeButton>
         </div>
       </div>
     </div>
     <div id="actions-danger">
       <h2 style="color:red;">Danger Zone</h2>
-      <button class="unsafe-button" @click="deleteAllFlowers()"> Delete All Flowers </button>
-      <button class="unsafe-button" @click="deleteNonFavourites()"> Delete non Favourites </button>
-      <button class="unsafe-button" :disabled="!canReset" data-testid="remove-classifier" @click="askReset()"> Remove fine-tuned classifier </button>
+      <UnsafeButton @click="deleteAllFlowers()"> Delete All Flowers </UnsafeButton>
+      <UnsafeButton @click="deleteNonFavourites()"> Delete non Favourites </UnsafeButton>
+      <UnsafeButton :disabled="!canReset" data-testid="remove-classifier" @click="askReset()"> Remove fine-tuned classifier </UnsafeButton>
     </div>
   </div>
 </template>
@@ -41,6 +41,8 @@ import mitt from 'mitt';
 import { useErrorStore } from '../stores/ErrorStore';
 import { useSpeciesStore } from '../stores/SpeciesStore';
 import { useClassifierReset } from '../composables/useClassifierReset';
+import SafeButton from './ui/SafeButton.vue';
+import UnsafeButton from './ui/UnsafeButton.vue';
 
 const LocalFlowerStore = useLocalFlowerStore();
 const SettingsStore = useSettingsStore();
@@ -301,21 +303,6 @@ const exportFlowers = (type) => {
         padding: 0.125rem;
         overflow-y: auto;
     }
-    .safe-button{
-        position: relative;
-        font-size: 1.25rem;
-        border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
-        margin: 0.6rem 0.6rem 0rem 1.25rem;
-        cursor: pointer;
-        border-color: lightgreen;
-        background-color: green;
-        color: lightgreen;
-    }
-    .safe-button:hover{
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
     #actions-danger{
         border: solid red;
         border-radius: 1.25rem;
@@ -325,21 +312,6 @@ const exportFlowers = (type) => {
         width: 100%;
         text-align: center;
         background-color: green;
-    }
-    .unsafe-button{
-        position: relative;
-        font-size: 1.25rem;
-        border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
-        margin: 0.6rem 0.6rem 0rem 1.25rem;
-        cursor: pointer;
-        border-color: whitesmoke;
-        background-color: red;
-        color: whitesmoke;
-    }
-    .unsafe-button:hover{
-        border-color: red;
-        background-color: whitesmoke;
-        color: red;
     }
     /* what cannot be done now looks the same when the pointer is over it */
     .unsafe-button:disabled,
@@ -354,12 +326,6 @@ const exportFlowers = (type) => {
         #actions-settings{
             font-size: 0.9rem;
             flex-flow: row wrap;
-        }
-        .safe-button{
-            font-size: 0.9rem;
-        }
-        .unsafe-button{
-            font-size: 0.9rem;
         }
         #actions-safe{
             margin: 0.2rem;

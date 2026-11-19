@@ -15,7 +15,7 @@
       @change="validateParams()"
     />
     <NumberField v-model="params.bias" input-id="params-bias" label="Bias: " tooltip="bias for the flower" @change="validateParams()" />
-    <button class="safe-button" @click="restoreDefaults()"> Restore defaults </button>
+    <SafeButton @click="restoreDefaults()"> Restore defaults </SafeButton>
   </div>
 </template>
 
@@ -25,6 +25,7 @@ import NumberField from './ui/NumberField.vue';
 import { useSettingsStore } from '../stores/SettingsStore';
 import { FEParams } from '@cristianglezm/flower-evolver-wasm';
 import { getFlowerEvolver } from '../services/flowerEvolver';
+import SafeButton from './ui/SafeButton.vue';
 
 const SettingsStore = useSettingsStore();
 
@@ -87,21 +88,6 @@ const validateFloat = (number, Default) => {
         margin: 1em 1em;
         background-color: green;
     }
-    .safe-button{
-        position: relative;
-        font-size: 1.25rem;
-        border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
-        margin: 0.6rem 0.6rem 0rem 1.25rem;
-        cursor: pointer;
-        border-color: lightgreen;
-        background-color: green;
-        color: lightgreen;
-    }
-    .safe-button:hover{
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
     .settings-box {
         border: 0.25rem solid lightgreen;
         padding: 0.6rem;
@@ -110,11 +96,6 @@ const validateFloat = (number, Default) => {
     }
     .settings-box h2{
         text-align: center;
-    }
-    @media only screen and (max-width: 1280px){
-        .safe-button{
-            font-size: 0.9rem;
-        }
     }
 
 </style>

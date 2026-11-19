@@ -21,8 +21,8 @@ describe('the palette', () => {
 	});
 
 	test('every colour that a component asks for is in it, a name that is not there is a colour that is not there', () => {
-		// the variables that a component takes from the place where it is (sizes of a field), not colours
-		const layout = /^--fe-(field|range)-/;
+		// the variables that a component takes from the place where it is (sizes of a field, margin of a button), not colours
+		const layout = /^--fe-(field|range|button)-/;
 		const used = [];
 		for(const file of filesIn(SRC).filter((path) => /\.(vue|css)$/.test(path))){
 			for(const match of readFileSync(file, 'utf8').matchAll(/var\((--fe-[a-z-]+)/g)){

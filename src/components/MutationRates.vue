@@ -29,7 +29,7 @@
       v-model="mutationRates.actTypeRate" input-id="mutation-actTypeRate" label="Activation Type Rate: " tooltip="The rate to change the activation type in a random node"
       percent :min="0" :max="1" :step="0.01" @change="validateMutationRates()"
     />
-    <button class="safe-button" @click="restoreDefaults"> Restore defaults </button>
+    <SafeButton @click="restoreDefaults"> Restore defaults </SafeButton>
   </div>
 </template>
 
@@ -38,6 +38,7 @@
 import { reactive } from 'vue';
 import RangeField from './ui/RangeField.vue';
 import { useSettingsStore } from '../stores/SettingsStore';
+import SafeButton from './ui/SafeButton.vue';
 
 const SettingsStore = useSettingsStore();
 
@@ -93,21 +94,6 @@ const validateMutationRates = () => {
         /* and on a phone it leaves no room for the label and the value */
         --fe-range-width-tiny: 15%;
     }
-    .safe-button{
-        position: relative;
-        font-size: 1.25rem;
-        border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
-        margin: 0.6rem 0.6rem 0rem 1.25rem;
-        cursor: pointer;
-        border-color: lightgreen;
-        background-color: green;
-        color: lightgreen;
-    }
-    .safe-button:hover{
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
     .settings-box {
         border: 0.25rem solid lightgreen;
         padding: 0.6rem;
@@ -116,11 +102,6 @@ const validateMutationRates = () => {
     }
     .settings-box h2{
         text-align: center;
-    }
-    @media only screen and (max-width: 1280px){
-        .safe-button{
-            font-size: 0.9rem;
-        }
     }
 
 </style>

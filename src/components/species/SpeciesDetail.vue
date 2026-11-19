@@ -6,16 +6,16 @@
         {{ name }} <span class="cell">({{ props.selected.x }}, {{ props.selected.y }})</span>
       </h2>
       <p data-testid="species-detail-count">{{ count }} {{ count === 1 ? 'flower' : 'flowers' }}</p>
-      <button type="button" class="safe-button" :disabled="count === 0" data-testid="species-use-as-parent" @click="emit('use-as-parent')"> Use as parent </button>
-      <button type="button" class="safe-button" :disabled="!canSplit" :title="splitTitle" data-testid="species-split" @click="emit('split')"> {{ props.isSplit ? 'Split again...' : 'Split...' }} </button>
-      <button v-if="props.isSplit" type="button" class="unsafe-button" data-testid="species-unsplit" @click="emit('unsplit')"> Remove the split </button>
+      <SafeButton :disabled="count === 0" data-testid="species-use-as-parent" size="small" @click="emit('use-as-parent')"> Use as parent </SafeButton>
+      <SafeButton :disabled="!canSplit" :title="splitTitle" data-testid="species-split" size="small" @click="emit('split')"> {{ props.isSplit ? 'Split again...' : 'Split...' }} </SafeButton>
+      <UnsafeButton v-if="props.isSplit" data-testid="species-unsplit" size="small" @click="emit('unsplit')"> Remove the split </UnsafeButton>
       <h3>Most similar species</h3>
       <ul class="similar">
         <li v-for="other in similar" :key="other.x + ',' + other.y">
-          <button type="button" class="safe-button" :data-testid="'species-similar-' + other.x + '-' + other.y" @click="emit('select', { x: other.x, y: other.y })">
+          <SafeButton :data-testid="'species-similar-' + other.x + '-' + other.y" size="small" @click="emit('select', { x: other.x, y: other.y })">
             <PrototypeCanvas :alpha="props.model.prototype(other.x, other.y)" :size="props.model.imageSize" :display="32" :label="other.name" />
             {{ other.name }} ({{ other.count }})
-          </button>
+          </SafeButton>
         </li>
       </ul>
     </div>
@@ -39,6 +39,8 @@
  */
 import { computed } from 'vue';
 import PrototypeCanvas from './PrototypeCanvas.vue';
+import SafeButton from '../ui/SafeButton.vue';
+import UnsafeButton from '../ui/UnsafeButton.vue';
 
 const props = defineProps({
     model: {
@@ -82,6 +84,7 @@ const similar = computed(() => {
 
 <style scoped>
     .SpeciesDetail{
+        --fe-button-margin: 0.3rem 0 0 0;
         display: flex;
         flex-wrap: wrap;
         gap: 1.2rem;
@@ -110,37 +113,9 @@ const similar = computed(() => {
         padding: 0;
         list-style: none;
     }
-    .safe-button{
+    .SpeciesDetail .fe-button{
         display: flex;
         align-items: center;
         gap: 0.4rem;
-        margin: 0.3rem 0 0 0;
-        font-size: 0.9rem;
-        border-radius: 1.2rem;
-        border: 0.1rem solid lightgreen;
-        background-color: green;
-        color: lightgreen;
-        cursor: pointer;
-    }
-    .safe-button:hover:not(:disabled){
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
-    .unsafe-button{
-        margin: 0.3rem 0 0 0;
-        font-size: 0.9rem;
-        border-radius: 1.2rem;
-        border: 0.1rem solid red;
-        background-color: darkred;
-        color: white;
-        cursor: pointer;
-    }
-    .unsafe-button:hover{
-        background-color: red;
-    }
-    .safe-button:disabled{
-        opacity: 0.5;
-        cursor: not-allowed;
     }
 </style>

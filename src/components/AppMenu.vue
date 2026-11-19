@@ -25,16 +25,16 @@
         </nav>
         <div class="actions" alt="actions">
           <nav v-if="props.isLocal">
-            <button class="safe-button" data-testid="menu-new-local-flower" @click="LocalFlowerStore.makeLocalFlower(); toggleMenu()"> New Local Flower</button>
-            <button class="safe-button" data-testid="menu-local-reproduce" @click="LocalFlowerStore.localReproduce(); toggleMenu()"> Local Reproduce Selected</button>
-            <button class="safe-button" data-testid="menu-show-local-descendants" @click="showDescendants(); toggleMenu()"> Show Local Selected Descendants</button>
-            <button class="safe-button" data-testid="menu-toggle-chatbot" @click="toggleChatBot(); toggleMenu()">{{ toggleButtonMessage }}</button>
+            <SafeButton data-testid="menu-new-local-flower" @click="LocalFlowerStore.makeLocalFlower(); toggleMenu()"> New Local Flower</SafeButton>
+            <SafeButton data-testid="menu-local-reproduce" @click="LocalFlowerStore.localReproduce(); toggleMenu()"> Local Reproduce Selected</SafeButton>
+            <SafeButton data-testid="menu-show-local-descendants" @click="showDescendants(); toggleMenu()"> Show Local Selected Descendants</SafeButton>
+            <SafeButton data-testid="menu-toggle-chatbot" @click="toggleChatBot(); toggleMenu()">{{ toggleButtonMessage }}</SafeButton>
           </nav>
           <nav v-else>
-            <button class="safe-button" data-testid="menu-new-remote-flower" :class="{'disabled': data.blocked}" @click="block(RemoteFlowerStore.makeRemoteFlower); toggleMenu()"> New Remote Flower</button>
-            <button class="safe-button" data-testid="menu-remote-reproduce" :class="{'disabled': data.blocked}" @click="block(RemoteFlowerStore.remoteReproduce); toggleMenu()"> Remote Reproduce Selected</button>
-            <button class="safe-button" data-testid="menu-show-remote-descendants" :class="{'disabled': data.blocked}" @click="block(showDescendants); toggleMenu()"> Show Remote Selected Descendants</button>
-            <button class="safe-button" data-testid="menu-toggle-chatbot" @click="toggleChatBot(); toggleMenu()">{{ toggleButtonMessage }}</button>
+            <SafeButton data-testid="menu-new-remote-flower" :disabled="data.blocked" @click="block(RemoteFlowerStore.makeRemoteFlower); toggleMenu()"> New Remote Flower</SafeButton>
+            <SafeButton data-testid="menu-remote-reproduce" :disabled="data.blocked" @click="block(RemoteFlowerStore.remoteReproduce); toggleMenu()"> Remote Reproduce Selected</SafeButton>
+            <SafeButton data-testid="menu-show-remote-descendants" :disabled="data.blocked" @click="block(showDescendants); toggleMenu()"> Show Remote Selected Descendants</SafeButton>
+            <SafeButton data-testid="menu-toggle-chatbot" @click="toggleChatBot(); toggleMenu()">{{ toggleButtonMessage }}</SafeButton>
           </nav>
         </div>
       </div>
@@ -93,6 +93,7 @@ import { useLocalFlowerStore } from '../stores/LocalFlowerStore';
 import { useRemoteFlowerStore } from '../stores/RemoteFlowerStore';
 import { useSettingsStore } from '../stores/SettingsStore';
 import { useErrorStore } from '../stores/ErrorStore';
+import SafeButton from './ui/SafeButton.vue';
 
 const props = defineProps({
     isLocal: {
@@ -205,6 +206,7 @@ const isEdgeOrChrome = () => {
         padding: 1.25rem 0rem 0rem 0rem;
     }
     .actions{
+        --fe-button-margin: .6rem .6rem 0rem .125rem;
         text-align: right;
         padding-bottom: 0.56rem;
     }
@@ -232,20 +234,6 @@ const isEdgeOrChrome = () => {
         flex-flow: column nowrap;
         justify-content: space-evenly;
         position: fixed;
-    }
-    .safe-button{
-        font-size: 1.25rem;
-        border-radius: 19.68rem 20.93rem 9.68rem 8.43rem;
-        margin: .6rem .6rem 0rem .125rem;
-        cursor: pointer;
-        border-color: lightgreen;
-        background-color: green;
-        color: lightgreen;
-    }
-    .safe-button:hover{
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
     }
     .fixed-button{
         position: relative;
@@ -317,9 +305,6 @@ const isEdgeOrChrome = () => {
             flex-flow: column nowrap;
             text-align: center;
             padding: 0em 2em 0.5em 5em;
-        }
-        .safe-button{
-            font-size: 0.9rem;
         }
     }
     .disabled{

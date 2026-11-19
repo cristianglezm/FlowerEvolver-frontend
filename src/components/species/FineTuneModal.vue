@@ -27,8 +27,8 @@
       @cancel="SpeciesStore.cancelTraining()"
     />
     <div class="buttons">
-      <button type="button" class="safe-button" :disabled="SpeciesStore.isTuning || invalid !== ''" data-testid="finetune-start" @click="start()"> Fine-tune </button>
-      <button type="button" class="safe-button" :disabled="SpeciesStore.isTuning" data-testid="finetune-close" @click="close()"> Close </button>
+      <SafeButton :disabled="SpeciesStore.isTuning || invalid !== ''" data-testid="finetune-start" size="small" @click="start()"> Fine-tune </SafeButton>
+      <SafeButton :disabled="SpeciesStore.isTuning" data-testid="finetune-close" size="small" @click="close()"> Close </SafeButton>
     </div>
   </dialog>
 </template>
@@ -42,6 +42,7 @@ import { computed, reactive, ref } from 'vue';
 import { useSpeciesStore } from '../../stores/SpeciesStore';
 import TrainingPanel from './TrainingPanel.vue';
 import NumberField from '../ui/NumberField.vue';
+import SafeButton from '../ui/SafeButton.vue';
 
 const SpeciesStore = useSpeciesStore();
 const dialog = ref(null);
@@ -114,25 +115,9 @@ defineExpose({ open, close });
         color: red;
     }
     .buttons{
+        --fe-button-margin: 0;
         display: flex;
         gap: 0.6rem;
         margin-top: 0.8rem;
-    }
-    .safe-button{
-        font-size: 1rem;
-        border-radius: 1.2rem;
-        border: 0.1rem solid lightgreen;
-        background-color: green;
-        color: lightgreen;
-        cursor: pointer;
-    }
-    .safe-button:hover:not(:disabled){
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
-    .safe-button:disabled{
-        opacity: 0.5;
-        cursor: not-allowed;
     }
 </style>

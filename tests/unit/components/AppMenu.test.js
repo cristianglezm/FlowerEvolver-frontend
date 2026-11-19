@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { reactive } from 'vue';
+import { reactive, nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import { createRouter, createMemoryHistory } from 'vue-router';
@@ -120,4 +120,50 @@ describe('AppMenu tabs', () => {
             expect(router.currentRoute.value.name).toBe('Local');
         });
     });
+    describe('the remote buttons of the menu on a phone, which are blocked for two seconds after one is used', () => {
+        const IDS = ['menu-new-remote-flower', 'menu-remote-reproduce', 'menu-show-remote-descendants'];
+        const buttons = (wrapper) => IDS.map((id) => wrapper.get(`[data-testid="${id}"]`));
+        const reopen = (wrapper) => wrapper.get('[data-testid="menu-toggle"]').trigger('click');
+
+        test('are disabled for two seconds, with the attribute of the button, and click nothing meanwhile', async () => {
+            vi.useFakeTimers({ toFake: ['setTimeout'] });
+            try{
+                const RemoteFlowerStore = useRemoteFlowerStore();
+                const wrapper = await mountMenu({ width: 390, pagination: true, isLocal: false });
+                expect(buttons(wrapper).map((button) => button.element.disabled)).toEqual([false, false, false]);
+
+                // using one closes the menu, and the three are blocked
+                await buttons(wrapper)[0].trigger('click');
+                expect(RemoteFlowerStore.makeRemoteFlower).toHaveBeenCalledTimes(1);
+                await reopen(wrapper);
+                expect(buttons(wrapper).map((button) => button.element.disabled)).toEqual([true, true, true]);
+                expect(buttons(wrapper)[0].attributes()).toHaveProperty('disabled');
+
+                await buttons(wrapper)[1].trigger('click');
+                expect(RemoteFlowerStore.remoteReproduce).not.toHaveBeenCalled();
+
+                vi.advanceTimersByTime(1999);
+                await nextTick();
+                expect(buttons(wrapper).map((button) => button.element.disabled)).toEqual([true, true, true]);
+
+                vi.advanceTimersByTime(1);
+                await nextTick();
+                expect(buttons(wrapper).map((button) => button.element.disabled)).toEqual([false, false, false]);
+                await buttons(wrapper)[1].trigger('click');
+                expect(RemoteFlowerStore.remoteReproduce).toHaveBeenCalledTimes(1);
+            }finally{
+                vi.useRealTimers();
+            }
+        });
+
+        test('the buttons of the browser are not blocked', async () => {
+            const wrapper = await mountMenu({ width: 390, pagination: true, isLocal: true });
+
+            const local = wrapper.findAll('[data-testid^="menu-"][data-testid$="local-flower"], [data-testid="menu-local-reproduce"]');
+
+            expect(local.length).toBeGreaterThan(0);
+            expect(local.every((button) => button.element.disabled === false)).toBe(true);
+        });
+    });
+
 });

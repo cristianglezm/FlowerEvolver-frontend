@@ -26,8 +26,8 @@
       @cancel="SpeciesStore.cancelTraining()"
     />
     <div class="buttons">
-      <button type="button" class="safe-button" :disabled="SpeciesStore.isTuning || invalid !== ''" data-testid="split-start" @click="start()"> Split </button>
-      <button type="button" class="safe-button" :disabled="SpeciesStore.isTuning" data-testid="split-close" @click="close()"> Close </button>
+      <SafeButton :disabled="SpeciesStore.isTuning || invalid !== ''" data-testid="split-start" size="small" @click="start()"> Split </SafeButton>
+      <SafeButton :disabled="SpeciesStore.isTuning" data-testid="split-close" size="small" @click="close()"> Close </SafeButton>
     </div>
   </dialog>
 </template>
@@ -41,6 +41,7 @@ import { computed, reactive, ref } from 'vue';
 import { useSpeciesStore } from '../../stores/SpeciesStore';
 import TrainingPanel from './TrainingPanel.vue';
 import NumberField from '../ui/NumberField.vue';
+import SafeButton from '../ui/SafeButton.vue';
 
 // what SpeciesTrainer needs for every sub-species
 const MIN_PER_CELL = 3;
@@ -129,25 +130,9 @@ defineExpose({ open, close });
         color: red;
     }
     .buttons{
+        --fe-button-margin: 0;
         display: flex;
         gap: 0.6rem;
         margin-top: 0.8rem;
-    }
-    .safe-button{
-        font-size: 0.9rem;
-        border-radius: 1.2rem;
-        border: 0.1rem solid lightgreen;
-        background-color: green;
-        color: lightgreen;
-        cursor: pointer;
-    }
-    .safe-button:hover:not(:disabled){
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
-    .safe-button:disabled{
-        opacity: 0.5;
-        cursor: not-allowed;
     }
 </style>
