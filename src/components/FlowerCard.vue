@@ -13,7 +13,7 @@
           </svg>
         </div>
         <div style="width: 100%; height: 100%; display: flex; justify-content: end">
-          <img :key="props.id" class="pointer favourite-btn" alt="favourite button" data-testid="flower-favourite" :src="data.heartIconSrc" @click="toggleFavourite(props.id)">
+          <FavouriteButton :key="props.id" data-testid="flower-favourite" :favourited="data.favourited" @toggle="toggleFavourite(props.id)" />
           <button class="pointer safe-button" alt="more options" style="font-size: large; font-weight: bold" @click="toggleSecMenu()">+</button>
         </div>
         <Transition name="slide-from-top">
@@ -68,7 +68,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" viewBox="0 0 512 299.283"><path d="M75.334 12.591C10.57-24.337-20.852 28.186 15.131 64.566l200.866 209.613c33.472 33.471 46.534 33.471 80.006 0L496.869 64.566c35.983-36.38 4.561-88.903-60.203-51.975L256 109.944 75.334 12.591z" /></svg>
         </div>
         <div style="width: 100%; height: 100%; display: flex; justify-content: end; position: relative;">
-          <img :key="props.id" class="pointer favourite-btn disabled" alt="favourite button" :src="data.heartIconSrc">
+          <FavouriteButton :key="props.id" :favourited="false" disabled />
           <button class="pointer safe-button" alt="more options" style="font-size: large; font-weight: bold" @click="toggleSecMenu()">+</button>
           <Transition name="slide-from-top">
             <FloatingPanel v-if="data.openSecMenu" :loc="'bottom-end'" :match-parent-width="false" style="width: max-content">
@@ -128,6 +128,7 @@
     import FloatingPanel from "./FloatingPanel.vue";
     import ThreeFlower from "./ThreeFlower.vue";
     import SpeciesBadge from "./species/SpeciesBadge.vue";
+    import FavouriteButton from "./ui/FavouriteButton.vue";
     import JSZip from "jszip";
 
     const props = defineProps({
@@ -154,9 +155,6 @@
     });
     const is3D = ref(false);
     const emissive = ref(false);
-    const loadImage = (url, res) => {
-        return new URL(`/src/assets/${res}/${url}`, import.meta.url);
-    };
     const clamp = (val, min, max) => {
         return Math.min(max, Math.max(val, min));
     }
@@ -194,17 +192,8 @@
         openMainMenu: false,
         openSecMenu: false,
         selected: false,
-        index: 0,
-        heartIconSrc: loadImage("heart_empty.png","x32"),
-        heartAnimation: [
-                        loadImage("heart_empty.png","x32"),
-                        loadImage("heart_filling0.png","x32"),
-                        loadImage("heart_filling1.png","x32"),
-                        loadImage("heart_filling2.png","x32"),
-                        loadImage("heart_filling3.png","x32"),
-                        loadImage("heart_filling4.png","x32"),
-                        loadImage("heart_full.png","x32"),
-                        ],
+        // null until the database has said whether the flower is a favourite
+        favourited: null,
         params: {
                 radius: 64,
                 numLayers: 3,
@@ -233,9 +222,7 @@
             parseParams(props.genome);
             FavouritesStore.isFavourited(props.id)
                 .then((isFav) => {
-                    if(isFav){
-                        data.heartIconSrc = loadImage("heart_full.png","x32");
-                    }
+                    data.favourited = isFav;
                 });
             setTimeout(async () => {
                 const fe = await getFlowerEvolver();
@@ -371,20 +358,16 @@
         }
         return RemoteFlowerStore.isRemoteFlowerSelected({id: props.id, genome: props.genome, image: props.image})
     };
+    // The heart answers at once and the database follows. Only the flowers of the browser have one: the button of
+    // a flower of the server is disabled.
     const toggleFavourite = async (id) => {
-        if(props.isLocal){
-            let isFav = await FavouritesStore.isFavourited(id);
-            if(isFav){
-                data.index = 6;
-                setTimeout(changeHeartIcon, 50, true);
-                FavouritesStore.removeFlowerFromFav(id);
-            }else{
-                data.index = 0;
-                setTimeout(changeHeartIcon, 50, false);
-                await FavouritesStore.addFlowerToFav(id);
-            }
+        let isFav = await FavouritesStore.isFavourited(id);
+        if(isFav){
+            data.favourited = false;
+            FavouritesStore.removeFlowerFromFav(id);
         }else{
-            ErrorStore.push("Add the flower to local first to add it to favourites.");
+            data.favourited = true;
+            await FavouritesStore.addFlowerToFav(id);
         }
     };
     const addToLocal = () => {
@@ -392,16 +375,6 @@
             LocalFlowerStore.addRemoteFlowerToLocal({id: props.id, genome: props.genome, image: props.image});
         }else{
             ErrorStore.push("This flower is a local flower already.");
-        }
-    };
-    const changeHeartIcon = (desc) => {
-        data.heartIconSrc = data.heartAnimation[data.index];
-        if(data.index < 6 && !desc){
-            data.index += 1;
-            setTimeout(changeHeartIcon, 50, desc);
-        }else if(data.index > 0 && desc){
-            data.index -= 1;
-            setTimeout(changeHeartIcon, 50, desc);
         }
     };
     const downloadGenome = () => {
@@ -609,9 +582,6 @@
         cursor: pointer;
         background-color: lightgreen;
         color: green;
-    }
-    .favourite-btn{
-        filter: drop-shadow(2px 2px black);
     }
     .slide-from-top-enter-active,
     .slide-from-top-leave-active{

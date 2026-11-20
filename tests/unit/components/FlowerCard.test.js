@@ -4,6 +4,7 @@ import { nextTick } from 'vue';
 import { mount, flushPromises } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import FlowerCard from '../../../src/components/FlowerCard.vue';
+import FavouriteButton from '../../../src/components/ui/FavouriteButton.vue';
 import { useCaptionerStore } from '../../../src/stores/CaptionerStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 
@@ -26,7 +27,8 @@ vi.mock('../../../src/workers/captioner.worker?worker', () => ({
 }));
 vi.mock('../../../src/stores/LocalFlowerStore', () => ({ useLocalFlowerStore: () => ({ isLocalFlowerSelected: () => false }) }));
 vi.mock('../../../src/stores/RemoteFlowerStore', () => ({ useRemoteFlowerStore: () => ({ isRemoteFlowerSelected: () => false }) }));
-vi.mock('../../../src/stores/FavouritesStore', () => ({ useFavouritesStore: () => ({ isFavourited: async () => false }) }));
+const favourites = vi.hoisted(() => ({ isFavourited: vi.fn(), addFlowerToFav: vi.fn(), removeFlowerFromFav: vi.fn() }));
+vi.mock('../../../src/stores/FavouritesStore', () => ({ useFavouritesStore: () => favourites }));
 vi.mock('../../../src/stores/SettingsStore', () => ({ useSettingsStore: () => ({ settings: { magnification: 2 } }) }));
 
 const stubs = {
@@ -54,6 +56,7 @@ describe('FlowerCard, the text of its image', () => {
 	const alt = () => wrapper.get('.flower-image').attributes('alt');
 
 	beforeEach(() => {
+		favourites.isFavourited.mockReset().mockResolvedValue(false);
 		createTestingPinia({ stubActions: false, createSpy: vi.fn });
 		// the card asks for its stats 100 ms after it is shown: a real timer would fire in a later test
 		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
@@ -167,6 +170,7 @@ describe('FlowerCard, the params of its flower', () => {
 	};
 
 	beforeEach(() => {
+		favourites.isFavourited.mockReset().mockResolvedValue(false);
 		createTestingPinia({ stubActions: false, createSpy: vi.fn });
 		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
 		vi.stubEnv('VITE_APP_DOWNLOAD_URL', 'http://server/download/');
@@ -275,5 +279,93 @@ describe('FlowerCard, the params of its flower', () => {
 
 		expect(getFlowerStats).toHaveBeenCalledTimes(1);
 		expect(getFlowerStats.mock.calls[0][0]).toBe(genome);
+	});
+});
+
+describe('FlowerCard, its heart', () => {
+	const emitter = { on: vi.fn(), off: vi.fn(), emit: vi.fn() };
+	let wrapper;
+	const mountCard = (props = {}) => {
+		wrapper = mount(FlowerCard, {
+			props: { id: 5, genome: GENOME, image: 'data:image/png;base64,', isLocal: true, ...props },
+			global: { provide: { emitter }, stubs: { ZoomableImage: true, ParamsInfo: true, StatsInfo: true, FloatingPanel: true, SpeciesBadge: true } },
+		});
+		return wrapper;
+	};
+	const heart = () => wrapper.getComponent(FavouriteButton);
+
+	beforeEach(() => {
+		favourites.isFavourited.mockReset().mockResolvedValue(false);
+		favourites.addFlowerToFav.mockReset().mockResolvedValue(undefined);
+		favourites.removeFlowerFromFav.mockReset();
+		createTestingPinia({ stubActions: false, createSpy: vi.fn });
+		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+	});
+
+	afterEach(() => {
+		wrapper?.unmount();
+		wrapper = undefined;
+		vi.useRealTimers();
+	});
+
+	test('is not known until the database has answered, then it is the answer', async () => {
+		mountCard();
+		expect(heart().props('favourited')).toBeNull();
+
+		await flushPromises();
+
+		expect(favourites.isFavourited).toHaveBeenCalledWith(5);
+		expect(heart().props('favourited')).toBe(false);
+	});
+
+	test('is full for a flower that is a favourite', async () => {
+		favourites.isFavourited.mockResolvedValue(true);
+
+		mountCard();
+		await flushPromises();
+
+		expect(heart().props('favourited')).toBe(true);
+		expect(heart().attributes('data-testid')).toBe('flower-favourite');
+	});
+
+	test('makes the flower a favourite when it is clicked, and the heart answers before the database does', async () => {
+		let saved;
+		favourites.addFlowerToFav.mockReturnValue(new Promise((resolve) => { saved = resolve; }));
+		mountCard();
+		await flushPromises();
+
+		await heart().trigger('click');
+		await flushPromises();
+
+		expect(heart().props('favourited')).toBe(true);
+		expect(favourites.addFlowerToFav).toHaveBeenCalledExactlyOnceWith(5);
+		expect(favourites.removeFlowerFromFav).not.toHaveBeenCalled();
+		saved();
+	});
+
+	test('takes the flower out of the favourites when it is clicked and it is one', async () => {
+		favourites.isFavourited.mockResolvedValue(true);
+		mountCard();
+		await flushPromises();
+
+		await heart().trigger('click');
+		await flushPromises();
+
+		expect(heart().props('favourited')).toBe(false);
+		expect(favourites.removeFlowerFromFav).toHaveBeenCalledExactlyOnceWith(5);
+		expect(favourites.addFlowerToFav).not.toHaveBeenCalled();
+	});
+
+	test('of a flower of the server is disabled, empty, and does not touch the favourites', async () => {
+		mountCard({ isLocal: false, genome: '5.json' });
+		await flushPromises();
+
+		expect(heart().element.disabled).toBe(true);
+		expect(heart().props('favourited')).toBe(false);
+		expect(heart().attributes('data-testid')).toBeUndefined();
+		await heart().trigger('click');
+		await flushPromises();
+		expect(favourites.isFavourited).not.toHaveBeenCalled();
+		expect(favourites.addFlowerToFav).not.toHaveBeenCalled();
 	});
 });
