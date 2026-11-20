@@ -63,21 +63,21 @@
         </div>
       </nav>
     </div>
-    <div v-if="!isMobile()" class="floating-actions" alt="floating-actions">
-      <div class="floating-actions-left">
-        <FixedButton side="left" data-testid="menu-toggle-chatbot" @click="toggleChatBot()">{{ toggleButtonMessage }}</FixedButton>
-      </div>
-      <div v-if="props.isLocal" class="floating-actions-right">
-        <FixedButton side="right" data-testid="menu-new-local-flower" @click="LocalFlowerStore.makeLocalFlower()">New Local Flower</FixedButton>
-        <FixedButton side="right" data-testid="menu-local-reproduce" @click="LocalFlowerStore.localReproduce()">Local Reproduce Selected</FixedButton>
-        <FixedButton side="right" data-testid="menu-show-local-descendants" @click="showDescendants()">Show Local Selected Descendants</FixedButton>
-      </div>
-      <div v-else class="floating-actions-right">
-        <FixedButton side="right" data-testid="menu-new-remote-flower" :disabled="data.blocked" @click="block(RemoteFlowerStore.makeRemoteFlower)">New Remote Flower</FixedButton>
-        <FixedButton side="right" data-testid="menu-remote-reproduce" :disabled="data.blocked" @click="block(RemoteFlowerStore.remoteReproduce)">Remote Reproduce Selected</FixedButton>
-        <FixedButton side="right" data-testid="menu-show-remote-descendants" :disabled="data.blocked" @click="block(showDescendants)">Show Remote Selected Descendants</FixedButton>
-      </div>
-    </div>
+    <template v-if="!isMobile()">
+      <FixedButtons side="left">
+        <FixedButton data-testid="menu-toggle-chatbot" @click="toggleChatBot()">{{ toggleButtonMessage }}</FixedButton>
+      </FixedButtons>
+      <FixedButtons v-if="props.isLocal" side="right">
+        <FixedButton data-testid="menu-new-local-flower" @click="LocalFlowerStore.makeLocalFlower()">New Local Flower</FixedButton>
+        <FixedButton data-testid="menu-local-reproduce" @click="LocalFlowerStore.localReproduce()">Local Reproduce Selected</FixedButton>
+        <FixedButton data-testid="menu-show-local-descendants" @click="showDescendants()">Show Local Selected Descendants</FixedButton>
+      </FixedButtons>
+      <FixedButtons v-else side="right">
+        <FixedButton data-testid="menu-new-remote-flower" :disabled="data.blocked" @click="block(RemoteFlowerStore.makeRemoteFlower)">New Remote Flower</FixedButton>
+        <FixedButton data-testid="menu-remote-reproduce" :disabled="data.blocked" @click="block(RemoteFlowerStore.remoteReproduce)">Remote Reproduce Selected</FixedButton>
+        <FixedButton data-testid="menu-show-remote-descendants" :disabled="data.blocked" @click="block(showDescendants)">Show Remote Selected Descendants</FixedButton>
+      </FixedButtons>
+    </template>
     <ErrorModal />
     <ConfirmModal :id="'globalConfirm'" :channel="emitter" :on="'showYesNo'" />
   </div>
@@ -95,6 +95,7 @@ import { useSettingsStore } from '../stores/SettingsStore';
 import { useErrorStore } from '../stores/ErrorStore';
 import SafeButton from './ui/SafeButton.vue';
 import FixedButton from './ui/FixedButton.vue';
+import FixedButtons from './ui/FixedButtons.vue';
 
 const props = defineProps({
     isLocal: {
@@ -210,31 +211,6 @@ const isEdgeOrChrome = () => {
         --fe-button-margin: .6rem .6rem 0rem .125rem;
         text-align: right;
         padding-bottom: 0.56rem;
-    }
-    .floating-actions{
-        display: flex;
-        flex-flow: column nowrap;
-        position: fixed;
-        background-color: transparent;
-        pointer-events: none;
-        width: 100%;
-        height: fit-content;
-        z-index: 10;
-        top: 12%;
-    }
-    .floating-actions-left{
-        left: -25px;
-        display: flex;
-        flex-flow: column nowrap;
-        position: fixed;
-        justify-content: space-evenly;
-    }
-    .floating-actions-right{
-        right: -2px;
-        display: flex;
-        flex-flow: column nowrap;
-        justify-content: space-evenly;
-        position: fixed;
     }
     @media only screen and (max-width: 1280px){
         .mobileMenu{

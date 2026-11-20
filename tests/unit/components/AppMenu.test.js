@@ -209,7 +209,7 @@ describe('AppMenu tabs', () => {
 
         test('the actions of the browser are at the right edge and none is blocked', async () => {
             const wrapper = await mountMenu({ width: 1440, pagination: true, isLocal: true });
-            const local = wrapper.findAll('.floating-actions-right button');
+            const local = wrapper.findAll('.fixed-buttons.right button');
 
             expect(local.map((button) => button.attributes('data-testid'))).toEqual(['menu-new-local-flower', 'menu-local-reproduce', 'menu-show-local-descendants']);
             expect(local.every((button) => button.classes().includes('right') && button.element.disabled === false)).toBe(true);

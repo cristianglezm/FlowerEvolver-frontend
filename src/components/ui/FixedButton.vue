@@ -7,21 +7,19 @@
 <script setup>
 /**
  * A button that floats at the edge of the page and slides in when the pointer is over it, for the actions that are
- * always at hand (the ones of the menu on a wide screen). It sits in a column that the menu fixes to the page.
+ * always at hand (the ones of the menu on a wide screen). It goes inside a FixedButtons, which says which edge it is
+ * at and puts it with the others.
  *
  * It is a button: `disabled`, `title`, `id`, `data-testid` and `@click` go to it, and a button that is disabled does
  * not click. A disabled one still slides in, so that it can be seen, but it does not change its colours.
  *
  * @component FixedButton
- * @prop {String} side - the edge it is at: `left` or `right`.
  */
-defineProps({
-    side: {
-        type: String,
-        required: true,
-        validator: (value) => ['left', 'right'].includes(value),
-    },
-});
+import { inject } from 'vue';
+import { FIXED_SIDE } from './fixedButtons';
+
+// it is a ref that follows the group, and it is not there when the button is outside of one (Vue says so)
+const side = inject(FIXED_SIDE);
 </script>
 
 <style scoped>
