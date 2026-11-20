@@ -87,6 +87,29 @@ describe.each([
 	});
 });
 
+describe('SafeButton, the sizes of the buttons of a card', () => {
+	test.each(['compact', 'symbol'])('%s is its own size, and not the small one', (size) => {
+		const classes = mount(SafeButton, { props: { size } }).classes();
+
+		expect(classes).toContain(size);
+		expect(classes).not.toContain('small');
+		expect(classes).not.toContain('normal');
+	});
+
+	test.each(['compact', 'symbol'])('%s is a size that it has, and says nothing', (size) => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+		mount(SafeButton, { props: { size } });
+
+		expect(warn).not.toHaveBeenCalled();
+		warn.mockRestore();
+	});
+
+	test('normal has no class of size', () => {
+		expect(mount(SafeButton).classes()).toEqual(['fe-button', 'safe-button']);
+	});
+});
+
 describe('FixedButton', () => {
 	const mountButton = (options = {}) => mount(FixedButton, { props: { side: 'right' }, slots: { default: ' New Local Flower ' }, ...options });
 

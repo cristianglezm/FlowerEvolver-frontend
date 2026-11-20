@@ -2,27 +2,18 @@
   <div class="FlowerCard" data-testid="flower-card" :data-flower-id="props.id">
     <div v-if="props.isLocal">
       <div class="flowerMenu" :class="{ Selected: data.selected }">
-        <div v-if="!data.openMainMenu" class="drop-menu pointer" data-testid="flower-menu-toggle" @click="toggleMainMenu()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd" viewBox="0 0 512 299.283">
-            <path d="M75.334 286.691c-64.764 36.929-96.186-15.595-60.203-51.975L215.997 25.104c33.472-33.472 46.534-33.472 80.006 0l200.866 209.612c35.983 36.38 4.561 88.904-60.203 51.975L256 189.339 75.334 286.691z" />
-          </svg>
-        </div>
-        <div v-if="data.openMainMenu" class="drop-menu pointer" data-testid="flower-menu-toggle" @click="toggleMainMenu()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd" viewBox="0 0 512 299.283">
-            <path d="M75.334 12.591C10.57-24.337-20.852 28.186 15.131 64.566l200.866 209.613c33.472 33.471 46.534 33.471 80.006 0L496.869 64.566c35.983-36.38 4.561-88.903-60.203-51.975L256 109.944 75.334 12.591z" />
-          </svg>
-        </div>
+        <ChevronButton data-testid="flower-menu-toggle" :open="data.openMainMenu" @click="toggleMainMenu()" />
         <div style="width: 100%; height: 100%; display: flex; justify-content: end">
           <FavouriteButton :key="props.id" data-testid="flower-favourite" :favourited="data.favourited" @toggle="toggleFavourite(props.id)" />
-          <button class="pointer safe-button" alt="more options" style="font-size: large; font-weight: bold" @click="toggleSecMenu()">+</button>
+          <SafeButton size="symbol" data-testid="flower-more" aria-label="More options" @click="toggleSecMenu()">+</SafeButton>
         </div>
         <Transition name="slide-from-top">
           <FloatingPanel v-if="data.openSecMenu" :loc="'bottom-end'" :match-parent-width="false" style="width: max-content; max-width: 90vw; right: 0">
             <div class="secondary-menu">
               <ParamsInfo :params="data.params" />
               <StatsInfo :stats="data.stats" />
-              <button class="safe-button" @click="is3D = !is3D; emissive=false; toggleSecMenu();">3D</button>
-              <button class="safe-button" @click="is3D = !is3D; emissive=true; toggleSecMenu();">E3D</button>
+              <SafeButton size="compact" data-testid="flower-3d" @click="is3D = !is3D; emissive=false; toggleSecMenu();">3D</SafeButton>
+              <SafeButton size="compact" data-testid="flower-e3d" @click="is3D = !is3D; emissive=true; toggleSecMenu();">E3D</SafeButton>
             </div>
           </FloatingPanel>
         </Transition>
@@ -59,24 +50,17 @@
     </div>
     <div v-else>
       <div class="flowerMenu" :class="{ Selected: data.selected }">
-        <div v-if="!data.openMainMenu" class="drop-menu pointer" data-testid="flower-menu-toggle" @click="toggleMainMenu()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" viewBox="0 0 512 299.283">
-            <path d="M75.334 286.691c-64.764 36.929-96.186-15.595-60.203-51.975L215.997 25.104c33.472-33.472 46.534-33.472 80.006 0l200.866 209.612c35.983 36.38 4.561 88.904-60.203 51.975L256 189.339 75.334 286.691z" />
-          </svg>
-        </div>
-        <div v-if="data.openMainMenu" class="drop-menu pointer" data-testid="flower-menu-toggle" @click="toggleMainMenu()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32px" height="32px" class="svg-icon svg-icon-fill" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" viewBox="0 0 512 299.283"><path d="M75.334 12.591C10.57-24.337-20.852 28.186 15.131 64.566l200.866 209.613c33.472 33.471 46.534 33.471 80.006 0L496.869 64.566c35.983-36.38 4.561-88.903-60.203-51.975L256 109.944 75.334 12.591z" /></svg>
-        </div>
+        <ChevronButton data-testid="flower-menu-toggle" :open="data.openMainMenu" @click="toggleMainMenu()" />
         <div style="width: 100%; height: 100%; display: flex; justify-content: end; position: relative;">
           <FavouriteButton :key="props.id" :favourited="false" disabled />
-          <button class="pointer safe-button" alt="more options" style="font-size: large; font-weight: bold" @click="toggleSecMenu()">+</button>
+          <SafeButton size="symbol" data-testid="flower-more" aria-label="More options" @click="toggleSecMenu()">+</SafeButton>
           <Transition name="slide-from-top">
             <FloatingPanel v-if="data.openSecMenu" :loc="'bottom-end'" :match-parent-width="false" style="width: max-content">
               <div class="secondary-menu">
                 <ParamsInfo :params="data.params" />
                 <StatsInfo :stats="data.stats" />
-                <button class="safe-button" @click="is3D = !is3D; emissive=false; toggleSecMenu();">3D</button>
-                <button class="safe-button" @click="is3D = !is3D; emissive=true; toggleSecMenu();">E3D</button>
+                <SafeButton size="compact" data-testid="flower-3d" @click="is3D = !is3D; emissive=false; toggleSecMenu();">3D</SafeButton>
+                <SafeButton size="compact" data-testid="flower-e3d" @click="is3D = !is3D; emissive=true; toggleSecMenu();">E3D</SafeButton>
               </div>
             </FloatingPanel>
           </Transition>
@@ -129,6 +113,8 @@
     import ThreeFlower from "./ThreeFlower.vue";
     import SpeciesBadge from "./species/SpeciesBadge.vue";
     import FavouriteButton from "./ui/FavouriteButton.vue";
+    import ChevronButton from "./ui/ChevronButton.vue";
+    import SafeButton from "./ui/SafeButton.vue";
     import JSZip from "jszip";
 
     const props = defineProps({
@@ -487,6 +473,7 @@
         text-align: center;
     }
     .flowerMenu{
+        --fe-button-margin: 0;
         background-color: green;
         color: lightgreen;
         box-shadow: 0.31rem 0.6rem 0.06rem 0.125rem rgba(12, 13, 12, 0.5);
@@ -501,11 +488,8 @@
         border-style: solid solid solid solid;
         border-color: red;
     }
-    .drop-menu{
-        position: relative;
-        display: inline-block;
-    }
     .secondary-menu{
+        --fe-button-margin: 0;
         display: flex;
         gap: 5px;
         padding: 2px;
@@ -539,49 +523,12 @@
           font-size: 0.9rem;
         }
     }
-    .pointer{
-        cursor: pointer;
-    }
     .main-menu a:hover{
         color: green;
         background-color: lightgreen;
     }
-    .disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
     p{
         color: lightgreen;
-    }
-    svg{
-        filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));
-    }
-    .svg-icon{
-        display: inline-block;
-        color: inherit;
-        vertical-align: middle;
-        fill: none;
-        stroke: currentColor;
-        margin-left: 2px;
-    }
-    .svg-icon-fill{
-        display: inline-block;
-        color: inherit;
-        vertical-align: middle;
-        fill: currentColor;
-        stroke: currentColor;
-    }
-    .safe-button{
-        border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
-        cursor: pointer;
-        border-color: lightgreen;
-        background-color: green;
-        color: lightgreen;
-    }
-    .safe-button:hover{
-        cursor: pointer;
-        background-color: lightgreen;
-        color: green;
     }
     .slide-from-top-enter-active,
     .slide-from-top-leave-active{

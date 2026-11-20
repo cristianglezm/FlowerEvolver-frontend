@@ -10,6 +10,13 @@
 .fe-button.small{
     font-size: 0.9rem;
 }
+.fe-button.compact{
+    font-size: 13.3333px;
+}
+.fe-button.symbol{
+    font-size: large;
+    font-weight: bold;
+}
 .fe-button:disabled{
     opacity: 0.5;
     cursor: not-allowed;

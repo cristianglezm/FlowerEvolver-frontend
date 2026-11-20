@@ -1,5 +1,5 @@
 <template>
-  <button class="fe-button safe-button" :class="{ small: size === 'small' }" type="button">
+  <button class="fe-button safe-button" :class="size === 'normal' ? null : size" type="button">
     <slot />
   </button>
 </template>
@@ -13,13 +13,15 @@
  * when it is not given), on any element above it.
  *
  * @component SafeButton
- * @prop {String} size - `normal`, 1.25rem (0.9rem on a narrow screen), or `small`, 0.9rem on every screen.
+ * @prop {String} size - `normal`, 1.25rem (0.9rem on a narrow screen); `small`, 0.9rem on every screen; `compact`,
+ *   the size of the text of a plain button, for the buttons that sit in the menus of a card; `symbol`, large and bold, for
+ *   a button that is a sign such as `+`.
  */
 defineProps({
     size: {
         type: String,
         default: 'normal',
-        validator: (value) => ['normal', 'small'].includes(value),
+        validator: (value) => ['normal', 'small', 'compact', 'symbol'].includes(value),
     },
 });
 </script>
