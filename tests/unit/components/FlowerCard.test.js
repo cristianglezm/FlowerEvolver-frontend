@@ -36,7 +36,7 @@ vi.mock('../../../src/stores/SettingsStore', () => ({ useSettingsStore: () => ({
 const stubs = {
 	ZoomableImage: { template: '<img class="flower-image" />' },
 	ParamsInfo: true,
-	StatsInfo: true,
+	StatsInfo: { template: '<div />' },
 	FloatingPanel: true,
 	SpeciesBadge: true,
 };
@@ -289,7 +289,7 @@ describe('FlowerCard, its heart', () => {
 	const mountCard = (props = {}) => {
 		wrapper = mount(FlowerCard, {
 			props: { id: 5, genome: GENOME, image: 'data:image/png;base64,', isLocal: true, ...props },
-			global: { provide: { emitter }, stubs: { ZoomableImage: true, ParamsInfo: true, StatsInfo: true, FloatingPanel: true, SpeciesBadge: true } },
+			global: { provide: { emitter }, stubs: { ZoomableImage: true, ParamsInfo: true, StatsInfo: { template: '<div />' }, FloatingPanel: true, SpeciesBadge: true } },
 		});
 		return wrapper;
 	};
@@ -381,7 +381,7 @@ describe.each([
 	const mountCard = () => {
 		wrapper = mount(FlowerCard, {
 			props: { id: 5, genome: isLocal ? GENOME : genome, image: 'data:image/png;base64,', isLocal },
-			global: { provide: { emitter }, stubs: { ZoomableImage: true, ParamsInfo: true, StatsInfo: true, FloatingPanel: PanelStub, SpeciesBadge: true } },
+			global: { provide: { emitter }, stubs: { ZoomableImage: true, ParamsInfo: true, StatsInfo: { template: '<div />' }, FloatingPanel: PanelStub, SpeciesBadge: true } },
 		});
 		return wrapper;
 	};
