@@ -20,7 +20,7 @@ vi.mock('../../../src/services/flowerApiClient', () => {
     };
     return {
         API: 'http://test-api.local/',
-        mapAxiosError: vi.fn((e, offlineMessage) => offlineMessage),
+        describeError: vi.fn((e, offlineMessage) => offlineMessage),
         getFlowers: vi.fn(async ({ limit, offset }) => {
             if(server.offline){
                 throw { response: undefined };

@@ -8,7 +8,7 @@ import { listenToList } from '../../../src/services/listEvents';
 // The network is what is worth isolating here: the actions are run for real, and the lists are the real
 // announcements, so what is checked is what the views would be told.
 vi.mock('../../../src/services/flowerApiClient', () => ({
-	mapAxiosError: vi.fn((e, offlineMessage) => (e.response === undefined ? offlineMessage : e.response.data)),
+	describeError: vi.fn((e, offlineMessage) => (e.response === undefined ? offlineMessage : e.response.data)),
 	getFlowersCount: vi.fn(),
 	createFlower: vi.fn(),
 	shareFlower: vi.fn(),
@@ -151,7 +151,7 @@ describe('RemoteFlowerStore', () => {
 
 			await RemoteFlowerStore.shareFlower('genome-json');
 
-			expect(flowerApiClient.mapAxiosError).toHaveBeenCalledWith({ response: undefined }, 'cannot share flower, server offline');
+			expect(flowerApiClient.describeError).toHaveBeenCalledWith({ response: undefined }, 'cannot share flower, server offline');
 			expect(ErrorStore.push).toHaveBeenCalledWith('cannot share flower, server offline');
 		});
 
