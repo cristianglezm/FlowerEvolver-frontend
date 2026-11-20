@@ -45,19 +45,20 @@ export class ListViewController {
 		await expect.poll(() => this.ids()).toEqual(ids.map(String));
 	}
 
-	nextPageButton(){
-		return this.page.getByRole('button', { name: '>', exact: true });
+	// the arrows are above the list and below it; the ones above are the default
+	nextPageButton(at = 'top'){
+		return this.page.getByTestId(`page-next-${at}`);
 	}
 
-	prevPageButton(){
-		return this.page.getByRole('button', { name: '<', exact: true });
+	prevPageButton(at = 'top'){
+		return this.page.getByTestId(`page-previous-${at}`);
 	}
 
-	async nextPage(){
-		await this.nextPageButton().click();
+	async nextPage(at = 'top'){
+		await this.nextPageButton(at).click();
 	}
 
-	async prevPage(){
-		await this.prevPageButton().click();
+	async prevPage(at = 'top'){
+		await this.prevPageButton(at).click();
 	}
 }

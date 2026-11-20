@@ -45,6 +45,62 @@ describe('PaginationOrInfiniteScroll', () => {
     });
 });
 
+describe('PaginationOrInfiniteScroll, the arrows above and below', () => {
+    const SETS = ['top', 'bottom'];
+    const arrow = (wrapper, name, set) => wrapper.get(`[data-testid="page-${name}-${set}"]`);
+
+    test('has the arrows above the list and below it, and the list between them', () => {
+        const wrapper = mountPaginated(1, 3);
+        const order = wrapper.findAll('nav, p').map((element) => element.element.tagName === 'NAV' ? element.attributes('data-testid') : element.text());
+
+        expect(order).toEqual(['pager-top', 'flowers', 'pager-bottom']);
+        expect(wrapper.findAll('button').map((button) => button.text())).toEqual(['<', '>', '<', '>']);
+    });
+
+    test.each(SETS)('the arrows %s are disabled at the ends and not in the middle', (set) => {
+        const first = mountPaginated(0, 3);
+        expect(arrow(first, 'previous', set).element.disabled).toBe(true);
+        expect(arrow(first, 'next', set).element.disabled).toBe(false);
+        const last = mountPaginated(2, 3);
+        expect(arrow(last, 'previous', set).element.disabled).toBe(false);
+        expect(arrow(last, 'next', set).element.disabled).toBe(true);
+    });
+
+    test.each(SETS)('the arrows %s say next-page and prev-page, only when the move is possible', async (set) => {
+        const middle = mountPaginated(1, 3);
+        await arrow(middle, 'next', set).trigger('click');
+        await arrow(middle, 'previous', set).trigger('click');
+        expect(middle.emitted('next-page')).toHaveLength(1);
+        expect(middle.emitted('prev-page')).toHaveLength(1);
+
+        const first = mountPaginated(0, 3);
+        await arrow(first, 'previous', set).trigger('click');
+        expect(first.emitted('prev-page')).toBeUndefined();
+    });
+
+    test('the two sets follow the page together', async () => {
+        const wrapper = mountPaginated(0, 2);
+
+        await wrapper.setProps({ currentPage: 1 });
+
+        for(const set of SETS){
+            expect(arrow(wrapper, 'previous', set).element.disabled).toBe(false);
+            expect(arrow(wrapper, 'next', set).element.disabled).toBe(true);
+        }
+    });
+
+    test('has no arrows when there is nothing to show', () => {
+        const wrapper = mount(PaginationOrInfiniteScroll, {
+            props: { pagination: true, itemsLength: 0, currentPage: 0, totalPages: 0 },
+            slots: { default: '<p>nothing</p>' },
+        });
+
+        expect(wrapper.findAll('button')).toHaveLength(0);
+        expect(wrapper.findAll('nav')).toHaveLength(0);
+        expect(wrapper.text()).toBe('nothing');
+    });
+});
+
 describe('PaginationOrInfiniteScroll, without pages', () => {
 	let wrapper;
 	const mountInfinite = (anchor) => {

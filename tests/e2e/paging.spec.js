@@ -39,6 +39,31 @@ test.describe('the pages of the Local tab', () => {
 		await expect(list.prevPageButton()).toBeDisabled();
 	});
 
+	test('the arrows are above the list and below it, and the two sets turn the same page', async ({ page }) => {
+		const list = new ListViewController(page);
+		await list.open('/#/Local?page=0');
+		await list.expectIds([7, 6, 5]);
+		const cards = await list.cards().first().boundingBox();
+		for(const at of ['top', 'bottom']){
+			await expect(list.prevPageButton(at)).toBeDisabled();
+			await expect(list.nextPageButton(at)).toBeEnabled();
+		}
+		const above = await list.nextPageButton('top').boundingBox();
+		const below = await list.nextPageButton('bottom').boundingBox();
+		expect(above.y).toBeLessThan(cards.y);
+		expect(below.y).toBeGreaterThan(cards.y);
+
+		await list.nextPage('bottom');
+		await list.expectIds([4, 3, 2]);
+		await list.nextPage('top');
+		await list.expectIds([1]);
+		for(const at of ['top', 'bottom']){
+			await expect(list.nextPageButton(at)).toBeDisabled();
+		}
+		await list.prevPage('bottom');
+		await list.expectIds([4, 3, 2]);
+	});
+
 	test('the view is not loaded again when the page changes', async ({ page }) => {
 		const list = new ListViewController(page);
 		await list.open('/#/Local?page=0');
