@@ -7,7 +7,7 @@
   <div v-else>
     <slot />
     <div v-if="showButton">
-      <button class="return-button" @click="scrollToAnchor()"> back to top </button>
+      <ReturnButton data-testid="back-to-top" @click="scrollToAnchor()" />
     </div>
   </div>
 </template>
@@ -28,6 +28,7 @@
  * @param {number} totalPages - The total number of pages.
  */
 import { onMounted, onBeforeUnmount, ref } from 'vue';
+import ReturnButton from './ui/ReturnButton.vue';
 
 const emit = defineEmits({
     'next-page': null,
@@ -155,26 +156,6 @@ if(!props.pagination){
         opacity: 0.5;
         margin-bottom: -12.5rem;
     }
-    .return-button{
-        position: fixed;
-        right: 2%;
-        bottom: 15%;
-        background-color: green;
-        color: lightgreen;
-        padding: 0.31rem 0.93rem 0.31rem 0.93rem;
-        text-align: center;
-        cursor: pointer;
-        border-radius: 19.68rem 20.93rem 9.68rem 8.43rem;
-        border-color: lightgreen;
-        font-size: 1.25rem;
-        float: right;
-        z-index: 1;
-    }
-    .return-button:hover{
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
 @media only screen and (max-width: 1280px){
     .arrow button{
         font-size: 0.93rem;
@@ -182,9 +163,6 @@ if(!props.pagination){
         padding: 0.125rem 0.75rem 0.125rem 0.75rem;
         top: 50%;
         left: 0.1em;
-    }
-    .return-button{
-        font-size: 0.93rem;
     }
 }
     .arrow button:hover{
