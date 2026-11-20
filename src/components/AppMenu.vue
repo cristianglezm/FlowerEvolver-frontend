@@ -65,17 +65,17 @@
     </div>
     <div v-if="!isMobile()" class="floating-actions" alt="floating-actions">
       <div class="floating-actions-left">
-        <button class="fixed-button left-fixed-button" data-testid="menu-toggle-chatbot" @click="toggleChatBot()">{{ toggleButtonMessage }}</button>
+        <FixedButton side="left" data-testid="menu-toggle-chatbot" @click="toggleChatBot()">{{ toggleButtonMessage }}</FixedButton>
       </div>
       <div v-if="props.isLocal" class="floating-actions-right">
-        <button class="fixed-button right-fixed-button" data-testid="menu-new-local-flower" @click="LocalFlowerStore.makeLocalFlower()"> New Local Flower</button>
-        <button class="fixed-button right-fixed-button" data-testid="menu-local-reproduce" @click="LocalFlowerStore.localReproduce()"> Local Reproduce Selected</button>
-        <button class="fixed-button right-fixed-button" data-testid="menu-show-local-descendants" @click="showDescendants()"> Show Local Selected Descendants</button>
+        <FixedButton side="right" data-testid="menu-new-local-flower" @click="LocalFlowerStore.makeLocalFlower()">New Local Flower</FixedButton>
+        <FixedButton side="right" data-testid="menu-local-reproduce" @click="LocalFlowerStore.localReproduce()">Local Reproduce Selected</FixedButton>
+        <FixedButton side="right" data-testid="menu-show-local-descendants" @click="showDescendants()">Show Local Selected Descendants</FixedButton>
       </div>
       <div v-else class="floating-actions-right">
-        <button class="fixed-button right-fixed-button" data-testid="menu-new-remote-flower" :class="{'disabled': data.blocked}" @click="block(RemoteFlowerStore.makeRemoteFlower)"> New Remote Flower</button>
-        <button class="fixed-button right-fixed-button" data-testid="menu-remote-reproduce" :class="{'disabled': data.blocked}" @click="block(RemoteFlowerStore.remoteReproduce)"> Remote Reproduce Selected</button>
-        <button class="fixed-button right-fixed-button" data-testid="menu-show-remote-descendants" :class="{'disabled': data.blocked}" @click="block(showDescendants)"> Show Remote Selected Descendants</button>
+        <FixedButton side="right" data-testid="menu-new-remote-flower" :disabled="data.blocked" @click="block(RemoteFlowerStore.makeRemoteFlower)">New Remote Flower</FixedButton>
+        <FixedButton side="right" data-testid="menu-remote-reproduce" :disabled="data.blocked" @click="block(RemoteFlowerStore.remoteReproduce)">Remote Reproduce Selected</FixedButton>
+        <FixedButton side="right" data-testid="menu-show-remote-descendants" :disabled="data.blocked" @click="block(showDescendants)">Show Remote Selected Descendants</FixedButton>
       </div>
     </div>
     <ErrorModal />
@@ -94,6 +94,7 @@ import { useRemoteFlowerStore } from '../stores/RemoteFlowerStore';
 import { useSettingsStore } from '../stores/SettingsStore';
 import { useErrorStore } from '../stores/ErrorStore';
 import SafeButton from './ui/SafeButton.vue';
+import FixedButton from './ui/FixedButton.vue';
 
 const props = defineProps({
     isLocal: {
@@ -235,44 +236,6 @@ const isEdgeOrChrome = () => {
         justify-content: space-evenly;
         position: fixed;
     }
-    .fixed-button{
-        position: relative;
-        font-size: 1.25rem;
-        cursor: pointer;
-        border-color: lightgreen;
-        background-color: rgb(37, 39, 41);
-        color: lightgreen;
-        z-index: 10;
-        width: 180px;
-        height: 130px;
-        pointer-events: all;
-        padding-left: 30px;
-        padding-right: 25px;
-        box-shadow: 2px 2px 10px 4px rgba(47, 50, 52, 0.8);
-    }
-    .fixed-button:hover{
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
-    .left-fixed-button{
-        border-radius: 0em  2.0em 2.0em 0.0em;
-        transform: translate(-130px, 0%);
-        transition: transform 0.5s ease;
-    }
-    .left-fixed-button:hover{
-        transform: translate(2px, 0%);
-        transition: transform 0.5s ease;
-    }
-    .right-fixed-button{
-        border-radius: 2em  0.0em 0.0em 2em;
-        transform: translate(140px, 0%);
-        transition: transform 0.5s ease;
-    }
-    .right-fixed-button:hover{
-        transform: translate(-2px, 0%);
-        transition: transform 0.5s ease;
-    }
     @media only screen and (max-width: 1280px){
         .mobileMenu{
             box-shadow: 0.31rem 0.6rem 0.06rem 0.125rem rgba(12, 13, 12, 0.5);
@@ -306,9 +269,5 @@ const isEdgeOrChrome = () => {
             text-align: center;
             padding: 0em 2em 0.5em 5em;
         }
-    }
-    .disabled{
-      opacity: 0.5;
-      cursor: not-allowed !important;
     }
 </style>

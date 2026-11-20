@@ -156,6 +156,36 @@ describe('AppMenu tabs', () => {
             }
         });
 
+        test('are the same on a desktop, where they float on the page: blocked with the attribute for two seconds', async () => {
+            vi.useFakeTimers({ toFake: ['setTimeout'] });
+            try{
+                const RemoteFlowerStore = useRemoteFlowerStore();
+                const wrapper = await mountMenu({ width: 1440, pagination: true, isLocal: false });
+                expect(buttons(wrapper).map((button) => button.element.disabled)).toEqual([false, false, false]);
+
+                await buttons(wrapper)[0].trigger('click');
+                expect(RemoteFlowerStore.makeRemoteFlower).toHaveBeenCalledTimes(1);
+                expect(buttons(wrapper).map((button) => button.element.disabled)).toEqual([true, true, true]);
+                expect(buttons(wrapper)[0].attributes()).toHaveProperty('disabled');
+                expect(buttons(wrapper)[0].classes()).not.toContain('disabled');
+
+                await buttons(wrapper)[1].trigger('click');
+                expect(RemoteFlowerStore.remoteReproduce).not.toHaveBeenCalled();
+
+                vi.advanceTimersByTime(1999);
+                await nextTick();
+                expect(buttons(wrapper).map((button) => button.element.disabled)).toEqual([true, true, true]);
+
+                vi.advanceTimersByTime(1);
+                await nextTick();
+                expect(buttons(wrapper).map((button) => button.element.disabled)).toEqual([false, false, false]);
+                await buttons(wrapper)[1].trigger('click');
+                expect(RemoteFlowerStore.remoteReproduce).toHaveBeenCalledTimes(1);
+            }finally{
+                vi.useRealTimers();
+            }
+        });
+
         test('the buttons of the browser are not blocked', async () => {
             const wrapper = await mountMenu({ width: 390, pagination: true, isLocal: true });
 
@@ -166,4 +196,23 @@ describe('AppMenu tabs', () => {
         });
     });
 
+    describe('the floating buttons of a desktop', () => {
+        test('the one of the chat is at the left edge, and the actions of the tab are at the right edge', async () => {
+            const wrapper = await mountMenu({ width: 1440, pagination: true, isLocal: false });
+            const edge = (id) => wrapper.get(`[data-testid="${id}"]`).classes();
+
+            expect(edge('menu-toggle-chatbot')).toEqual(expect.arrayContaining(['fixed-button', 'left']));
+            for(const id of ['menu-new-remote-flower', 'menu-remote-reproduce', 'menu-show-remote-descendants']){
+                expect(edge(id)).toEqual(expect.arrayContaining(['fixed-button', 'right']));
+            }
+        });
+
+        test('the actions of the browser are at the right edge and none is blocked', async () => {
+            const wrapper = await mountMenu({ width: 1440, pagination: true, isLocal: true });
+            const local = wrapper.findAll('.floating-actions-right button');
+
+            expect(local.map((button) => button.attributes('data-testid'))).toEqual(['menu-new-local-flower', 'menu-local-reproduce', 'menu-show-local-descendants']);
+            expect(local.every((button) => button.classes().includes('right') && button.element.disabled === false)).toBe(true);
+        });
+    });
 });
