@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures';
+import { test, expect, DEFAULT_SETTINGS } from './fixtures';
 import { FakeBackend } from './mockBackend';
 import { AppMenuController } from './controllers/AppMenuController';
 import { ListViewController } from './controllers/ListViewController';
@@ -144,5 +144,25 @@ test.describe('the flowers of the server', () => {
 
 		await browse.expectFlowerCount(0);
 		await expect(page.locator('.ErrorModal')).toHaveCount(0);
+	});
+});
+
+// With pages the list is counted, and a server that is off is said in words, not as the object of the failure
+test.describe('the flowers of the server, one page at a time', () => {
+	test.use({ settings: { ...DEFAULT_SETTINGS, pagination: true } });
+
+	test('Browse with the server offline says that it cannot reach it', async ({ page }) => {
+		const backend = new FakeBackend().seed(5);
+		await backend.install(page);
+		backend.offline = true;
+		const browse = new ListViewController(page);
+
+		await browse.goto('/#/Browse');
+
+		await browse.expectFlowerCount(0);
+		const error = page.locator('.ErrorModal');
+		await expect(error).toContainText('cannot get the remote flowers, server offline');
+		await expect(error).not.toContainText('AxiosError');
+		await expect(error).not.toContainText('Network Error');
 	});
 });

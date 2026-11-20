@@ -25,7 +25,7 @@ export const useRemoteFlowerStore = defineStore('RemoteFlowerStore', {
 				return await flowerApiClient.getFlowersCount();
 			}catch(e){
 				const ErrorStore = useErrorStore();
-				ErrorStore.push(e);
+				ErrorStore.push(flowerApiClient.mapAxiosError(e, "cannot get the remote flowers, server offline"));
 			}
 			return 0;
 		},
@@ -34,7 +34,7 @@ export const useRemoteFlowerStore = defineStore('RemoteFlowerStore', {
 				return await flowerApiClient.getMutationsCount(original);
 			}catch(e){
 				const ErrorStore = useErrorStore();
-				ErrorStore.push(e);
+				ErrorStore.push(flowerApiClient.mapAxiosError(e, "cannot get the remote mutations, server offline"));
 			}
 			return 0;
 		},
@@ -43,7 +43,7 @@ export const useRemoteFlowerStore = defineStore('RemoteFlowerStore', {
 				return await flowerApiClient.getDescendantsCount(fatherID, motherID);
 			}catch(e){
 				const ErrorStore = useErrorStore();
-				ErrorStore.push(e);
+				ErrorStore.push(flowerApiClient.mapAxiosError(e, "cannot get the remote descendants, server offline"));
 				// the pages of a list are counted with it: no number would be NaN pages
 				return 0;
 			}
