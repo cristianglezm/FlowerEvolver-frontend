@@ -50,7 +50,7 @@ vi.mock('../../../src/services/flowerApiClient', () => {
     };
     return {
         API: 'http://test-api.local/',
-        mapAxiosError: vi.fn((e, offlineMessage) => (e.response === undefined ? offlineMessage : e.response.data)),
+        describeError: vi.fn((e, offlineMessage) => (e.response === undefined ? offlineMessage : e.response.data)),
         getMutations: vi.fn(async (original, { limit, offset }) => {
             reach();
             return server.mutations.filter((m) => m.original === original).sort((a, b) => b.id - a.id)

@@ -55,7 +55,7 @@ vi.mock('../../../src/services/flowerApiClient', () => {
     const rows = (father, mother) => (mother === undefined || mother === null ? ofOne(server.descendants, father) : ofPair(server.descendants, father, mother));
     return {
         API: 'http://test-api.local/',
-        mapAxiosError: vi.fn((e, offlineMessage) => (e.response === undefined ? offlineMessage : e.response.data)),
+        describeError: vi.fn((e, offlineMessage) => (e.response === undefined ? offlineMessage : e.response.data)),
         getDescendants: vi.fn(async (father, mother, { limit, offset }) => {
             reach();
             return newest(rows(father, mother)).slice(offset, offset + limit).map((d) => server.flowers.find((f) => f.id === d.id));

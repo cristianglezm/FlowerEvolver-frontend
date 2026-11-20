@@ -25,7 +25,7 @@ export const useRemoteFlowerStore = defineStore('RemoteFlowerStore', {
 				return await flowerApiClient.getFlowersCount();
 			}catch(e){
 				const ErrorStore = useErrorStore();
-				ErrorStore.push(flowerApiClient.mapAxiosError(e, "cannot get the remote flowers, server offline"));
+				ErrorStore.push(flowerApiClient.describeError(e, "cannot get the remote flowers, server offline"));
 			}
 			return 0;
 		},
@@ -34,7 +34,7 @@ export const useRemoteFlowerStore = defineStore('RemoteFlowerStore', {
 				return await flowerApiClient.getMutationsCount(original);
 			}catch(e){
 				const ErrorStore = useErrorStore();
-				ErrorStore.push(flowerApiClient.mapAxiosError(e, "cannot get the remote mutations, server offline"));
+				ErrorStore.push(flowerApiClient.describeError(e, "cannot get the remote mutations, server offline"));
 			}
 			return 0;
 		},
@@ -43,7 +43,7 @@ export const useRemoteFlowerStore = defineStore('RemoteFlowerStore', {
 				return await flowerApiClient.getDescendantsCount(fatherID, motherID);
 			}catch(e){
 				const ErrorStore = useErrorStore();
-				ErrorStore.push(flowerApiClient.mapAxiosError(e, "cannot get the remote descendants, server offline"));
+				ErrorStore.push(flowerApiClient.describeError(e, "cannot get the remote descendants, server offline"));
 				// the pages of a list are counted with it: no number would be NaN pages
 				return 0;
 			}
@@ -60,7 +60,7 @@ export const useRemoteFlowerStore = defineStore('RemoteFlowerStore', {
 				await flowerApiClient.shareFlower(genome);
 			}catch(e){
 				const ErrorStore = useErrorStore();
-				ErrorStore.push(flowerApiClient.mapAxiosError(e, "cannot share flower, server offline"));
+				ErrorStore.push(flowerApiClient.describeError(e, "cannot share flower, server offline"));
 			}
 		},
 		async makeRemoteFlower(){
@@ -70,7 +70,7 @@ export const useRemoteFlowerStore = defineStore('RemoteFlowerStore', {
 				flowerAdded('lastAdded', flower);
 			}catch(e){
 				const ErrorStore = useErrorStore();
-				ErrorStore.push(flowerApiClient.mapAxiosError(e, "cannot make a remote flower, server offline"));
+				ErrorStore.push(flowerApiClient.describeError(e, "cannot make a remote flower, server offline"));
 			}
 		},
 		async remoteReproduce(){
@@ -83,7 +83,7 @@ export const useRemoteFlowerStore = defineStore('RemoteFlowerStore', {
 					flowerAdded('remoteDescendants', flower, { father, mother });
 				}catch(_){
 					const ErrorStore = useErrorStore();
-					ErrorStore.push(flowerApiClient.mapAxiosError(_, "cannot reproduce remote flowers, server offline."));
+					ErrorStore.push(flowerApiClient.describeError(_, "cannot reproduce remote flowers, server offline."));
 				}
 			}else{
 				const ErrorStore = useErrorStore();
@@ -98,7 +98,7 @@ export const useRemoteFlowerStore = defineStore('RemoteFlowerStore', {
 				flowerAdded('remoteMutations', mutation, { original: flower.id });
 			}catch(_){
 				const ErrorStore = useErrorStore();
-				ErrorStore.push(flowerApiClient.mapAxiosError(_, "cannot mutate a remote flower, server offline."));
+				ErrorStore.push(flowerApiClient.describeError(_, "cannot mutate a remote flower, server offline."));
 			}
 		},
 	},

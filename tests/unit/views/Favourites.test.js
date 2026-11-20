@@ -48,7 +48,7 @@ vi.mock('../../../src/services/flowerRepository', () => {
         bulkAddDescriptions: vi.fn(async () => {}),
     };
 });
-vi.mock('../../../src/services/flowerApiClient', () => ({ API: 'http://test-api.local/', mapAxiosError: vi.fn((e) => e) }));
+vi.mock('../../../src/services/flowerApiClient', () => ({ API: 'http://test-api.local/', describeError: vi.fn((e) => e) }));
 vi.mock('../../../src/services/speciesRepository', () => ({ bulkGetSpecies: vi.fn(async (ids) => ids.map(() => undefined)), bulkPutSpecies: vi.fn(async () => {}) }));
 // the species of the flowers that are shown is asked for through ensureFor, which is what these tests look at
 const speciesStore = vi.hoisted(() => ({

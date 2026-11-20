@@ -1,37 +1,32 @@
-import { describe, test, expect, beforeEach, afterEach } from 'vitest';
-import axios from 'axios';
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as flowerApiClient from '../../../src/services/flowerApiClient';
 import { FakeBackend } from '../../e2e/mockBackend';
 
 // The e2e specs of the tabs that need a server cannot run where the suite is written, so what they stand on is
-// tried here: the real API client of the app talks to the fake server, through axios, and what the client asks
+// tried here: the real API client of the app talks to the fake server, through fetch, and what the client asks
 // has to be what the fake answers. A change of the client that the fake does not follow fails here, and not in a
 // browser.
 describe('FakeBackend, as the API client of the app sees it', () => {
 	let backend;
-	let adapter;
 
 	beforeEach(() => {
 		backend = new FakeBackend().seed(5);
-		adapter = axios.defaults.adapter;
-		axios.defaults.adapter = async (config) => {
+		vi.stubGlobal('fetch', async (url, options = {}) => {
 			const answer = backend.respond({
-				method: config.method.toUpperCase(),
-				url: config.url,
-				body: config.data === undefined ? undefined : JSON.parse(config.data),
+				method: options.method,
+				url,
+				body: options.body === undefined ? undefined : JSON.parse(options.body),
 			});
 			if(answer === null){
-				throw Object.assign(new Error('Network Error'), { response: undefined });
+				throw new TypeError('Failed to fetch');
 			}
-			if(answer.status !== 200){
-				throw Object.assign(new Error('failed'), { response: { status: answer.status, data: answer.body } });
-			}
-			return { data: answer.body, status: 200, statusText: 'OK', headers: {}, config };
-		};
+			const text = typeof answer.body === 'string' ? answer.body : JSON.stringify(answer.body);
+			return new Response(text, { status: answer.status });
+		});
 	});
 
 	afterEach(() => {
-		axios.defaults.adapter = adapter;
+		vi.unstubAllGlobals();
 	});
 
 	test('the address of the API is a path that the specs can match', () => {
@@ -95,12 +90,13 @@ describe('FakeBackend, as the API client of the app sees it', () => {
 		expect([mutation.id, child.id]).toEqual([6, 7]);
 	});
 
-	test('cannot be reached when it is offline, as axios says it', async () => {
+	test('cannot be reached when it is offline, as fetch says it', async () => {
 		backend.offline = true;
 
 		const failure = await flowerApiClient.getFlowersCount().catch((e) => e);
 
-		expect(flowerApiClient.mapAxiosError(failure, 'server offline')).toBe('server offline');
+		expect(failure).toBeInstanceOf(TypeError);
+		expect(flowerApiClient.describeError(failure, 'server offline')).toBe('server offline');
 		expect(backend.requests).toHaveLength(0);
 	});
 
