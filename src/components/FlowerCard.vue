@@ -166,12 +166,22 @@
         }
         return number;
     };
-    const parseParams = () => {
-        if(props.genome === ""){
+    // The params of the petals are in the genome. The card of the browser has it as a prop, the card of the server
+    // downloads it. A genome that cannot be read leaves the params as they were.
+    const parseParams = (genome) => {
+        if(!genome){
             return;
         }
-        let json = JSON.parse(props.genome);
-        data.params = json.Flower.petals;
+        let petals;
+        try{
+            petals = JSON.parse(genome).Flower.petals;
+        }catch{
+            return;
+        }
+        if(!petals){
+            return;
+        }
+        data.params = petals;
         data.params.radius = clamp(data.params.radius, 4, 256);
         data.params.numLayers = Math.max(1, data.params.numLayers);
         data.params.P = validateFloat(data.params.P, 6.0);
@@ -220,7 +230,7 @@
     const emitter = inject('emitter');
     onMounted(() => {
         if(props.isLocal){
-            parseParams();
+            parseParams(props.genome);
             FavouritesStore.isFavourited(props.id)
                 .then((isFav) => {
                     if(isFav){
@@ -233,10 +243,20 @@
             }, 100);
         }else{
             setTimeout(async () => {
-                let blob = await fetch(data.DOWNLOAD_URL + props.genome);
-                let genome = await blob.text();
-                const fe = await getFlowerEvolver();
-                data.stats = fe.getFlowerStats(genome, 0.3, 23, 1000, 0);
+                // A server that does not answer is not an error to show: there is one of these per card, and the
+                // card goes on with the default params and no stats.
+                try{
+                    const response = await fetch(data.DOWNLOAD_URL + props.genome);
+                    if(!response.ok){
+                        return;
+                    }
+                    const genome = await response.text();
+                    parseParams(genome);
+                    const fe = await getFlowerEvolver();
+                    data.stats = fe.getFlowerStats(genome, 0.3, 23, 1000, 0);
+                }catch{
+                    // nothing to show, see above
+                }
             }, 100);
         }
         CaptionerStore.channel.on('captioner#done', (e) => {
