@@ -13,7 +13,7 @@ import * as flowerRepository from '../../../src/services/flowerRepository';
 import { classifierJson } from '../helpers/classifier';
 
 // What is under test is the view: what it asks of the store and the tables and what it shows. A flower
-// card is a lot of components and stores, and the settings are all it takes from FlowerStore.
+// card is a lot of components and stores, the selection is what it takes from LocalFlowerStore.
 vi.mock('../../../src/components/FlowersTable.vue', () => ({
     default: {
         props: ['flowers', 'isLocal', 'noFlowerMessage'],
@@ -31,8 +31,16 @@ vi.mock('../../../src/services/flowerRepository', () => ({
     bulkGetFlowers: vi.fn(),
 }));
 const flowerStore = vi.hoisted(() => ({}));
-vi.mock('../../../src/stores/FlowerStore', () => ({
-    useFlowerStore: () => flowerStore,
+vi.mock('../../../src/stores/LocalFlowerStore', () => ({
+    useLocalFlowerStore: () => flowerStore,
+}));
+// the list takes the settings and the offsets from here
+const settingsStore = vi.hoisted(() => ({}));
+// the descriptions of the flowers that are shown are asked for by id
+const captioner = vi.hoisted(() => ({ loadLocalDescriptionsOf: vi.fn(async () => {}) }));
+vi.mock('../../../src/stores/CaptionerStore', () => ({ useCaptionerStore: () => captioner }));
+vi.mock('../../../src/stores/SettingsStore', () => ({
+    useSettingsStore: () => settingsStore,
 }));
 
 const page = { template: '<div />' };
@@ -75,14 +83,14 @@ describe('Species view', () => {
         getContext = vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
         vi.clearAllMocks();
         emitter = { emit: vi.fn() };
-        flowerStore.settings = reactive({ pagination: false, limit: 10 });
+        settingsStore.settings = reactive({ pagination: false, limit: 10 });
         flowerStore.localSelected = reactive({ index: 0, flowers: [] });
         flowerStore.selectLocalFlower = vi.fn((flower) => {
             flowerStore.localSelected.flowers[flowerStore.localSelected.index] = flower.id;
             flowerStore.localSelected.index = (flowerStore.localSelected.index + 1) % 2;
         });
-        flowerStore.calcOffset = (p) => p * flowerStore.settings.limit;
-        flowerStore.increaseOffset = (offset) => offset + flowerStore.settings.limit;
+        settingsStore.calcOffset = (p) => p * settingsStore.settings.limit;
+        settingsStore.increaseOffset = (offset) => offset + settingsStore.settings.limit;
         speciesRepository.countByCell.mockResolvedValue(0);
         speciesRepository.listFlowerIdsByCell.mockResolvedValue([]);
         flowerRepository.bulkGetFlowers.mockImplementation(async (ids) => ids.map((id) => ({ id, genome: 'g', image: 'i' })));
@@ -340,6 +348,35 @@ describe('Species view', () => {
             expect(shownFlowers(wrapper)).toEqual(['9', '7', '4']);
         });
 
+        test('have their species asked for when they are shown, so that the cards have it', async () => {
+            SpeciesStore.selected = { x: 1, y: 0 };
+            speciesRepository.countByCell.mockResolvedValue(3);
+            speciesRepository.listFlowerIdsByCell.mockResolvedValue([9, 7, 4]);
+
+            await mountView();
+
+            expect(SpeciesStore.ensureFor).toHaveBeenCalledExactlyOnceWith([9, 7, 4]);
+            expect(captioner.loadLocalDescriptionsOf).toHaveBeenCalledExactlyOnceWith([9, 7, 4]);
+        });
+
+        test('are asked for without the ones that were deleted, and for none when the species has none', async () => {
+            SpeciesStore.selected = { x: 1, y: 0 };
+            speciesRepository.listFlowerIdsByCell.mockResolvedValue([9, 7, 4]);
+            flowerRepository.bulkGetFlowers.mockResolvedValue([{ id: 9 }, undefined, { id: 4 }]);
+            await mountView();
+            expect(SpeciesStore.ensureFor).toHaveBeenCalledExactlyOnceWith([9, 4]);
+            expect(captioner.loadLocalDescriptionsOf).toHaveBeenCalledExactlyOnceWith([9, 4]);
+
+            SpeciesStore.ensureFor.mockClear();
+            captioner.loadLocalDescriptionsOf.mockClear();
+            speciesRepository.listFlowerIdsByCell.mockResolvedValue([]);
+            flowerRepository.bulkGetFlowers.mockResolvedValue([]);
+            SpeciesStore.selected = { x: 0, y: 0 };
+            await mountView();
+            expect(SpeciesStore.ensureFor.mock.calls.flatMap(([ids]) => ids)).toEqual([]);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls.flatMap(([ids]) => ids)).toEqual([]);
+        });
+
         test('leave out the ones that were deleted since the list was read', async () => {
             SpeciesStore.selected = { x: 1, y: 0 };
             speciesRepository.listFlowerIdsByCell.mockResolvedValue([9, 7, 4]);
@@ -354,7 +391,7 @@ describe('Species view', () => {
         });
 
         test('start at the page of the address, when they come a page at a time', async () => {
-            flowerStore.settings.pagination = true;
+            settingsStore.settings.pagination = true;
             SpeciesStore.selected = { x: 1, y: 0 };
             speciesRepository.countByCell.mockResolvedValue(25);
 
@@ -362,6 +399,50 @@ describe('Species view', () => {
 
             expect(speciesRepository.listFlowerIdsByCell).toHaveBeenCalledWith({ x: 1, y: 0, fp: 'fp1', limit: 10, offset: 10 });
             expect(speciesRepository.countByCell).toHaveBeenCalledWith({ x: 1, y: 0, fp: 'fp1' });
+        });
+
+        test('move a page at a time with the arrows, which put the page in the address, and the back button shows the page before', async () => {
+            settingsStore.settings.pagination = true;
+            SpeciesStore.selected = { x: 1, y: 0 };
+            speciesRepository.countByCell.mockResolvedValue(25);
+            // page p has the ids that are 100 * p + 1 and 100 * p + 2, and so on
+            speciesRepository.listFlowerIdsByCell.mockImplementation(async ({ offset }) => [offset * 10 + 1, offset * 10 + 2]);
+            const wrapper = await mountView();
+            const address = () => router.currentRoute.value.fullPath;
+            const arrow = async (label) => {
+                await wrapper.findAll('button').find((b) => b.text() === label).trigger('click');
+                await flushPromises();
+            };
+            expect(shownFlowers(wrapper)).toEqual(['1', '2']);
+            expect(address()).toBe('/Species');
+
+            await arrow('>');
+            expect(shownFlowers(wrapper)).toEqual(['101', '102']);
+            expect(address()).toBe('/Species?page=1');
+            await arrow('>');
+            expect(shownFlowers(wrapper)).toEqual(['201', '202']);
+            expect(address()).toBe('/Species?page=2');
+
+            router.back();
+            await vi.waitFor(() => expect(shownFlowers(wrapper)).toEqual(['101', '102']));
+            router.back();
+            await vi.waitFor(() => expect(shownFlowers(wrapper)).toEqual(['1', '2']));
+            expect(address()).toBe('/Species');
+        });
+
+        test('are read from the start when another species is selected, and the address does not keep the page of the one before', async () => {
+            settingsStore.settings.pagination = true;
+            SpeciesStore.selected = { x: 1, y: 0 };
+            speciesRepository.countByCell.mockResolvedValue(25);
+            const wrapper = await mountView('/Species?page=2');
+            expect(router.currentRoute.value.fullPath).toBe('/Species?page=2');
+
+            SpeciesStore.selected = { x: 0, y: 1 };
+            await nextTick();
+            await flushPromises();
+
+            expect(wrapper.exists()).toBe(true);
+            expect(router.currentRoute.value.fullPath).toBe('/Species');
         });
 
         test('are read again from the start when another species is selected', async () => {
@@ -585,7 +666,7 @@ describe('Species view', () => {
         });
 
         test('the flowers are the ones of the chosen sub-species, and are read again when it changes', async () => {
-            flowerStore.settings.pagination = true;
+            settingsStore.settings.pagination = true;
             SpeciesStore.submaps = new Map([['1,0', submap]]);
             SpeciesStore.readSubspecies.mockResolvedValue(split());
             await mountView();

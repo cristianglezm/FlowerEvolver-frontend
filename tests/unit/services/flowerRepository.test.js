@@ -1,7 +1,7 @@
 // tests/unit/setup/jsdom.js
 import 'fake-indexeddb/auto';
-import { describe, test, expect, beforeEach, afterAll } from 'vitest';
-import { db } from '../../../src/stores/FlowerStore/db';
+import { describe, test, expect, beforeEach, afterAll, vi } from 'vitest';
+import { db } from '../../../src/services/db';
 import * as flowerRepository from '../../../src/services/flowerRepository';
 
 describe('flowerRepository (real Dexie semantics via fake-indexeddb)', () => {
@@ -55,6 +55,25 @@ describe('flowerRepository (real Dexie semantics via fake-indexeddb)', () => {
 			expect(await flowerRepository.getFlower(1)).toBeUndefined();
 		});
 
+		test('forEachFlower visits every flower once, oldest first, and waits for the last one', async () => {
+			await flowerRepository.bulkAddFlowers([
+				{ id: 1, genome: 'g1', image: 'i1' },
+				{ id: 2, genome: 'g2', image: 'i2' },
+				{ id: 3, genome: 'g3', image: 'i3' },
+			]);
+			const seen = [];
+
+			await flowerRepository.forEachFlower((f) => { seen.push(f.genome); });
+
+			expect(seen).toEqual(['g1', 'g2', 'g3']);
+		});
+
+		test('forEachFlower does not call back when there are no flowers', async () => {
+			const callback = vi.fn();
+			await flowerRepository.forEachFlower(callback);
+			expect(callback).not.toHaveBeenCalled();
+		});
+
 		test('listFlowerIds has the id of every flower, oldest first, and not the deleted ones', async () => {
 			expect(await flowerRepository.listFlowerIds()).toEqual([]);
 
@@ -80,6 +99,33 @@ describe('flowerRepository (real Dexie semantics via fake-indexeddb)', () => {
 
 			await flowerRepository.removeFavourite(id);
 			expect(await flowerRepository.isFavourited(id)).toBe(false);
+		});
+
+		test('listFavourites has the flowers, the highest id first, honoring limit/offset', async () => {
+			const ids = [];
+			for(let i = 1; i <= 5; ++i){
+				ids.push(await flowerRepository.addFlower({ genome: `g${i}`, image: `i${i}` }));
+			}
+			// 1 and 5 are not favourites
+			for(const id of [2, 4, 3]){
+				await flowerRepository.addFavourite(ids[id - 1]);
+			}
+
+			expect((await flowerRepository.listFavourites({ limit: 10, offset: 0 })).map((f) => f.id)).toEqual([4, 3, 2]);
+			expect((await flowerRepository.listFavourites({ limit: 2, offset: 0 })).map((f) => f.id)).toEqual([4, 3]);
+			expect((await flowerRepository.listFavourites({ limit: 2, offset: 2 })).map((f) => f.id)).toEqual([2]);
+			expect(await flowerRepository.listFavourites({ limit: 2, offset: 3 })).toEqual([]);
+			expect((await flowerRepository.listFavourites({ limit: 1, offset: 0 }))[0]).toEqual({ id: 4, genome: 'g4', image: 'i4' });
+		});
+
+		test('listFavourites leaves out a favourite whose flower is gone', async () => {
+			const kept = await flowerRepository.addFlower({ genome: 'g', image: 'i' });
+			const gone = await flowerRepository.addFlower({ genome: 'g', image: 'i' });
+			await flowerRepository.addFavourite(kept);
+			await flowerRepository.addFavourite(gone);
+			await flowerRepository.deleteFlower(gone);
+
+			expect((await flowerRepository.listFavourites({ limit: 10, offset: 0 })).map((f) => f.id)).toEqual([kept]);
 		});
 
 		test('listFavouriteIds and bulkAddFavourites', async () => {

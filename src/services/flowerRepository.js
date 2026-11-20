@@ -1,4 +1,4 @@
-import { db } from '../stores/FlowerStore/db';
+import { db } from './db';
 
 export function ensureOpen(){
 	if(!db.isOpen()){
@@ -24,10 +24,22 @@ export async function bulkAddFlowers(flowers){
 export async function deleteFlower(id){
 	return db.flowers.delete(id);
 }
+// visits every flower, in the order of the table, one at a time: the callers that only summarise the flowers
+// (the charts) do not need them all in memory
+export async function forEachFlower(callback){
+	return db.flowers.toCollection().each(callback);
+}
 export async function listFlowers({limit, offset}){
 	return db.flowers.reverse().offset(offset).limit(limit).toArray();
 }
 
+// the favourites, the one with the highest id first; the table has the id of the flower in each row
+export async function listFavourites({limit, offset}){
+	const ids = await db.favourites.reverse().offset(offset).limit(limit).toArray();
+	const flowers = await db.flowers.bulkGet(ids);
+	// a favourite whose flower is not there has nothing to show
+	return flowers.filter((f) => f !== undefined);
+}
 export async function countFavourites(){
 	return db.favourites.count();
 }

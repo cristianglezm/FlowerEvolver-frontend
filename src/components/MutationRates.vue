@@ -1,89 +1,62 @@
 <template>
   <div id="mutationRates-settings" class="settings-box">
     <h2>Mutation Rates</h2>
-    <div class="labelInputArea">
-      <ToolTip :info="'the rate for adding nodes into the Genome of the Flower.'" />
-      <label for="mutation-addNodeRate">Add Node Rate: </label>
-      <input
-        id="mutation-addNodeRate" v-model.number="mutationRates.addNodeRate" type="number" min="0.0" 
-        max="1.0" @change="validateMutationRates()"
-      >
-    </div>
-    <div class="labelInputArea">
-      <ToolTip :info="'The rate for adding connections into the Genome of the flower.'" />
-      <label for="mutation-addConnRate">Add Connection Rate: </label>
-      <input
-        id="mutation-addConnRate" v-model.number="mutationRates.addConnRate" type="number" min="0.0" 
-        max="1.0" @change="validateMutationRates()"
-      >
-    </div>
-    <div class="labelInputArea">
-      <ToolTip :info="'The rate for removing connections from the Genome of the flower.'" />
-      <label for="mutation-removeConnRate">Remove Connection Rate: </label>
-      <input
-        id="mutation-removeConnRate" v-model.number="mutationRates.removeConnRate" type="number" min="0.0" 
-        max="1.0" @change="validateMutationRates()"
-      >
-    </div>
-    <div class="labelInputArea">
-      <ToolTip :info="'The rate to perturb the weights of connections'" />
-      <label for="mutation-perturbWeightsRate">Perturb Weights Rate: </label>
-      <input
-        id="mutation-perturbWeightsRate" v-model.number="mutationRates.perturbWeightsRate" type="number" min="0.0" 
-        max="1.0" @change="validateMutationRates()"
-      >
-    </div>
-    <div class="labelInputArea">
-      <ToolTip :info="'The rate to enable connections'" />
-      <label for="mutation-enableRate">Enable Rate: </label>
-      <input
-        id="mutation-enableRate" v-model.number="mutationRates.enableRate" type="number" min="0.0" 
-        max="1.0" @change="validateMutationRates()"
-      >
-    </div>
-    <div class="labelInputArea">
-      <ToolTip :info="'The rate to disable connections'" />
-      <label for="mutation-disableRate">Disable Rate: </label>
-      <input
-        id="mutation-disableRate" v-model.number="mutationRates.disableRate" type="number" min="0.0" 
-        max="1.0" @change="validateMutationRates()"
-      >
-    </div>
-    <div class="labelInputArea">
-      <ToolTip :info="'The rate to change the activation type in a random node'" />
-      <label for="mutation-actTypeRate">Activation Type Rate: </label>
-      <input
-        id="mutation-actTypeRate" v-model.number="mutationRates.actTypeRate" type="number" min="0.0" 
-        max="1.0" @change="validateMutationRates()"
-      >
-    </div>
-    <button class="safe-button" @click="restoreDefaults"> Restore defaults </button>
+    <RangeField
+      v-model="mutationRates.addNodeRate" input-id="mutation-addNodeRate" label="Add Node Rate: " tooltip="the rate for adding nodes into the Genome of the Flower."
+      percent :min="0" :max="1" :step="0.01" @change="validateMutationRates()"
+    />
+    <RangeField
+      v-model="mutationRates.addConnRate" input-id="mutation-addConnRate" label="Add Connection Rate: " tooltip="The rate for adding connections into the Genome of the flower."
+      percent :min="0" :max="1" :step="0.01" @change="validateMutationRates()"
+    />
+    <RangeField
+      v-model="mutationRates.removeConnRate" input-id="mutation-removeConnRate" label="Remove Connection Rate: " tooltip="The rate for removing connections from the Genome of the flower."
+      percent :min="0" :max="1" :step="0.01" @change="validateMutationRates()"
+    />
+    <RangeField
+      v-model="mutationRates.perturbWeightsRate" input-id="mutation-perturbWeightsRate" label="Perturb Weights Rate: " tooltip="The rate to perturb the weights of connections"
+      percent :min="0" :max="1" :step="0.01" @change="validateMutationRates()"
+    />
+    <RangeField
+      v-model="mutationRates.enableRate" input-id="mutation-enableRate" label="Enable Rate: " tooltip="The rate to enable connections"
+      percent :min="0" :max="1" :step="0.01" @change="validateMutationRates()"
+    />
+    <RangeField
+      v-model="mutationRates.disableRate" input-id="mutation-disableRate" label="Disable Rate: " tooltip="The rate to disable connections"
+      percent :min="0" :max="1" :step="0.01" @change="validateMutationRates()"
+    />
+    <RangeField
+      v-model="mutationRates.actTypeRate" input-id="mutation-actTypeRate" label="Activation Type Rate: " tooltip="The rate to change the activation type in a random node"
+      percent :min="0" :max="1" :step="0.01" @change="validateMutationRates()"
+    />
+    <SafeButton @click="restoreDefaults"> Restore defaults </SafeButton>
   </div>
 </template>
 
 <script setup>
 
 import { reactive } from 'vue';
-import ToolTip from '../components/ToolTip.vue';
-import { useFlowerStore, STORAGE_KEY } from '../stores/FlowerStore';
+import RangeField from './ui/RangeField.vue';
+import { useSettingsStore } from '../stores/SettingsStore';
+import SafeButton from './ui/SafeButton.vue';
 
-const FlowerStore = useFlowerStore();
+const SettingsStore = useSettingsStore();
 
 const mutationRates = reactive({
-    addNodeRate: FlowerStore.settings.mutationRates.addNodeRate,
-    addConnRate: FlowerStore.settings.mutationRates.addConnRate,
-    removeConnRate: FlowerStore.settings.mutationRates.removeConnRate,
-    perturbWeightsRate: FlowerStore.settings.mutationRates.perturbWeightsRate,
-    enableRate: FlowerStore.settings.mutationRates.enableRate,
-    disableRate: FlowerStore.settings.mutationRates.disableRate,
-    actTypeRate: FlowerStore.settings.mutationRates.actTypeRate
+    addNodeRate: SettingsStore.settings.mutationRates.addNodeRate,
+    addConnRate: SettingsStore.settings.mutationRates.addConnRate,
+    removeConnRate: SettingsStore.settings.mutationRates.removeConnRate,
+    perturbWeightsRate: SettingsStore.settings.mutationRates.perturbWeightsRate,
+    enableRate: SettingsStore.settings.mutationRates.enableRate,
+    disableRate: SettingsStore.settings.mutationRates.disableRate,
+    actTypeRate: SettingsStore.settings.mutationRates.actTypeRate
 });
 
 const clamp = (val, min, max) => {
     return Math.min(max, Math.max(val, min));
 }
 const saveSettings = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(FlowerStore.settings));
+    SettingsStore.saveSettings();
 };
 const restoreDefaults = () => {
     mutationRates.addNodeRate = 0.2;
@@ -103,7 +76,7 @@ const validateMutationRates = () => {
     mutationRates.enableRate = clamp(mutationRates.enableRate, 0.0, 1.0)
     mutationRates.perturbWeightsRate = clamp(mutationRates.perturbWeightsRate, 0.0, 1.0)
     mutationRates.removeConnRate = clamp(mutationRates.removeConnRate, 0.0, 1.0)
-    FlowerStore.settings.mutationRates = mutationRates;
+    SettingsStore.settings.mutationRates = mutationRates;
     saveSettings();
 };
 
@@ -116,40 +89,10 @@ const validateMutationRates = () => {
         margin: 1em 1em;
         border-radius: 1.25rem;
         background-color: green;
-    }
-    .labelInputArea {
-        display: block;
-        padding-top: 0.31rem;
-    }
-    .labelInputArea label{
-        width: 18.3rem;
-        display: inline-block;
-        margin: 0rem 0rem 0rem 0.93rem;
-    }
-    .labelInputArea input[type=number]{
-        vertical-align:top;
-        background-color: green;
-        color: lightgreen;
-        border: solid lightgreen;
-        border-radius: 8rem;
-        margin: 0.125rem 0rem 0rem 0.125rem;
-        width: 15%;
-        text-align: center;
-    }
-    .safe-button{
-        position: relative;
-        font-size: 1.25rem;
-        border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
-        margin: 0.6rem 0.6rem 0rem 1.25rem;
-        cursor: pointer;
-        border-color: lightgreen;
-        background-color: green;
-        color: lightgreen;
-    }
-    .safe-button:hover{
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
+        /* a rate goes from 0 to 100, and the slider of the zoom, that goes through 7 values, is too short for it */
+        --fe-range-width: 30%;
+        /* and on a phone it leaves no room for the label and the value */
+        --fe-range-width-tiny: 15%;
     }
     .settings-box {
         border: 0.25rem solid lightgreen;
@@ -159,23 +102,6 @@ const validateMutationRates = () => {
     }
     .settings-box h2{
         text-align: center;
-    }
-    @media only screen and (max-width: 1280px){
-        .safe-button{
-            font-size: 0.9rem;
-        }
-        .labelInputArea label{
-            width: 9.6rem;
-            display: inline-block;
-            margin: 0rem 0rem 0rem 0.93rem;
-        }
-        .labelInputArea input[type=number]{
-            width: 20%;
-        }
-    }
-    .labelInputArea input[type=number] {
-        appearance: textfield;
-        box-shadow: inset 0rem 0rem 0.3rem 0.125rem black;
     }
 
 </style>

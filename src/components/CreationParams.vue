@@ -1,44 +1,39 @@
 <template>
   <div id="params-settings" class="settings-box">
     <h2>Creation parameters</h2>
-    <div class="labelInputArea">
-      <ToolTip :info="'radius of the flower, min: 4 and max: 256, for bigger radius use the desktop app.'" />
-      <label for="params-radius">Radius: </label>
-      <input id="params-radius" v-model.number="params.radius" type="number" min="4" max="256" @change="validateParams()">
-    </div>
-    <div class="labelInputArea">
-      <ToolTip :info="'A layer is defined by radius / 2.0, the drawing algorithm will do another pass at half radius for each layer.'" />
-      <label for="params-num-layers">Number of Layers: </label>
-      <input id="params-num-layers" v-model.number="params.numLayers" type="number" min="1" @change="validateParams()">
-    </div>
-    <div class="labelInputArea">
-      <ToolTip :info="'It controls how many petals the flower will have.'" />
-      <label for="params-p">P: </label>
-      <input id="params-p" v-model.number="params.P" type="number" @change="validateParams()">
-    </div>
-    <div class="labelInputArea">
-      <ToolTip :info="'bias for the flower'" />
-      <label for="params-bias">Bias: </label>
-      <input id="params-bias" v-model.number="params.bias" type="number" @change="validateParams()">
-    </div>
-    <button class="safe-button" @click="restoreDefaults()"> Restore defaults </button>
+    <NumberField
+      v-model="params.radius" input-id="params-radius" label="Radius: " :min="4" :max="256"
+      tooltip="radius of the flower, min: 4 and max: 256, for bigger radius use the desktop app." @change="validateParams()"
+    />
+    <NumberField
+      v-model="params.numLayers" input-id="params-num-layers" label="Number of Layers: " :min="1"
+      tooltip="A layer is defined by radius / 2.0, the drawing algorithm will do another pass at half radius for each layer."
+      @change="validateParams()"
+    />
+    <NumberField
+      v-model="params.P" input-id="params-p" label="P: " tooltip="It controls how many petals the flower will have."
+      @change="validateParams()"
+    />
+    <NumberField v-model="params.bias" input-id="params-bias" label="Bias: " tooltip="bias for the flower" @change="validateParams()" />
+    <SafeButton @click="restoreDefaults()"> Restore defaults </SafeButton>
   </div>
 </template>
 
 <script setup>
 import { reactive } from 'vue';
-import ToolTip from '../components/ToolTip.vue';
-import { useFlowerStore, STORAGE_KEY } from '../stores/FlowerStore';
+import NumberField from './ui/NumberField.vue';
+import { useSettingsStore } from '../stores/SettingsStore';
 import { FEParams } from '@cristianglezm/flower-evolver-wasm';
 import { getFlowerEvolver } from '../services/flowerEvolver';
+import SafeButton from './ui/SafeButton.vue';
 
-const FlowerStore = useFlowerStore();
+const SettingsStore = useSettingsStore();
 
 const params = reactive({
-    radius: FlowerStore.settings.params.radius,
-    numLayers: FlowerStore.settings.params.numLayers,
-    P: FlowerStore.settings.params.P,
-    bias: FlowerStore.settings.params.bias
+    radius: SettingsStore.settings.params.radius,
+    numLayers: SettingsStore.settings.params.numLayers,
+    P: SettingsStore.settings.params.P,
+    bias: SettingsStore.settings.params.bias
 });
 
 const restoreDefaults = () => {
@@ -66,7 +61,7 @@ const getTimesDivisibleBy = (val, divisor) => {
 const saveSettings = async () => {
     const fe = await getFlowerEvolver();
     fe.setParams(new FEParams(params.radius, params.numLayers, params.P, params.bias));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(FlowerStore.settings));
+    SettingsStore.saveSettings();
 };
 
 const validateParams = () => {
@@ -74,7 +69,7 @@ const validateParams = () => {
     params.numLayers = clamp(params.numLayers, 1, getTimesDivisibleBy(params.radius, 2));
     params.P = validateFloat(params.P, 6.0);
     params.bias = validateFloat(params.bias, 1.0);
-    FlowerStore.settings.params = params;
+    SettingsStore.settings.params = params;
     saveSettings();
 };
 const validateFloat = (number, Default) => {
@@ -93,40 +88,6 @@ const validateFloat = (number, Default) => {
         margin: 1em 1em;
         background-color: green;
     }
-    .labelInputArea {
-        display: block;
-        padding-top: 0.31rem;
-    }
-    .labelInputArea label{
-        width: 18.3rem;
-        display: inline-block;
-        margin: 0rem 0rem 0rem 0.93rem;
-    }
-    .labelInputArea input[type=number]{
-        vertical-align:top;
-        background-color: green;
-        color: lightgreen;
-        border: solid lightgreen;
-        border-radius: 8rem;
-        margin: 0.125rem 0rem 0rem 0.125rem;
-        width: 15%;
-        text-align: center;
-    }
-    .safe-button{
-        position: relative;
-        font-size: 1.25rem;
-        border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
-        margin: 0.6rem 0.6rem 0rem 1.25rem;
-        cursor: pointer;
-        border-color: lightgreen;
-        background-color: green;
-        color: lightgreen;
-    }
-    .safe-button:hover{
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
     .settings-box {
         border: 0.25rem solid lightgreen;
         padding: 0.6rem;
@@ -135,23 +96,6 @@ const validateFloat = (number, Default) => {
     }
     .settings-box h2{
         text-align: center;
-    }
-    @media only screen and (max-width: 1280px){
-        .safe-button{
-            font-size: 0.9rem;
-        }
-        .labelInputArea label{
-            width: 9.6rem;
-            display: inline-block;
-            margin: 0rem 0rem 0rem 0.93rem;
-        }
-        .labelInputArea input[type=number]{
-            width: 20%;
-        }
-    }
-    .labelInputArea input[type=number] {
-        appearance: textfield;
-        box-shadow: inset 0rem 0rem 0.3rem 0.125rem black;
     }
 
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="props.flowers && props.flowers.length" class="grid">
+  <div v-if="props.flowers && props.flowers.length" class="grid" data-testid="flowers-list">
     <div v-for="flower in props.flowers" :key="flower.id">
       <FlowerCard :id="flower.id" :genome="flower.genome" :image="flower.image" :isLocal="props.isLocal" />
     </div>
@@ -11,11 +11,8 @@
 
 <script setup>
 
-import { watch } from 'vue';
 import FlowerCard from './FlowerCard.vue';
-import { useSpeciesStore } from '../stores/SpeciesStore';
 
-const SpeciesStore = useSpeciesStore();
 const props = defineProps({
     flowers:{
         type: Array,
@@ -30,17 +27,6 @@ const props = defineProps({
         required: true
     }
 });
-
-// The species of the flowers on screen is worked out when they are shown, each flower once. It is
-// the only place that knows which flowers are on screen: the views only give this table a list.
-const asked = new Set();
-watch(() => props.flowers.map((flower) => flower.id), (ids) => {
-    const fresh = ids.filter((id) => !asked.has(id));
-    if(props.isLocal && fresh.length > 0){
-        fresh.forEach((id) => asked.add(id));
-        SpeciesStore.ensureFor(fresh);
-    }
-}, { immediate: true });
 </script>
 
 <style scoped>

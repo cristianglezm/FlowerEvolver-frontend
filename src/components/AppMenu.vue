@@ -25,16 +25,16 @@
         </nav>
         <div class="actions" alt="actions">
           <nav v-if="props.isLocal">
-            <button class="safe-button" data-testid="menu-new-local-flower" @click="FlowerStore.makeLocalFlower(); toggleMenu()"> New Local Flower</button>
-            <button class="safe-button" data-testid="menu-local-reproduce" @click="FlowerStore.localReproduce(); toggleMenu()"> Local Reproduce Selected</button>
-            <button class="safe-button" data-testid="menu-show-local-descendants" @click="showAncestors(); toggleMenu()"> Show Local Selected Descendants</button>
-            <button class="safe-button" data-testid="menu-toggle-chatbot" @click="toggleChatBot(); toggleMenu()">{{ toggleButtonMessage }}</button>
+            <SafeButton data-testid="menu-new-local-flower" @click="LocalFlowerStore.makeLocalFlower(); toggleMenu()"> New Local Flower</SafeButton>
+            <SafeButton data-testid="menu-local-reproduce" @click="LocalFlowerStore.localReproduce(); toggleMenu()"> Local Reproduce Selected</SafeButton>
+            <SafeButton data-testid="menu-show-local-descendants" @click="showDescendants(); toggleMenu()"> Show Local Selected Descendants</SafeButton>
+            <SafeButton data-testid="menu-toggle-chatbot" @click="toggleChatBot(); toggleMenu()">{{ toggleButtonMessage }}</SafeButton>
           </nav>
           <nav v-else>
-            <button class="safe-button" data-testid="menu-new-remote-flower" :class="{'disabled': data.blocked}" @click="block(FlowerStore.makeRemoteFlower); toggleMenu()"> New Remote Flower</button>
-            <button class="safe-button" data-testid="menu-remote-reproduce" :class="{'disabled': data.blocked}" @click="block(FlowerStore.remoteReproduce); toggleMenu()"> Remote Reproduce Selected</button>
-            <button class="safe-button" data-testid="menu-show-remote-descendants" :class="{'disabled': data.blocked}" @click="block(showAncestors); toggleMenu()"> Show Remote Selected Descendants</button>
-            <button class="safe-button" data-testid="menu-toggle-chatbot" @click="toggleChatBot(); toggleMenu()">{{ toggleButtonMessage }}</button>
+            <SafeButton data-testid="menu-new-remote-flower" :disabled="data.blocked" @click="block(RemoteFlowerStore.makeRemoteFlower); toggleMenu()"> New Remote Flower</SafeButton>
+            <SafeButton data-testid="menu-remote-reproduce" :disabled="data.blocked" @click="block(RemoteFlowerStore.remoteReproduce); toggleMenu()"> Remote Reproduce Selected</SafeButton>
+            <SafeButton data-testid="menu-show-remote-descendants" :disabled="data.blocked" @click="block(showDescendants); toggleMenu()"> Show Remote Selected Descendants</SafeButton>
+            <SafeButton data-testid="menu-toggle-chatbot" @click="toggleChatBot(); toggleMenu()">{{ toggleButtonMessage }}</SafeButton>
           </nav>
         </div>
       </div>
@@ -63,21 +63,21 @@
         </div>
       </nav>
     </div>
-    <div v-if="!isMobile()" class="floating-actions" alt="floating-actions">
-      <div class="floating-actions-left">
-        <button class="fixed-button left-fixed-button" data-testid="menu-toggle-chatbot" @click="toggleChatBot()">{{ toggleButtonMessage }}</button>
-      </div>
-      <div v-if="props.isLocal" class="floating-actions-right">
-        <button class="fixed-button right-fixed-button" data-testid="menu-new-local-flower" @click="FlowerStore.makeLocalFlower()"> New Local Flower</button>
-        <button class="fixed-button right-fixed-button" data-testid="menu-local-reproduce" @click="FlowerStore.localReproduce()"> Local Reproduce Selected</button>
-        <button class="fixed-button right-fixed-button" data-testid="menu-show-local-descendants" @click="showAncestors()"> Show Local Selected Descendants</button>
-      </div>
-      <div v-else class="floating-actions-right">
-        <button class="fixed-button right-fixed-button" data-testid="menu-new-remote-flower" :class="{'disabled': data.blocked}" @click="block(FlowerStore.makeRemoteFlower)"> New Remote Flower</button>
-        <button class="fixed-button right-fixed-button" data-testid="menu-remote-reproduce" :class="{'disabled': data.blocked}" @click="block(FlowerStore.remoteReproduce)"> Remote Reproduce Selected</button>
-        <button class="fixed-button right-fixed-button" data-testid="menu-show-remote-descendants" :class="{'disabled': data.blocked}" @click="block(showAncestors)"> Show Remote Selected Descendants</button>
-      </div>
-    </div>
+    <template v-if="!isMobile()">
+      <FixedButtons side="left">
+        <FixedButton data-testid="menu-toggle-chatbot" @click="toggleChatBot()">{{ toggleButtonMessage }}</FixedButton>
+      </FixedButtons>
+      <FixedButtons v-if="props.isLocal" side="right">
+        <FixedButton data-testid="menu-new-local-flower" @click="LocalFlowerStore.makeLocalFlower()">New Local Flower</FixedButton>
+        <FixedButton data-testid="menu-local-reproduce" @click="LocalFlowerStore.localReproduce()">Local Reproduce Selected</FixedButton>
+        <FixedButton data-testid="menu-show-local-descendants" @click="showDescendants()">Show Local Selected Descendants</FixedButton>
+      </FixedButtons>
+      <FixedButtons v-else side="right">
+        <FixedButton data-testid="menu-new-remote-flower" :disabled="data.blocked" @click="block(RemoteFlowerStore.makeRemoteFlower)">New Remote Flower</FixedButton>
+        <FixedButton data-testid="menu-remote-reproduce" :disabled="data.blocked" @click="block(RemoteFlowerStore.remoteReproduce)">Remote Reproduce Selected</FixedButton>
+        <FixedButton data-testid="menu-show-remote-descendants" :disabled="data.blocked" @click="block(showDescendants)">Show Remote Selected Descendants</FixedButton>
+      </FixedButtons>
+    </template>
     <ErrorModal />
     <ConfirmModal :id="'globalConfirm'" :channel="emitter" :on="'showYesNo'" />
   </div>
@@ -89,8 +89,13 @@ import { reactive, inject, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import ErrorModal from './ErrorModal.vue';
 import ConfirmModal from './ConfirmModal.vue';
-import { useFlowerStore } from '../stores/FlowerStore';
+import { useLocalFlowerStore } from '../stores/LocalFlowerStore';
+import { useRemoteFlowerStore } from '../stores/RemoteFlowerStore';
+import { useSettingsStore } from '../stores/SettingsStore';
 import { useErrorStore } from '../stores/ErrorStore';
+import SafeButton from './ui/SafeButton.vue';
+import FixedButton from './ui/FixedButton.vue';
+import FixedButtons from './ui/FixedButtons.vue';
 
 const props = defineProps({
     isLocal: {
@@ -104,10 +109,12 @@ let data = reactive({
     showMenu: false
 });
 const emitter = inject('emitter');
-const FlowerStore = useFlowerStore();
+const LocalFlowerStore = useLocalFlowerStore();
+const RemoteFlowerStore = useRemoteFlowerStore();
+const SettingsStore = useSettingsStore();
 const ErrorStore = useErrorStore();
 const router = useRouter();
-const toggleButtonMessage = ref(FlowerStore.settings.showChatBot ? "Close ChatBot":"Open ChatBot");
+const toggleButtonMessage = ref(SettingsStore.settings.showChatBot ? "Close ChatBot":"Open ChatBot");
 
 const block = (Fn) => {
     if(!data.blocked){
@@ -118,16 +125,16 @@ const block = (Fn) => {
         }, 2000);
     }
 };
-const showAncestors = () => {
+const showDescendants = () => {
     if(props.isLocal){
-        let selected = FlowerStore.getLocalSelected;
+        let selected = LocalFlowerStore.getLocalSelected;
         if(selected.length < 1){
             ErrorStore.push('You need to select two flowers');
         }else{
             router.push({name:'DescendantsFatherAndMother', params:{father:selected[0], mother:selected[1], isLocal: "local"}});
         }
     }else{
-        let selected = FlowerStore.getRemoteSelected;
+        let selected = RemoteFlowerStore.getRemoteSelected;
         if(selected.length < 1){
             ErrorStore.push('You need to select two flowers');
         }else{
@@ -139,16 +146,16 @@ const toggleMenu = () => {
     data.showMenu = !data.showMenu;
 };
 const toggleChatBot = () => {
-    FlowerStore.settings.showChatBot = !FlowerStore.settings.showChatBot;
-    if(FlowerStore.settings.showChatBot){
+    SettingsStore.settings.showChatBot = !SettingsStore.settings.showChatBot;
+    if(SettingsStore.settings.showChatBot){
         toggleButtonMessage.value = "Close ChatBot";
     }else{
         toggleButtonMessage.value = "Open ChatBot";
     }
-    FlowerStore.saveSettings();
+    SettingsStore.saveSettings();
 };
 const isPaginated = () => {
-    return FlowerStore.settings.pagination;
+    return SettingsStore.settings.pagination;
 };
 const isMobile = () => {
     return window.innerWidth <= 1280;
@@ -201,85 +208,9 @@ const isEdgeOrChrome = () => {
         padding: 1.25rem 0rem 0rem 0rem;
     }
     .actions{
+        --fe-button-margin: .6rem .6rem 0rem .125rem;
         text-align: right;
         padding-bottom: 0.56rem;
-    }
-    .floating-actions{
-        display: flex;
-        flex-flow: column nowrap;
-        position: fixed;
-        background-color: transparent;
-        pointer-events: none;
-        width: 100%;
-        height: fit-content;
-        z-index: 10;
-        top: 12%;
-    }
-    .floating-actions-left{
-        left: -25px;
-        display: flex;
-        flex-flow: column nowrap;
-        position: fixed;
-        justify-content: space-evenly;
-    }
-    .floating-actions-right{
-        right: -2px;
-        display: flex;
-        flex-flow: column nowrap;
-        justify-content: space-evenly;
-        position: fixed;
-    }
-    .safe-button{
-        font-size: 1.25rem;
-        border-radius: 19.68rem 20.93rem 9.68rem 8.43rem;
-        margin: .6rem .6rem 0rem .125rem;
-        cursor: pointer;
-        border-color: lightgreen;
-        background-color: green;
-        color: lightgreen;
-    }
-    .safe-button:hover{
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
-    .fixed-button{
-        position: relative;
-        font-size: 1.25rem;
-        cursor: pointer;
-        border-color: lightgreen;
-        background-color: rgb(37, 39, 41);
-        color: lightgreen;
-        z-index: 10;
-        width: 180px;
-        height: 130px;
-        pointer-events: all;
-        padding-left: 30px;
-        padding-right: 25px;
-        box-shadow: 2px 2px 10px 4px rgba(47, 50, 52, 0.8);
-    }
-    .fixed-button:hover{
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
-    .left-fixed-button{
-        border-radius: 0em  2.0em 2.0em 0.0em;
-        transform: translate(-130px, 0%);
-        transition: transform 0.5s ease;
-    }
-    .left-fixed-button:hover{
-        transform: translate(2px, 0%);
-        transition: transform 0.5s ease;
-    }
-    .right-fixed-button{
-        border-radius: 2em  0.0em 0.0em 2em;
-        transform: translate(140px, 0%);
-        transition: transform 0.5s ease;
-    }
-    .right-fixed-button:hover{
-        transform: translate(-2px, 0%);
-        transition: transform 0.5s ease;
     }
     @media only screen and (max-width: 1280px){
         .mobileMenu{
@@ -314,12 +245,5 @@ const isEdgeOrChrome = () => {
             text-align: center;
             padding: 0em 2em 0.5em 5em;
         }
-        .safe-button{
-            font-size: 0.9rem;
-        }
-    }
-    .disabled{
-      opacity: 0.5;
-      cursor: not-allowed !important;
     }
 </style>

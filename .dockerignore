@@ -1,1 +1,13 @@
 node_modules
+dist
+.git
+coverage
+test-results
+playwright-report
+tests
+# the secrets of the stack and the files that only the compose file uses must not be sent to the build
+docker/.env
+docker/secrets
+docker/grafana
+docker/prometheus
+docker-compose*.yml

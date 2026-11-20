@@ -39,14 +39,14 @@
       </select>
     </div>
     <div style="text-align: center;">
-      <button class="safe-button" :class="{ 'disabled': isModelLoaded() }" @click="loadModel"> {{ data.btnTitle }}</button>
+      <SafeButton :disabled="isModelLoaded()" @click="loadModel"> {{ data.btnTitle }}</SafeButton>
     </div>
     <div v-if="data.openCache && isModelDownloaded()" style="text-align: center;">
-      <button class="safe-button" @click="data.openCache = false"> Close </button>
+      <SafeButton @click="data.openCache = false"> Close </SafeButton>
       <CacheManager :cacheName="data.cacheKey" @on-delete-host="reloadCache(); forceReload();" @on-delete-files="reloadCache" />
     </div>
     <div v-else style="text-align: center;">
-      <button class="safe-button" :class="{'disabled': !isModelDownloaded() }" :disabled="!isModelDownloaded()" @click="openCacheManager()"> Manage model cache </button>
+      <SafeButton :disabled="!isModelDownloaded()" @click="openCacheManager()"> Manage model cache </SafeButton>
     </div>
   </div>
 </template>
@@ -58,6 +58,7 @@
   import { CacheManager as CM } from '../stores/CacheManager';
   import CacheManager from './CacheManager.vue';
   import ToolTip from './ToolTip.vue';
+  import SafeButton from './ui/SafeButton.vue';
 
   const emitter = inject('emitter');
   const CaptionerStore = useCaptionerStore();
@@ -177,21 +178,6 @@
   .ModelOptions-container h2{
     text-align: center;
   }
-  .safe-button{
-      position: relative;
-      font-size: 1.25rem;
-      border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
-      margin: 0.6rem 0.6rem 0rem 1.25rem;
-      cursor: pointer;
-      border-color: lightgreen;
-      background-color: green;
-      color: lightgreen;
-  }
-  .safe-button:hover{
-      background-color: lightgreen;
-      border-color: green;
-      color: green;
-  }
   .option-box {
       margin-bottom: 0.6rem;
   }
@@ -299,10 +285,6 @@
       opacity: 0.5;
     }
     @media only screen and (max-width: 1280px){
-      .safe-button{
-          font-size: 0.9rem;
-          margin: 0.6rem 0.6rem 0rem 1.25rem;
-      }
       .labelInputArea label{
           width: 5rem;
           display: inline-block;

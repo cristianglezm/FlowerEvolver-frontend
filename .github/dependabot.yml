@@ -19,10 +19,8 @@ updates:
           - "vue"
           - "pinia"
           - "vue-router"
-          - "vue-axios"
       misc:
         patterns:
-          - "axios"
           - "dexie"
           - "mitt"
           - "@cristianglezm/flower-evolver-wasm"

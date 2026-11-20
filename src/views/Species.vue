@@ -11,10 +11,10 @@
           <input id="species-hide-empty" v-model="data.hideEmpty" type="checkbox" data-testid="species-hide-empty">
         </div>
         <div class="actions">
-          <button type="button" class="safe-button" data-testid="species-finetune" @click="fineTune.open()"> Fine-tune... </button>
-          <button v-if="SpeciesStore.hasTuned" type="button" class="unsafe-button" :disabled="!canReset" data-testid="species-reset" @click="askReset()">
+          <SafeButton data-testid="species-finetune" size="small" @click="fineTune.open()"> Fine-tune... </SafeButton>
+          <UnsafeButton v-if="SpeciesStore.hasTuned" :disabled="!canReset" data-testid="species-reset" size="small" @click="askReset()">
             Use the built-in classifier
-          </button>
+          </UnsafeButton>
         </div>
       </div>
       <FineTuneModal ref="fineTune" />
@@ -70,16 +70,21 @@ import FineTuneModal from '../components/species/FineTuneModal.vue';
 import SplitModal from '../components/species/SplitModal.vue';
 import SubspeciesMap from '../components/species/SubspeciesMap.vue';
 import { usePaginatedList } from '../composables/usePaginatedList';
+import { usePageInAddress } from '../composables/usePageInAddress';
 import { useClassifierReset } from '../composables/useClassifierReset';
-import { useFlowerStore } from '../stores/FlowerStore';
+import { useLocalFlowerStore } from '../stores/LocalFlowerStore';
 import { useSpeciesStore } from '../stores/SpeciesStore';
+import { useShownFlowers } from '../composables/useShownFlowers';
 import { useErrorStore } from '../stores/ErrorStore';
 import * as speciesRepository from '../services/speciesRepository';
 import * as flowerRepository from '../services/flowerRepository';
+import SafeButton from '../components/ui/SafeButton.vue';
+import UnsafeButton from '../components/ui/UnsafeButton.vue';
 
 const routes = useRoute();
-const FlowerStore = useFlowerStore();
+const LocalFlowerStore = useLocalFlowerStore();
 const SpeciesStore = useSpeciesStore();
+const whenShown = useShownFlowers();
 const ErrorStore = useErrorStore();
 const { canReset, askReset } = useClassifierReset();
 const fineTune = ref(null);
@@ -103,7 +108,7 @@ const cell = () => {
     }
     return where;
 };
-const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginatedList({
+const paged = usePaginatedList({
     fetchCount: async () => SpeciesStore.selected === null ? 0 : speciesRepository.countByCell(cell()),
     fetchPage: async ({ limit, offset }) => {
         if(SpeciesStore.selected === null){
@@ -112,8 +117,13 @@ const { state, isPaginated, init, nextPage, prevPage, nextBatch } = usePaginated
         const ids = await speciesRepository.listFlowerIdsByCell({ ...cell(), limit, offset });
         const flowers = await flowerRepository.bulkGetFlowers(ids);
         return flowers.filter((flower) => flower !== undefined);
-    }
+    },
+    // the cards show the species they were classified in, which the store reads when it is asked for them, and
+    // their description
+    onLoaded: ({ items }) => whenShown(items)
 });
+const { state, isPaginated, init, nextBatch } = paged;
+const { nextPage, prevPage } = usePageInAddress(paged);
 
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 const summary = computed(() => {
@@ -125,7 +135,7 @@ const summary = computed(() => {
 
 // "Parent 1: #12 (Spiral Iris (2, 3))", the flowers selected to reproduce, in the order they were chosen
 const parents = computed(() => {
-    return FlowerStore.localSelected.flowers.map((id, i) => {
+    return LocalFlowerStore.localSelected.flowers.map((id, i) => {
         const row = SpeciesStore.rowFor(id);
         const sub = row ? SpeciesStore.subLabelFor(row) : '';
         const species = row ? ` (${SpeciesStore.nameOf(row.x, row.y)} (${row.x}, ${row.y})${sub === '' ? '' : ' / ' + sub})` : '';
@@ -141,7 +151,7 @@ const useAsParent = async () => {
         if(id === null){
             return;
         }
-        FlowerStore.selectLocalFlower({ id });
+        LocalFlowerStore.selectLocalFlower({ id });
         await SpeciesStore.ensureFor([id]);
     }catch(e){
         ErrorStore.push(e);
@@ -316,35 +326,9 @@ watch(() => SpeciesStore.status, (now, before) => {
         transform: scale(1);
     }
     .actions{
+        --fe-button-margin: 0;
         display: flex;
         gap: 0.6rem;
-    }
-    .safe-button, .unsafe-button{
-        font-size: 0.9rem;
-        border-radius: 1.2rem;
-        cursor: pointer;
-    }
-    .safe-button{
-        border: 0.1rem solid lightgreen;
-        background-color: green;
-        color: lightgreen;
-    }
-    .safe-button:hover{
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
-    .unsafe-button{
-        border: 0.1rem solid red;
-        background-color: darkred;
-        color: white;
-    }
-    .unsafe-button:hover:not(:disabled){
-        background-color: red;
-    }
-    .unsafe-button:disabled{
-        opacity: 0.5;
-        cursor: not-allowed;
     }
     .parents{
         margin: 0;

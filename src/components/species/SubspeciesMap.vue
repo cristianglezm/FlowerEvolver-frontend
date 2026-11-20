@@ -2,7 +2,7 @@
   <section class="SubspeciesMap" data-testid="subspecies-map">
     <div class="header">
       <h3>{{ props.name }}: sub-species</h3>
-      <button type="button" class="safe-button" :disabled="props.selected === null" data-testid="subspecies-all" @click="emit('select', null)"> All of it </button>
+      <SafeButton :disabled="props.selected === null" data-testid="subspecies-all" size="small" @click="emit('select', null)"> All of it </SafeButton>
     </div>
     <div class="grid" :style="{ gridTemplateColumns: `repeat(${props.model.width}, minmax(0, 1fr))` }">
       <SpeciesCard
@@ -30,6 +30,7 @@
 import { computed } from 'vue';
 import SpeciesCard from './SpeciesCard.vue';
 import { SpeciesModel } from '../../services/SpeciesModel';
+import SafeButton from '../ui/SafeButton.vue';
 
 const props = defineProps({
     model: {
@@ -77,6 +78,7 @@ const isSelected = (cell) => props.selected !== null && props.selected.x === cel
         border-bottom: 0.1rem solid green;
     }
     .header{
+        --fe-button-margin: 0;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
@@ -91,22 +93,5 @@ const isSelected = (cell) => props.selected !== null && props.selected.x === cel
         gap: 0.2rem;
         max-width: 36rem;
         padding-top: 0.4rem;
-    }
-    .safe-button{
-        font-size: 0.9rem;
-        border-radius: 1.2rem;
-        border: 0.1rem solid lightgreen;
-        background-color: green;
-        color: lightgreen;
-        cursor: pointer;
-    }
-    .safe-button:hover:not(:disabled){
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
-    .safe-button:disabled{
-        opacity: 0.5;
-        cursor: not-allowed;
     }
 </style>
