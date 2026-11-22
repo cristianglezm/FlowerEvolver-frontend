@@ -58,6 +58,11 @@ export const useSettingsStore = defineStore('SettingsStore', {
 			this.settings.loadDemoFlowers = load;
 			this.saveSettings();
 		},
+		// The params that the flowers that are made, reproduced or mutated have. What they are limited to is for the wasm to say.
+		setCreationParams({ radius, numLayers, P, bias }){
+			this.settings.params = { radius, numLayers, P, bias };
+			this.saveSettings();
+		},
 		async saveSettings(){
 			localStorage.setItem(STORAGE_KEY, JSON.stringify(this.settings));
 		},

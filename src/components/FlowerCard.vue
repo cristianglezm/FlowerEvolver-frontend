@@ -10,7 +10,7 @@
         <Transition name="slide-from-top">
           <FloatingPanel v-if="data.openSecMenu" :loc="'bottom-end'" :match-parent-width="false" style="width: max-content; max-width: 90vw; right: 0">
             <div class="secondary-menu">
-              <ParamsInfo :params="data.params" />
+              <PetalParams :params="data.params" :known="data.paramsKnown" @use="useForNewFlowers" @edit="data.editing = true" />
               <StatsInfo :stats="data.stats" />
               <SafeButton size="compact" data-testid="flower-3d" @click="is3D = !is3D; emissive=false; toggleSecMenu();">3D</SafeButton>
               <SafeButton size="compact" data-testid="flower-e3d" @click="is3D = !is3D; emissive=true; toggleSecMenu();">E3D</SafeButton>
@@ -57,7 +57,7 @@
           <Transition name="slide-from-top">
             <FloatingPanel v-if="data.openSecMenu" :loc="'bottom-end'" :match-parent-width="false" style="width: max-content">
               <div class="secondary-menu">
-                <ParamsInfo :params="data.params" />
+                <PetalParams :params="data.params" :known="data.paramsKnown" @use="useForNewFlowers" @edit="data.editing = true" />
                 <StatsInfo :stats="data.stats" />
                 <SafeButton size="compact" data-testid="flower-3d" @click="is3D = !is3D; emissive=false; toggleSecMenu();">3D</SafeButton>
                 <SafeButton size="compact" data-testid="flower-e3d" @click="is3D = !is3D; emissive=true; toggleSecMenu();">E3D</SafeButton>
@@ -93,6 +93,10 @@
         <strong>{{ props.id }}</strong>
       </p>
     </div>
+    <PetalParamsDialog
+      v-if="data.editing" :id="props.id" :genome="data.genomeText" :params="data.params" :image-src="getImage()"
+      @close="data.editing = false"
+    />
   </div>
 </template>
 
@@ -106,7 +110,8 @@
     import { useCaptionerStore } from '../stores/CaptionerStore';
     import { useErrorStore } from '../stores/ErrorStore';
     import { useRouter } from 'vue-router';
-    import ParamsInfo from './ParamsInfo.vue';
+    import PetalParams from './PetalParams.vue';
+    import PetalParamsDialog from './PetalParamsDialog.vue';
     import StatsInfo from "./StatsInfo.vue";
     import ZoomableImage from './ZoomableImage.vue';
     import FloatingPanel from "./FloatingPanel.vue";
@@ -170,6 +175,9 @@
         data.params.numLayers = Math.max(1, data.params.numLayers);
         data.params.P = validateFloat(data.params.P, 6.0);
         data.params.bias = validateFloat(data.params.bias, 1.0);
+        // the genome that the params are of, for the editor of them
+        data.genomeText = genome;
+        data.paramsKnown = true;
     };
     const data = reactive({
         IMAGES_URL: import.meta.env.VITE_APP_IMAGES_URL,
@@ -186,6 +194,10 @@
                 P: 6.0,
                 bias: 1.0
                 },
+        // they are the default ones until they are read from the genome
+        paramsKnown: false,
+        genomeText: '',
+        editing: false,
         stats: {},
         lensSize: { x: 100, y: 100 },
     });
@@ -232,24 +244,20 @@
                 }
             }, 100);
         }
-        CaptionerStore.channel.on('captioner#done', (e) => {
-            if(e.id === props.id){
-                data.description = "Flower " + props.id + " - " + e.description;
-                emitter.emit('updateDesc', {
-                    loading: false,
-                    description: e.description
-                });
-            }
-        });
+        CaptionerStore.channel.on('captioner#done', onCaptionerDone);
         data.selected = isSelected();
-        emitter.on('checkSelected', () => {
-            data.selected = isSelected();
-        });
+        emitter.on('checkSelected', onCheckSelected);
     });
+    // Each takes away its own: `off` with no handler takes away all of them, and the cards of a page, and whatever else
+    // listens, share these.
     onUnmounted(() => {
-        emitter.off('checkSelected');
-        CaptionerStore.channel.off('captioner#done');
+        emitter.off('checkSelected', onCheckSelected);
+        CaptionerStore.channel.off('captioner#done', onCaptionerDone);
     });
+    // The flowers that are made, reproduced or mutated from now on have the params of this one
+    const useForNewFlowers = (params) => {
+        SettingsStore.setCreationParams(params);
+    };
     const toggleMainMenu = () => {
       data.openMainMenu = !data.openMainMenu;
     };
@@ -337,6 +345,18 @@
     const showDescendants = () => {
         let localOr = props.isLocal ? "local":"remote";
         router.push({name:'DescendantsFatherOrMother', params:{father: props.id, isLocal: localOr}});
+    };
+    const onCaptionerDone = (e) => {
+        if(e.id === props.id){
+            data.description = "Flower " + props.id + " - " + e.description;
+            emitter.emit('updateDesc', {
+                loading: false,
+                description: e.description
+            });
+        }
+    };
+    const onCheckSelected = () => {
+        data.selected = isSelected();
     };
     const isSelected = () => {
         if(props.isLocal){

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { FEParams } from '@cristianglezm/flower-evolver-wasm';
-import { getFlowerEvolver } from '../../services/flowerEvolver';
+import { getFlowerEvolver, keptPetals } from '../../services/flowerEvolver';
 import * as flowerRepository from '../../services/flowerRepository';
 import * as speciesRepository from '../../services/speciesRepository';
 import { useErrorStore } from '../ErrorStore';
@@ -62,6 +62,58 @@ export const useLocalFlowerStore = defineStore('LocalFlowerStore', {
 			}catch(e){
 				const ErrorStore = useErrorStore();
 				ErrorStore.push(e);
+			}
+		},
+		// The genome drawn with other params than the ones of the settings, for the editor of the params of a flower: the
+		// genome with those params in its petals, its image, and the params. The wasm keeps the params it is given in its
+		// limits and says which it kept in the petals of what it makes, so those are what is drawn and what the genome
+		// has, not what was typed. The evolver is left with the params that it had, nothing here is for the settings.
+		async drawFlowerWithParams(genome, params){
+			const kept = await keptPetals(params);
+			const fe = await getFlowerEvolver();
+			const before = fe.getParams();
+			try{
+				fe.setParams(new FEParams(kept.radius, kept.numLayers, kept.P, kept.bias));
+				const edited = JSON.parse(genome);
+				edited.Flower.petals = kept;
+				const editedGenome = JSON.stringify(edited);
+				const drawn = await fe.drawFlower(editedGenome);
+				return { genome: editedGenome, image: drawn.image, params: kept };
+			}finally{
+				if(before){
+					fe.setParams(before);
+				}
+			}
+		},
+		// The flower with other params, as a new flower of the browser: the one that it comes from is left as it is.
+		async addFlowerWithParams(genome, params){
+			try{
+				flowerRepository.ensureOpen();
+				let drawn;
+				try{
+					drawn = await this.drawFlowerWithParams(genome, params);
+				}catch(_){
+					const ErrorStore = useErrorStore();
+					ErrorStore.push("couldn't draw the flower with those params.");
+					return undefined;
+				}
+				const flower = { genome: drawn.genome, image: drawn.image };
+				flower.id = await flowerRepository.addFlower(flower)
+				.catch(e => {
+					const ErrorStore = useErrorStore();
+					ErrorStore.push(e);
+				});
+				// without an id it was not stored, and a flower that is not in the table is not for the list
+				if(flower.id === undefined){
+					return undefined;
+				}
+				flowerAdded('local', flower);
+				useSpeciesStore().classifyLater(flower.id);
+				return flower;
+			}catch(e){
+				const ErrorStore = useErrorStore();
+				ErrorStore.push(e);
+				return undefined;
 			}
 		},
 		selectLocalFlower(flower){

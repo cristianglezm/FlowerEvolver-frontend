@@ -6,6 +6,7 @@ import { useErrorStore } from '../../../src/stores/ErrorStore';
 import * as flowerRepository from '../../../src/services/flowerRepository';
 import * as speciesRepository from '../../../src/services/speciesRepository';
 import { getFlowerEvolver } from '../../../src/services/flowerEvolver';
+import { FEParams } from '@cristianglezm/flower-evolver-wasm';
 import { listenToList } from '../../../src/services/listEvents';
 
 // flowerRepository (Dexie) is exactly what's worth isolating here - IndexedDB.
@@ -560,6 +561,211 @@ describe('LocalFlowerStore', () => {
 				[16, 2, 4.5, 0.5],
 				[8, 1, 2, 0.25],
 			]);
+		});
+	});
+
+	describe('a flower drawn with other params (real wasm, mocked persistence)', () => {
+		const BEFORE = { radius: 64, numLayers: 3, P: 6, bias: 1 };
+		const pixels = (image) => {
+			const bytes = Buffer.from(image.replace(/^data:image\/png;base64,/, ''), 'base64');
+			return [bytes.readUInt32BE(16), bytes.readUInt32BE(20)];
+		};
+		const petalsOf = (genome) => JSON.parse(genome).Flower.petals;
+		const dnaOf = (genome) => JSON.stringify(JSON.parse(genome).Flower.dna);
+		let genome;
+		let fe;
+
+		beforeEach(async () => {
+			fe = await getFlowerEvolver();
+			fe.setParams(new FEParams(BEFORE.radius, BEFORE.numLayers, BEFORE.P, BEFORE.bias));
+			genome = (await fe.makeFlower()).genome;
+			vi.clearAllMocks();
+			flowerRepository.addFlower.mockResolvedValue(9);
+		});
+
+		describe('drawFlowerWithParams', () => {
+			test('is the genome with the params in its petals, and the dna that it had', async () => {
+				const drawn = await LocalFlowerStore.drawFlowerWithParams(genome, { radius: 32, numLayers: 2, P: 4.5, bias: 0.5 });
+
+				expect(petalsOf(drawn.genome)).toEqual({ radius: 32, numLayers: 2, P: 4.5, bias: 0.5 });
+				expect(dnaOf(drawn.genome)).toBe(dnaOf(genome));
+				expect(drawn.params).toEqual({ radius: 32, numLayers: 2, P: 4.5, bias: 0.5 });
+			});
+
+			test('is drawn with them: the size of the image is the one of the radius', async () => {
+				const small = await LocalFlowerStore.drawFlowerWithParams(genome, { radius: 32, numLayers: 2, P: 6, bias: 1 });
+				const big = await LocalFlowerStore.drawFlowerWithParams(genome, { radius: 128, numLayers: 3, P: 6, bias: 1 });
+
+				expect(small.image).toMatch(/^data:image\/png;base64,/);
+				expect(pixels(small.image)).toEqual([64, 96]);
+				expect(pixels(big.image)).toEqual([256, 384]);
+			});
+
+			test('is drawn with them and not with the ones of the settings', async () => {
+				SettingsStore.settings.params = { radius: 16, numLayers: 2, P: 1, bias: 1 };
+
+				const drawn = await LocalFlowerStore.drawFlowerWithParams(genome, { radius: 128, numLayers: 3, P: 6, bias: 1 });
+
+				expect(pixels(drawn.image)).toEqual([256, 384]);
+			});
+
+			test('keeps the params that the wasm kept: it limits them, and says so, so the genome does not have what was not drawn', async () => {
+				const drawn = await LocalFlowerStore.drawFlowerWithParams(genome, { radius: 1, numLayers: 20, P: 6, bias: 1 });
+				const asked = await LocalFlowerStore.drawFlowerWithParams(genome, { radius: 4, numLayers: 2, P: 6, bias: 1 });
+
+				expect(drawn.params).toEqual({ radius: 4, numLayers: 2, P: 6, bias: 1 });
+				expect(petalsOf(drawn.genome)).toEqual(drawn.params);
+				// The size is what says that a radius of 4 was drawn. Two images of the same genome are not compared: the wasm does not
+				// draw the same one twice (about one genome in six comes out different), so that would fail one run in five.
+				expect(pixels(drawn.image)).toEqual([8, 12]);
+				expect(pixels(asked.image)).toEqual([8, 12]);
+				expect(asked.params).toEqual(drawn.params);
+				expect(petalsOf(asked.genome)).toEqual(petalsOf(drawn.genome));
+			});
+
+			test.each([
+				[{ radius: 512, numLayers: 3, P: 6, bias: 1 }, { radius: 256, numLayers: 3, P: 6, bias: 1 }],
+				[{ radius: 64, numLayers: 0, P: 6, bias: 1 }, { radius: 64, numLayers: 1, P: 6, bias: 1 }],
+				[{ radius: 64, numLayers: 20, P: 6, bias: 1 }, { radius: 64, numLayers: 6, P: 6, bias: 1 }],
+				[{ radius: 64, numLayers: 2.7, P: 6, bias: 1 }, { radius: 64, numLayers: 2, P: 6, bias: 1 }],
+			])('has %j as %j, which is what the wasm says', async (given, kept) => {
+				const drawn = await LocalFlowerStore.drawFlowerWithParams(genome, given);
+
+				expect(drawn.params).toEqual(kept);
+			});
+
+			test('stores nothing, announces nothing and does not ask for a species', async () => {
+				await LocalFlowerStore.drawFlowerWithParams(genome, { radius: 32, numLayers: 2, P: 6, bias: 1 });
+
+				expect(flowerRepository.addFlower).not.toHaveBeenCalled();
+				expect(announced).toEqual([]);
+				expect(speciesStore.classifyLater).not.toHaveBeenCalled();
+			});
+
+			test('does not touch the settings', async () => {
+				const before = JSON.stringify(SettingsStore.settings);
+
+				await LocalFlowerStore.drawFlowerWithParams(genome, { radius: 32, numLayers: 2, P: 4.5, bias: 0.5 });
+
+				expect(JSON.stringify(SettingsStore.settings)).toBe(before);
+			});
+
+			test('leaves the evolver with the params that it had', async () => {
+				const had = fe.getParams();
+
+				await LocalFlowerStore.drawFlowerWithParams(genome, { radius: 32, numLayers: 2, P: 4.5, bias: 0.5 });
+
+				expect(fe.getParams()).toBe(had);
+				expect(fe.getParams()).toMatchObject(BEFORE);
+			});
+
+			test('leaves the evolver with the params that it had when it cannot draw, and says why', async () => {
+				const had = fe.getParams();
+
+				await expect(LocalFlowerStore.drawFlowerWithParams('not a genome', { radius: 32, numLayers: 2, P: 4.5, bias: 0.5 })).rejects.toThrow();
+
+				expect(fe.getParams()).toBe(had);
+			});
+
+			test('does not change the genome that it is given', async () => {
+				const copy = genome;
+
+				await LocalFlowerStore.drawFlowerWithParams(genome, { radius: 32, numLayers: 2, P: 4.5, bias: 0.5 });
+
+				expect(genome).toBe(copy);
+				expect(petalsOf(genome)).toEqual(BEFORE);
+			});
+		});
+
+		describe('addFlowerWithParams', () => {
+			const PARAMS = { radius: 32, numLayers: 2, P: 4.5, bias: 0.5 };
+
+			test('stores a new flower with the params in its genome, drawn with them', async () => {
+				const flower = await LocalFlowerStore.addFlowerWithParams(genome, PARAMS);
+
+				expect(flowerRepository.ensureOpen).toHaveBeenCalled();
+				expect(flowerRepository.addFlower).toHaveBeenCalledTimes(1);
+				const [stored] = flowerRepository.addFlower.mock.calls[0];
+				expect(petalsOf(stored.genome)).toEqual(PARAMS);
+				expect(dnaOf(stored.genome)).toBe(dnaOf(genome));
+				expect(pixels(stored.image)).toEqual([64, 96]);
+				expect(flower).toMatchObject({ id: 9, genome: stored.genome, image: stored.image });
+			});
+
+			test('announces the flower to the list of the browser, with its id, and asks for its species', async () => {
+				const flower = await LocalFlowerStore.addFlowerWithParams(genome, PARAMS);
+
+				expect(announced).toEqual([['added', flower]]);
+				expect(flower.id).toBe(9);
+				expect(speciesStore.classifyLater).toHaveBeenCalledExactlyOnceWith(9);
+			});
+
+			test('is not a descendant nor a mutation of the flower that it comes from', async () => {
+				await LocalFlowerStore.addFlowerWithParams(genome, PARAMS);
+
+				expect(toLocalMutations).toEqual([]);
+				expect(toLocalDescendants).toEqual([]);
+				expect(flowerRepository.addMutation).not.toHaveBeenCalled();
+				expect(flowerRepository.addDescendant).not.toHaveBeenCalled();
+			});
+
+			test('has the params that the wasm kept', async () => {
+				await LocalFlowerStore.addFlowerWithParams(genome, { radius: 1, numLayers: 20, P: 6, bias: 1 });
+
+				const [stored] = flowerRepository.addFlower.mock.calls[0];
+				expect(petalsOf(stored.genome)).toEqual({ radius: 4, numLayers: 2, P: 6, bias: 1 });
+			});
+
+			test('does not touch the settings, and leaves the evolver with the params that it had', async () => {
+				const had = fe.getParams();
+				const before = JSON.stringify(SettingsStore.settings);
+
+				await LocalFlowerStore.addFlowerWithParams(genome, PARAMS);
+
+				expect(JSON.stringify(SettingsStore.settings)).toBe(before);
+				expect(fe.getParams()).toBe(had);
+			});
+
+			test('says that it could not draw, and stores nothing, when the genome is not one', async () => {
+				const flower = await LocalFlowerStore.addFlowerWithParams('not a genome', PARAMS);
+
+				expect(flower).toBeUndefined();
+				expect(ErrorStore.push).toHaveBeenCalledExactlyOnceWith("couldn't draw the flower with those params.");
+				expect(flowerRepository.addFlower).not.toHaveBeenCalled();
+				expect(announced).toEqual([]);
+				expect(speciesStore.classifyLater).not.toHaveBeenCalled();
+			});
+
+			test('leaves the evolver with the params that it had when it could not draw', async () => {
+				const had = fe.getParams();
+
+				await LocalFlowerStore.addFlowerWithParams('not a genome', PARAMS);
+
+				expect(fe.getParams()).toBe(had);
+			});
+
+			test('says why when the flower cannot be stored, and does not announce what is not in the table', async () => {
+				const failure = new Error('quota exceeded');
+				flowerRepository.addFlower.mockRejectedValue(failure);
+
+				const flower = await LocalFlowerStore.addFlowerWithParams(genome, PARAMS);
+
+				expect(flower).toBeUndefined();
+				expect(ErrorStore.push).toHaveBeenCalledExactlyOnceWith(failure);
+				expect(announced).toEqual([]);
+				expect(speciesStore.classifyLater).not.toHaveBeenCalled();
+			});
+
+			test('says why when the table cannot be opened', async () => {
+				const failure = new Error('blocked');
+				flowerRepository.ensureOpen.mockImplementation(() => { throw failure; });
+
+				const flower = await LocalFlowerStore.addFlowerWithParams(genome, PARAMS);
+
+				expect(flower).toBeUndefined();
+				expect(ErrorStore.push).toHaveBeenCalledExactlyOnceWith(failure);
+				expect(flowerRepository.addFlower).not.toHaveBeenCalled();
+			});
 		});
 	});
 });

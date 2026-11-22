@@ -170,6 +170,53 @@ describe('SettingsStore', () => {
 		});
 	});
 
+	describe('setCreationParams', () => {
+		const PARAMS = { radius: 128, numLayers: 5, P: 3.5, bias: -2 };
+
+		test('are the params that the flowers that are made have from then on', () => {
+			const store = useSettingsStore();
+
+			store.setCreationParams(PARAMS);
+
+			expect(store.settings.params).toEqual(PARAMS);
+		});
+
+		test('are kept: they are saved, and found again by a store that starts afterwards', () => {
+			useSettingsStore().setCreationParams(PARAMS);
+
+			expect(JSON.parse(localStorage.getItem(STORAGE_KEY)).params).toEqual(PARAMS);
+			setActivePinia(createPinia());
+			expect(useSettingsStore().settings.params).toEqual(PARAMS);
+		});
+
+		test('are the four params and nothing that comes with them', () => {
+			const store = useSettingsStore();
+
+			store.setCreationParams({ ...PARAMS, extra: 'x', id: 7 });
+
+			expect(Object.keys(store.settings.params).sort()).toEqual(['P', 'bias', 'numLayers', 'radius']);
+		});
+
+		test('leave the other settings as they were', () => {
+			const store = useSettingsStore();
+			const before = { ...store.settings, params: undefined };
+
+			store.setCreationParams(PARAMS);
+
+			expect({ ...store.settings, params: undefined }).toEqual(before);
+		});
+
+		test('are a copy: the ones that were given can change without changing the settings', () => {
+			const store = useSettingsStore();
+			const given = { ...PARAMS };
+
+			store.setCreationParams(given);
+			given.radius = 4;
+
+			expect(store.settings.params.radius).toBe(128);
+		});
+	});
+
 	describe('the offsets of the lists, which depend on how many flowers are in a page', () => {
 		test.each([[1, 0, 1], [100, 100, 200], [25, 50, 75]])('with a limit of %i the offset that follows %i is %i', (limit, offset, expected) => {
 			const store = useSettingsStore();
