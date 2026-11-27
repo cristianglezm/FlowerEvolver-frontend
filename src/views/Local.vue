@@ -18,12 +18,12 @@ import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll
 import { useSettingsStore } from '../stores/SettingsStore';
 import { useErrorStore } from '../stores/ErrorStore';
 import { useShownFlowers } from '../composables/useShownFlowers';
-import * as flowerRepository from '../services/flowerRepository';
+import * as flowerRepository from '../repositories/flowerRepository';
 import { usePaginatedList } from '../composables/usePaginatedList';
 import { usePageInAddress } from '../composables/usePageInAddress';
 import { useRoute } from 'vue-router';
 import importWorker from '../workers/import.worker?worker';
-import WorkerManager from '../stores/WorkerManager';
+import WorkerManager from '../services/WorkerManager';
 import mitt from 'mitt';
 
 const routes = useRoute();

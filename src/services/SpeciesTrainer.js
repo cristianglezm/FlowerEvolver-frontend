@@ -1,5 +1,5 @@
 import { SpeciesClient } from './SpeciesClient';
-import * as flowerRepository from './flowerRepository';
+import * as flowerRepository from '../repositories/flowerRepository';
 
 // Flowers are read and rendered in small batches: the stored images never all sit in memory at once.
 const BATCH = 25;

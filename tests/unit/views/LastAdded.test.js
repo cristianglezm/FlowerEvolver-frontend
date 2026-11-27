@@ -30,8 +30,8 @@ vi.mock('../../../src/services/flowerApiClient', () => {
         createFlower: vi.fn(async () => create()),
     };
 });
-vi.mock('../../../src/services/flowerRepository', () => ({ ensureOpen: vi.fn() }));
-vi.mock('../../../src/services/speciesRepository', () => ({}));
+vi.mock('../../../src/repositories/flowerRepository', () => ({ ensureOpen: vi.fn() }));
+vi.mock('../../../src/repositories/speciesRepository', () => ({}));
 vi.mock('../../../src/stores/SpeciesStore', () => ({ useSpeciesStore: () => ({}) }));
 vi.mock('../../../src/components/FlowersTable.vue', () => ({
     default: {

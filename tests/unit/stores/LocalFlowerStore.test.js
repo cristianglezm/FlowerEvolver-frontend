@@ -3,14 +3,14 @@ import { createTestingPinia } from '@pinia/testing';
 import { useLocalFlowerStore } from '../../../src/stores/LocalFlowerStore';
 import { useSettingsStore } from '../../../src/stores/SettingsStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
-import * as flowerRepository from '../../../src/services/flowerRepository';
-import * as speciesRepository from '../../../src/services/speciesRepository';
+import * as flowerRepository from '../../../src/repositories/flowerRepository';
+import * as speciesRepository from '../../../src/repositories/speciesRepository';
 import { getFlowerEvolver } from '../../../src/services/flowerEvolver';
 import { FEParams } from '@cristianglezm/flower-evolver-wasm';
 import { listenToList } from '../../../src/services/listEvents';
 
 // flowerRepository (Dexie) is exactly what's worth isolating here - IndexedDB.
-vi.mock('../../../src/services/flowerRepository', () => ({
+vi.mock('../../../src/repositories/flowerRepository', () => ({
 	ensureOpen: vi.fn(),
 	countFlowers: vi.fn(),
 	addFlower: vi.fn(),
@@ -44,7 +44,7 @@ vi.mock('../../../src/services/flowerRepository', () => ({
 
 // The species of the flowers is the business of SpeciesStore, what matters here is when this store
 // asks for it and what it carries across a wipe.
-vi.mock('../../../src/services/speciesRepository', () => ({
+vi.mock('../../../src/repositories/speciesRepository', () => ({
 	bulkGetSpecies: vi.fn(),
 	bulkPutSpecies: vi.fn(),
 }));

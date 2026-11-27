@@ -4,8 +4,8 @@ import { getSpeciesClient } from '../../services/speciesWorker';
 import { SpeciesModel } from '../../services/SpeciesModel';
 import { SpeciesClient } from '../../services/SpeciesClient';
 import { SpeciesTrainer } from '../../services/SpeciesTrainer';
-import * as speciesRepository from '../../services/speciesRepository';
-import * as flowerRepository from '../../services/flowerRepository';
+import * as speciesRepository from '../../repositories/speciesRepository';
+import * as flowerRepository from '../../repositories/flowerRepository';
 import { useErrorStore } from '../ErrorStore';
 
 // How many flowers are classified at once. The slow part is rendering them, the more that go in one

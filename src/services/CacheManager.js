@@ -13,6 +13,8 @@ export class CacheManager{
         this.cacheHosts = new Map();
         this.cacheName = cacheName;
         this.isInitialized = false;
+        this.loading = null;
+        this.generation = 0;
         this.initCache();
     }
     /**
@@ -24,31 +26,48 @@ export class CacheManager{
      * This method is called automatically during the construction of the 
      * CacheManager instance and will only run once.
      */
-    async initCache(){
-        if(this.isInitialized){
-            return;
+    initCache(){
+        if(!this.loading){
+            this.loading = this.load();
         }
+        return this.loading;
+    }
+    /**
+     * @brief Reads the cache. What it reads is put in place when all of it is read, so whoever
+     * awaits initCache finds it complete, and a read that a reload left behind cannot mix with
+     * the one that replaced it.
+     */
+    async load(){
+        const generation = this.generation;
         try{
             const currentCache = await caches.open(this.cacheName);
             if(currentCache){
-                this.isInitialized = true;
-                this.cacheRequests = await currentCache.keys();
-                for(const req of this.cacheRequests){
+                const requests = await currentCache.keys();
+                const hosts = new Map();
+                for(const req of requests){
                     const urlParts = req.url.split("/");
                     const host = urlParts.slice(0, 3).join("/");
-                    const filename = urlParts[urlParts.length - 1]; 
-                    if(this.cacheHosts.has(host)){
-                        const files = this.cacheHosts.get(host);
+                    const filename = urlParts[urlParts.length - 1];
+                    if(hosts.has(host)){
+                        const files = hosts.get(host);
                         if (!files.includes(filename)) {
                             files.push(filename);
                         }
                     }else{
-                        this.cacheHosts.set(host, [filename]);
+                        hosts.set(host, [filename]);
                     }
+                }
+                if(generation === this.generation){
+                    this.cacheRequests = requests;
+                    this.cacheHosts = hosts;
+                    this.isInitialized = true;
                 }
             }
         }catch(e){
             console.error("Failed to initialize cache:", e);
+            if(generation === this.generation){
+                this.loading = null;
+            }
         }
     }
     /**
@@ -58,6 +77,8 @@ export class CacheManager{
         this.isInitialized = false;
         this.cacheRequests = [];
         this.cacheHosts = new Map();
+        this.loading = null;
+        this.generation++;
         await this.initCache();
     }
     /**

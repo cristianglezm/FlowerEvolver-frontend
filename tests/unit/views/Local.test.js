@@ -16,7 +16,7 @@ import { flowerAdded, listReset } from '../../../src/services/listEvents';
 // tab has to show it. Only what is behind them is faked: the table of flowers (it behaves like the Dexie one,
 // the newest first), the network, the species and the descriptions.
 const table = vi.hoisted(() => ({ rows: [], seq: 0 }));
-vi.mock('../../../src/services/flowerRepository', () => {
+vi.mock('../../../src/repositories/flowerRepository', () => {
     const bySeq = (id) => table.rows.find((f) => f.id === id);
     return {
         ensureOpen: vi.fn(),
@@ -46,7 +46,7 @@ vi.mock('../../../src/services/flowerRepository', () => {
     };
 });
 vi.mock('../../../src/services/flowerApiClient', () => ({ API: 'http://test-api.local/', describeError: vi.fn((e) => e) }));
-vi.mock('../../../src/services/speciesRepository', () => ({ bulkGetSpecies: vi.fn(async () => []), bulkPutSpecies: vi.fn(async () => {}) }));
+vi.mock('../../../src/repositories/speciesRepository', () => ({ bulkGetSpecies: vi.fn(async () => []), bulkPutSpecies: vi.fn(async () => {}) }));
 // the species of the flowers that are shown is asked for through ensureFor, which is what these tests look at
 const speciesStore = vi.hoisted(() => ({
     classifyLater: vi.fn(), removeFlower: vi.fn(async () => {}), invalidate: vi.fn(), ensureFor: vi.fn(async () => {}),
@@ -253,7 +253,7 @@ describe('Local view', () => {
             expect(shown()).toEqual([5, 4, 3]);
 
             // the favourite is the flower 4, it is written again as the flower 1
-            const { listFavouriteIds, bulkGetFlowers, bulkAddFlowers } = await import('../../../src/services/flowerRepository');
+            const { listFavouriteIds, bulkGetFlowers, bulkAddFlowers } = await import('../../../src/repositories/flowerRepository');
             listFavouriteIds.mockResolvedValueOnce([4]);
             bulkGetFlowers.mockResolvedValueOnce([{ id: 4, genome: 'g', image: 'i' }]);
             bulkAddFlowers.mockImplementationOnce(async (flowers) => {
@@ -493,7 +493,7 @@ describe('Local view', () => {
     });
 
     test('a table that cannot be read goes to the ErrorStore and the view stays empty', async () => {
-        const { listFlowers } = await import('../../../src/services/flowerRepository');
+        const { listFlowers } = await import('../../../src/repositories/flowerRepository');
         const failure = new Error('IndexedDB is closed');
         listFlowers.mockRejectedValueOnce(failure);
 

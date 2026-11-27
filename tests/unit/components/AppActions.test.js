@@ -5,7 +5,7 @@ import { createTestingPinia } from '@pinia/testing';
 import AppActions from '../../../src/components/AppActions.vue';
 import { useSpeciesStore } from '../../../src/stores/SpeciesStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
-import * as flowerRepository from '../../../src/services/flowerRepository';
+import * as flowerRepository from '../../../src/repositories/flowerRepository';
 
 // The three workers and LocalFlowerStore are what the rest of this component is about, here it is only the
 // button of the Danger Zone for the fine-tuned classifier.
@@ -15,7 +15,7 @@ vi.mock('../../../src/workers/import.worker?worker', () => ({ default: () => ({ 
 vi.mock('../../../src/services/speciesWorker', () => ({
     getSpeciesClient: vi.fn(),
 }));
-vi.mock('../../../src/services/flowerRepository', () => ({
+vi.mock('../../../src/repositories/flowerRepository', () => ({
     countFlowers: vi.fn(),
     countFavourites: vi.fn(),
 }));

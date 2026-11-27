@@ -15,7 +15,7 @@ vi.mock('../../../src/stores/CaptionerStore/Captioner', () => ({
 	isGPUAvailable: () => gpu.available,
 	CACHE_KEY: 'captioner-cache',
 }));
-vi.mock('../../../src/stores/CacheManager', () => ({
+vi.mock('../../../src/services/CacheManager', () => ({
 	CacheManager: class {
 		size(){ return model.downloadedSize; }
 		reload(){}

@@ -1,4 +1,4 @@
-import { db } from './db';
+import { db } from '../services/db';
 
 export function ensureOpen(){
 	if(!db.isOpen()){

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import * as flowerRepository from '../../services/flowerRepository';
+import * as flowerRepository from '../../repositories/flowerRepository';
 import { useErrorStore } from '../ErrorStore';
 import { flowerAdded, flowerRemoved } from '../../services/listEvents';
 

@@ -1,6 +1,6 @@
 import mitt from 'mitt';
 import { defineStore } from 'pinia';
-import WorkerManager from '../WorkerManager';
+import WorkerManager from '../../services/WorkerManager';
 import chatbot from '../../workers/chatbot.worker?worker';
 import { toRaw } from 'vue';
 import { useErrorStore } from '../ErrorStore';

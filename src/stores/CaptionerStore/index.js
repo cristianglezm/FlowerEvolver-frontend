@@ -1,10 +1,10 @@
 import mitt from 'mitt';
 import { defineStore } from 'pinia';
-import WorkerManager from '../WorkerManager';
+import WorkerManager from '../../services/WorkerManager';
 import captioner from '../../workers/captioner.worker?worker';
 import { toRaw } from 'vue';
 import { useErrorStore } from '../ErrorStore';
-import * as flowerRepository from '../../services/flowerRepository';
+import * as flowerRepository from '../../repositories/flowerRepository';
 
 let channel = new mitt();
 const wm = new WorkerManager(channel);

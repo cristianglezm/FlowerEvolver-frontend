@@ -51,7 +51,7 @@
 
 <script setup>
 import { reactive, ref, onMounted } from 'vue';
-import * as flowerRepository from '../services/flowerRepository';
+import * as flowerRepository from '../repositories/flowerRepository';
 import { getFlowerEvolver } from '../services/flowerEvolver';
 import VChart from 'vue-echarts';
 import { use } from 'echarts/core';

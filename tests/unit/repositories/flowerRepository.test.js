@@ -2,7 +2,7 @@
 import 'fake-indexeddb/auto';
 import { describe, test, expect, beforeEach, afterAll, vi } from 'vitest';
 import { db } from '../../../src/services/db';
-import * as flowerRepository from '../../../src/services/flowerRepository';
+import * as flowerRepository from '../../../src/repositories/flowerRepository';
 
 describe('flowerRepository (real Dexie semantics via fake-indexeddb)', () => {
 	beforeEach(async () => {

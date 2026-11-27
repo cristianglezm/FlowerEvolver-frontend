@@ -3,7 +3,7 @@ import { env } from '@huggingface/transformers';
 import { TextStreamer } from '@huggingface/transformers';
 import { mean_pooling } from '@huggingface/transformers';
 
-import { ModelCache, isGPUAvailable } from '../AIUtils';
+import { ModelCache, isGPUAvailable } from '../../services/AIUtils';
 import { HfInference } from '@huggingface/inference';
 import { Template } from "@huggingface/jinja";
 

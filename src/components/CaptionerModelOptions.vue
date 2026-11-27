@@ -62,7 +62,7 @@
   import { listen } from '../services/listen';
   import { Captioner, isGPUAvailable, CACHE_KEY as CAPTIONER_CACHE_KEY } from '../stores/CaptionerStore/Captioner'
   import { useCaptionerStore } from '../stores/CaptionerStore';
-  import { CacheManager as CM } from '../stores/CacheManager';
+  import { CacheManager as CM } from '../services/CacheManager';
   import CacheManager from './CacheManager.vue';
   import ToolTip from './ToolTip.vue';
   import SafeButton from './ui/SafeButton.vue';

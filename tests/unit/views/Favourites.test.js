@@ -16,7 +16,7 @@ import { flowerAdded } from '../../../src/services/listEvents';
 // can be deleted, while the tab is on screen. Only what is behind the store is faked: the tables of the flowers and
 // of the favourites (the favourites table has the id of the flower in each row, and is read the highest first).
 const db = vi.hoisted(() => ({ flowers: [], favourites: new Set() }));
-vi.mock('../../../src/services/flowerRepository', () => {
+vi.mock('../../../src/repositories/flowerRepository', () => {
     const copy = (f) => (f === undefined ? undefined : { ...f });
     return {
         ensureOpen: vi.fn(),
@@ -49,7 +49,7 @@ vi.mock('../../../src/services/flowerRepository', () => {
     };
 });
 vi.mock('../../../src/services/flowerApiClient', () => ({ API: 'http://test-api.local/', describeError: vi.fn((e) => e) }));
-vi.mock('../../../src/services/speciesRepository', () => ({ bulkGetSpecies: vi.fn(async (ids) => ids.map(() => undefined)), bulkPutSpecies: vi.fn(async () => {}) }));
+vi.mock('../../../src/repositories/speciesRepository', () => ({ bulkGetSpecies: vi.fn(async (ids) => ids.map(() => undefined)), bulkPutSpecies: vi.fn(async () => {}) }));
 // the species of the flowers that are shown is asked for through ensureFor, which is what these tests look at
 const speciesStore = vi.hoisted(() => ({
     classifyLater: vi.fn(), removeFlower: vi.fn(async () => {}), invalidate: vi.fn(), ensureFor: vi.fn(async () => {}),

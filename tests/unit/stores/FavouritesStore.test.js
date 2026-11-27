@@ -3,9 +3,9 @@ import { createTestingPinia } from '@pinia/testing';
 import { useFavouritesStore } from '../../../src/stores/FavouritesStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 import { listenToList } from '../../../src/services/listEvents';
-import * as flowerRepository from '../../../src/services/flowerRepository';
+import * as flowerRepository from '../../../src/repositories/flowerRepository';
 
-vi.mock('../../../src/services/flowerRepository', () => ({
+vi.mock('../../../src/repositories/flowerRepository', () => ({
 	isFavourited: vi.fn(),
 	addFavourite: vi.fn(),
 	removeFavourite: vi.fn(),

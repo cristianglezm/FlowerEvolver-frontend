@@ -38,7 +38,7 @@
     import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
     import { useRemoteFlowerStore } from '../stores/RemoteFlowerStore';
     import { useErrorStore } from '../stores/ErrorStore';
-    import * as flowerRepository from '../services/flowerRepository';
+    import * as flowerRepository from '../repositories/flowerRepository';
     import * as flowerApiClient from '../services/flowerApiClient';
     import { usePaginatedList } from '../composables/usePaginatedList';
     import { usePageInAddress } from '../composables/usePageInAddress';

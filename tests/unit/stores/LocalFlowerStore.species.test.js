@@ -8,8 +8,8 @@ import { useFavouritesStore } from '../../../src/stores/FavouritesStore';
 import { useSpeciesStore, _resetSpeciesStoreForTests } from '../../../src/stores/SpeciesStore';
 import { getSpeciesClient } from '../../../src/services/speciesWorker';
 import { getFlowerEvolver } from '../../../src/services/flowerEvolver';
-import * as flowerRepository from '../../../src/services/flowerRepository';
-import * as speciesRepository from '../../../src/services/speciesRepository';
+import * as flowerRepository from '../../../src/repositories/flowerRepository';
+import * as speciesRepository from '../../../src/repositories/speciesRepository';
 
 // LocalFlowerStore and SpeciesStore, the repositories (Dexie on fake-indexeddb) and the wasm are the real
 // ones here: this is the seam the unit tests of each store cannot see. The worker is the only thing

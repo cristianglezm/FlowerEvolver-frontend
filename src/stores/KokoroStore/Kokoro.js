@@ -1,7 +1,7 @@
 import { env } from '@huggingface/transformers';
 import { HfInference } from '@huggingface/inference';
 import { KokoroTTS, TextSplitterStream } from "kokoro-js";
-import { ModelCache, isGPUAvailable } from '../AIUtils';
+import { ModelCache, isGPUAvailable } from '../../services/AIUtils';
 
 // @todo replace with 'fe-kokoro-cache' when able to use custom cache.
 export const CACHE_KEY = 'transformers-cache';

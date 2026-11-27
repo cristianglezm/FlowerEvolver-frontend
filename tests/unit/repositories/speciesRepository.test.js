@@ -2,7 +2,7 @@
 import 'fake-indexeddb/auto';
 import { describe, test, expect, beforeEach, afterAll } from 'vitest';
 import { db } from '../../../src/services/db';
-import * as speciesRepository from '../../../src/services/speciesRepository';
+import * as speciesRepository from '../../../src/repositories/speciesRepository';
 
 describe('speciesRepository (real Dexie semantics via fake-indexeddb)', () => {
 	beforeEach(async () => {

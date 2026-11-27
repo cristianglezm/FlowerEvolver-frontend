@@ -17,7 +17,7 @@
 import { onMounted, reactive } from 'vue';
 import { STORAGE_KEY_GARDEN } from '../services/gardenStorage';
 import gardenWorker from '../workers/garden.worker?worker';
-import WorkerManager from '../stores/WorkerManager';
+import WorkerManager from '../services/WorkerManager';
 import mitt from 'mitt';
 import { useErrorStore } from '../stores/ErrorStore';
 

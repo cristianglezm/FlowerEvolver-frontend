@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia';
 import { FEParams } from '@cristianglezm/flower-evolver-wasm';
 import { getFlowerEvolver, keptPetals } from '../../services/flowerEvolver';
-import * as flowerRepository from '../../services/flowerRepository';
-import * as speciesRepository from '../../services/speciesRepository';
+import * as flowerRepository from '../../repositories/flowerRepository';
+import * as speciesRepository from '../../repositories/speciesRepository';
 import { useErrorStore } from '../ErrorStore';
 import { useSpeciesStore } from '../SpeciesStore';
 import { useSettingsStore } from '../SettingsStore';

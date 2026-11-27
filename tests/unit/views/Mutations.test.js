@@ -18,7 +18,7 @@ import { flowerAdded } from '../../../src/services/listEvents';
 // What is behind the store is faked: the tables of the browser, and the server.
 const local = vi.hoisted(() => ({ flowers: [], mutations: [], seq: 0 }));
 const server = vi.hoisted(() => ({ flowers: [], mutations: [], seq: 0, offline: false }));
-vi.mock('../../../src/services/flowerRepository', () => ({
+vi.mock('../../../src/repositories/flowerRepository', () => ({
     ensureOpen: vi.fn(),
     addFlower: vi.fn(async (flower) => {
         const id = ++local.seq;
@@ -70,7 +70,7 @@ vi.mock('../../../src/services/flowerApiClient', () => {
         }),
     };
 });
-vi.mock('../../../src/services/speciesRepository', () => ({ bulkGetSpecies: vi.fn(async () => []), bulkPutSpecies: vi.fn(async () => {}) }));
+vi.mock('../../../src/repositories/speciesRepository', () => ({ bulkGetSpecies: vi.fn(async () => []), bulkPutSpecies: vi.fn(async () => {}) }));
 // the species of the flowers that are shown is asked for through ensureFor, which is what these tests look at
 const speciesStore = vi.hoisted(() => ({
     classifyLater: vi.fn(), removeFlower: vi.fn(async () => {}), invalidate: vi.fn(), ensureFor: vi.fn(async () => {}),
@@ -336,7 +336,7 @@ describe('Mutations view', () => {
         });
 
         test('a table that cannot be read goes to the ErrorStore', async () => {
-            const { listMutationsByOriginal } = await import('../../../src/services/flowerRepository');
+            const { listMutationsByOriginal } = await import('../../../src/repositories/flowerRepository');
             const failure = new Error('IndexedDB is closed');
             listMutationsByOriginal.mockRejectedValueOnce(failure);
 

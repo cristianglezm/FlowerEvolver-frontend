@@ -8,8 +8,8 @@ import Species from '../../../src/views/Species.vue';
 import { useSpeciesStore } from '../../../src/stores/SpeciesStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 import { SpeciesModel } from '../../../src/services/SpeciesModel';
-import * as speciesRepository from '../../../src/services/speciesRepository';
-import * as flowerRepository from '../../../src/services/flowerRepository';
+import * as speciesRepository from '../../../src/repositories/speciesRepository';
+import * as flowerRepository from '../../../src/repositories/flowerRepository';
 import { classifierJson } from '../helpers/classifier';
 
 // What is under test is the view: what it asks of the store and the tables and what it shows. A flower
@@ -23,11 +23,11 @@ vi.mock('../../../src/components/FlowersTable.vue', () => ({
 vi.mock('../../../src/services/speciesWorker', () => ({
     getSpeciesClient: vi.fn(),
 }));
-vi.mock('../../../src/services/speciesRepository', () => ({
+vi.mock('../../../src/repositories/speciesRepository', () => ({
     countByCell: vi.fn(),
     listFlowerIdsByCell: vi.fn(),
 }));
-vi.mock('../../../src/services/flowerRepository', () => ({
+vi.mock('../../../src/repositories/flowerRepository', () => ({
     bulkGetFlowers: vi.fn(),
 }));
 const flowerStore = vi.hoisted(() => ({}));

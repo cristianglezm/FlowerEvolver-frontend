@@ -21,7 +21,7 @@ const { getFlowerStats } = vi.hoisted(() => ({ getFlowerStats: vi.fn(() => ({}))
 vi.mock('../../../src/services/flowerEvolver', () => ({
 	getFlowerEvolver: async () => ({ getFlowerStats }),
 }));
-vi.mock('../../../src/services/flowerRepository', () => ({
+vi.mock('../../../src/repositories/flowerRepository', () => ({
 	addDescription: vi.fn(),
 	listDescriptions: vi.fn(),
 	bulkGetDescriptions: vi.fn(),

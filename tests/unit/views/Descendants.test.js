@@ -22,7 +22,7 @@ const server = vi.hoisted(() => ({ flowers: [], descendants: [], seq: 0, offline
 const ofOne = (rows, id) => rows.filter((d) => d.father === id || d.mother === id);
 const ofPair = (rows, father, mother) => rows.filter((d) => d.father === father && d.mother === mother);
 const newest = (rows) => [...rows].sort((a, b) => b.id - a.id);
-vi.mock('../../../src/services/flowerRepository', () => ({
+vi.mock('../../../src/repositories/flowerRepository', () => ({
     ensureOpen: vi.fn(),
     addFlower: vi.fn(async (flower) => {
         const id = ++local.seq;
@@ -74,7 +74,7 @@ vi.mock('../../../src/services/flowerApiClient', () => {
         }),
     };
 });
-vi.mock('../../../src/services/speciesRepository', () => ({ bulkGetSpecies: vi.fn(async () => []), bulkPutSpecies: vi.fn(async () => {}) }));
+vi.mock('../../../src/repositories/speciesRepository', () => ({ bulkGetSpecies: vi.fn(async () => []), bulkPutSpecies: vi.fn(async () => {}) }));
 // the species of the flowers that are shown is asked for through ensureFor, which is what these tests look at
 const speciesStore = vi.hoisted(() => ({
     classifyLater: vi.fn(), removeFlower: vi.fn(async () => {}), invalidate: vi.fn(), ensureFor: vi.fn(async () => {}),
@@ -384,7 +384,7 @@ describe('Descendants view', () => {
         });
 
         test('a table that cannot be read goes to the ErrorStore', async () => {
-            const { listDescendantsByParents } = await import('../../../src/services/flowerRepository');
+            const { listDescendantsByParents } = await import('../../../src/repositories/flowerRepository');
             const failure = new Error('IndexedDB is closed');
             listDescendantsByParents.mockRejectedValueOnce(failure);
 

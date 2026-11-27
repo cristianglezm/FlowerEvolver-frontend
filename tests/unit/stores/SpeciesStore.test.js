@@ -7,8 +7,8 @@ import { useErrorStore } from '../../../src/stores/ErrorStore';
 import { getSpeciesClient } from '../../../src/services/speciesWorker';
 import { SpeciesClient } from '../../../src/services/SpeciesClient';
 import { SpeciesTrainer } from '../../../src/services/SpeciesTrainer';
-import * as flowerRepository from '../../../src/services/flowerRepository';
-import * as speciesRepository from '../../../src/services/speciesRepository';
+import * as flowerRepository from '../../../src/repositories/flowerRepository';
+import * as speciesRepository from '../../../src/repositories/speciesRepository';
 import { classifierJson } from '../helpers/classifier';
 
 // What is slow and needs the wasm, the classifier, is the one thing that is not real here: the

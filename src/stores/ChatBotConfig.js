@@ -3,7 +3,7 @@ import { useFavouritesStore } from "./FavouritesStore";
 import { useCaptionerStore } from "./CaptionerStore";
 import { useRouter } from "vue-router";
 import { useVectorStore } from "./vectorStore";
-import * as flowerRepository from "../services/flowerRepository";
+import * as flowerRepository from "../repositories/flowerRepository";
 
 // we need this global router initialized in the App to be 
 // able to use goto as useRouter needs to be inside a <script setup>

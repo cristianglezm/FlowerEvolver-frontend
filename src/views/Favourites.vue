@@ -16,7 +16,7 @@ import { onMounted } from 'vue';
 import FlowersTable from '../components/FlowersTable.vue';
 import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
 import { useShownFlowers } from '../composables/useShownFlowers';
-import * as flowerRepository from '../services/flowerRepository';
+import * as flowerRepository from '../repositories/flowerRepository';
 import { usePaginatedList } from '../composables/usePaginatedList';
 import { usePageInAddress } from '../composables/usePageInAddress';
 import { useRoute } from 'vue-router';

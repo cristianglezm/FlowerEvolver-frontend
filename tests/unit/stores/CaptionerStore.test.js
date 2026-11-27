@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { useCaptionerStore } from '../../../src/stores/CaptionerStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
-import * as flowerRepository from '../../../src/services/flowerRepository';
+import * as flowerRepository from '../../../src/repositories/flowerRepository';
 
 // jsdom has no Worker implementation, and CaptionerStore creates its captioner
 // worker as a module-level side effect on import - stub it out so the module
@@ -14,7 +14,7 @@ vi.mock('../../../src/workers/captioner.worker?worker', () => ({
 		postMessage: vi.fn(),
 	})),
 }));
-vi.mock('../../../src/services/flowerRepository', () => ({
+vi.mock('../../../src/repositories/flowerRepository', () => ({
 	addDescription: vi.fn(),
 	listDescriptions: vi.fn(),
 	bulkGetDescriptions: vi.fn(),

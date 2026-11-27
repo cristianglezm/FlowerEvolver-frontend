@@ -1,4 +1,4 @@
-import { db } from './db';
+import { db } from '../services/db';
 
 /**
  * A species row is { id, x, y, d, fp } where id is the flower id, (x, y) the cell of the

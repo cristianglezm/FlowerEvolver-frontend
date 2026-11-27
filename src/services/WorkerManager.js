@@ -6,6 +6,9 @@ export default class WorkerManager{
     constructor(channel){
         this.workers = new Map();
         this.channel = channel;
+        // what was given to onError and onResponse, by worker: the channel can be shared, so a worker
+        // takes away its own callbacks and not every listener of its events.
+        this.callbacks = new Map();
     }
     /**
      * @brief Adds a worker to the manager and sets up message/error handlers.
@@ -39,10 +42,9 @@ export default class WorkerManager{
         if(!this.has(name)){
             return;
         }
-        this.channel.off(name + '#onerror');
-        this.channel.off(name + '#onmessage');
         this.workers.get(name).terminate();
         this.workers.delete(name);
+        this.forgetCallbacks(name);
     }
     /**
      * @brief Sends a request with data to a specific worker.
@@ -63,7 +65,7 @@ export default class WorkerManager{
      * @param callback {Function} The function to call when an error occurs.
      */
     onError(name, callback){
-        this.channel.on(name + '#onerror', callback);
+        this.listen(name, '#onerror', callback);
     }
     /**
      * @brief Registers a response callback for a specific worker.
@@ -71,6 +73,30 @@ export default class WorkerManager{
      * @param callback {Function} The function to call when a response is received.
      */
     onResponse(name, callback){
-        this.channel.on(name + '#onmessage', callback);
+        this.listen(name, '#onmessage', callback);
+    }
+    /**
+     * @brief Listens to an event of a worker and remembers the callback to take it away with the worker.
+     * @param name {String} The name of the worker.
+     * @param suffix {String} The event of the worker, `#onerror` or `#onmessage`.
+     * @param callback {Function} The function to call.
+     */
+    listen(name, suffix, callback){
+        const event = name + suffix;
+        this.channel.on(event, callback);
+        if(!this.callbacks.has(name)){
+            this.callbacks.set(name, []);
+        }
+        this.callbacks.get(name).push({ event, callback });
+    }
+    /**
+     * @brief Takes away the callbacks that were given for a worker, and only those.
+     * @param name {String} The name of the worker.
+     */
+    forgetCallbacks(name){
+        for(const { event, callback } of this.callbacks.get(name) || []){
+            this.channel.off(event, callback);
+        }
+        this.callbacks.delete(name);
     }
 };

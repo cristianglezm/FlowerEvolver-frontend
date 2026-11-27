@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { execCommand } from '../../../src/stores/ChatBotConfig';
 import { useFavouritesStore } from '../../../src/stores/FavouritesStore';
-import * as flowerRepository from '../../../src/services/flowerRepository';
+import * as flowerRepository from '../../../src/repositories/flowerRepository';
 
 // Only the commands that call the stores of the application are tested here: the two of the favourites, the two
 // that read a flower (`describe`, `mutate`), which go through the repository, and the ones that act on the local
@@ -10,7 +10,7 @@ import * as flowerRepository from '../../../src/services/flowerRepository';
 const { localFlowerStore, captionerStore } = vi.hoisted(() => ({ localFlowerStore: {}, captionerStore: {} }));
 vi.mock('../../../src/stores/LocalFlowerStore', () => ({ useLocalFlowerStore: () => localFlowerStore }));
 vi.mock('../../../src/stores/CaptionerStore', () => ({ useCaptionerStore: () => captionerStore }));
-vi.mock('../../../src/services/flowerRepository', () => ({ getFlower: vi.fn() }));
+vi.mock('../../../src/repositories/flowerRepository', () => ({ getFlower: vi.fn() }));
 vi.mock('../../../src/stores/vectorStore', () => ({ useVectorStore: () => ({}) }));
 
 const call = (name, parameters) => `<tool_call>${JSON.stringify([{ name, parameters }])}</tool_call>`;
