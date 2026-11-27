@@ -1,11 +1,11 @@
 import 'fake-indexeddb/auto';
 import { describe, test, expect, beforeEach, afterEach, afterAll, vi } from 'vitest';
 import { FEParams } from '@cristianglezm/flower-evolver-wasm';
-import { db } from '../../../src/stores/FlowerStore/db';
+import { db } from '../../../src/services/db';
 import { getFlowerEvolver, _resetFlowerEvolverForTests } from '../../../src/services/flowerEvolver';
 import { SpeciesClient } from '../../../src/services/SpeciesClient';
 import { SpeciesTrainer } from '../../../src/services/SpeciesTrainer';
-import * as flowerRepository from '../../../src/services/flowerRepository';
+import * as flowerRepository from '../../../src/repositories/flowerRepository';
 
 const BUILT_IN = '{"builtIn":true}';
 const flowerWith = (v) => JSON.stringify({ Flower: { v } });

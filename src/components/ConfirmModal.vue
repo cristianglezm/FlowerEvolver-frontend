@@ -1,17 +1,11 @@
 <template>
-  <dialog :id="props.id">
-    <div class="ConfirmModal-container center">
-      <div class="inlined">
-        <h2>{{ data.title }}</h2>
-        <span class="close" @click="nextItem()">&times;</span>
-      </div>
-      <p style="text-align: center;">{{ data.message }}</p>
-      <div>
-        <button data-testid="confirm-no" @click="nextItem()">{{ data.btnNo }}</button>
-        <button data-testid="confirm-yes" @click="data.accept(); nextItem()">{{ data.btnYes }}</button>
-      </div>
+  <ModalDialog :id="props.id" ref="dialog" :title="data.title" closable @dismiss="nextItem()">
+    <p>{{ data.message }}</p>
+    <div class="actions">
+      <SafeButton data-testid="confirm-no" @click="nextItem()">{{ data.btnNo }}</SafeButton>
+      <SafeButton data-testid="confirm-yes" @click="data.accept(); nextItem()">{{ data.btnYes }}</SafeButton>
     </div>
-  </dialog>
+  </ModalDialog>
 </template>
 
 <script setup>
@@ -39,7 +33,10 @@
  *       },
  *   });
  */
-import { reactive, onMounted, onBeforeUnmount } from 'vue';
+import { reactive, ref, onMounted, onBeforeUnmount } from 'vue';
+import { listen } from '../services/listen';
+import ModalDialog from './ui/ModalDialog.vue';
+import SafeButton from './ui/SafeButton.vue';
 
 const props = defineProps({
     id:{
@@ -56,133 +53,63 @@ const props = defineProps({
     },
 });
 const data = reactive({});
+const dialog = ref(null);
 
 const openModal = () => {
-    data.dialog.showModal();
+    dialog.value.open();
 };
 
 const closeModal = () => {
-    data.dialog.close();
+    dialog.value.close();
 };
+// Whether a question is on screen, or about to be: one that comes then waits its turn.
+let busy = false;
 const nextItem = () => {
     if(data.queue.length > 0){
-        let item = data.queue.pop();
+        let item = data.queue.shift();
         data.title = item.title;
         data.message = item.message;
         data.btnNo = item.btnNo;
         data.btnYes = item.btnYes;
         data.accept = item.onConfirm;
     }else{
+        busy = false;
         closeModal();
     }
 };
+const stops = [];
 onMounted(() => {
-    data.dialog = document.getElementById(props.id);
     data.queue = new Array();
-    props.channel.on(props.on, (e) => {
-        if(data.queue.length > 0){
-            data.queue.push(e);
-        }else{
-            data.queue.push(e);
+    stops.push(listen(props.channel, props.on, (e) => {
+        data.queue.push(e);
+        if(!busy){
+            busy = true;
             setTimeout(() => {
                 nextItem();
                 openModal();
             }, 20);
         }
-    });
+    }));
 });
 
 onBeforeUnmount(() => {
-    props.channel.off(props.on);
+    stops.splice(0).forEach((stop) => stop());
 });
 
 </script>
 
 <style scoped>
-    .inlined{
-        display: flex;
-        flex-flow: row nowrap;
-    }
-    .inlined h2{
-        width: 100%;
-        text-align: center;
-    }
-    .center{
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-    }
-    .ConfirmModal-container{
-        background-color: green;
-        color: lightgreen;
-        position: fixed;
-        border: solid;
-        border-color: lightgreen;
-        border-radius: 0.31rem;
-        box-shadow: 0rem 2rem 4rem 0rem rgba(0,0,0,1);
-        overflow: auto;
-        overflow-wrap: break-word;
-        z-index: 1;
-        padding: 0.125rem;
-        width: 50%;
-        display: flex;
-        flex-flow: column nowrap;
-        text-align: center;
-        margin: auto;
-        box-sizing: content-box;
-    }
-    .ConfirmModal-container p{
+    p{
         overflow: auto;
         overflow-wrap: break-word;
         font-size: 1.6rem;
     }
-    .ConfirmModal-container button{
-        background-color: green;
-        color: lightgreen;
-        border-color: lightgreen;
-        position: relative;
-        margin-bottom: 0.6rem;
-        cursor: pointer;
-        margin-left: 0.31rem;
-        font-size: 1.25rem;
-        border-radius: 2.1rem;
+    .actions{
+        --fe-button-margin: 0 0.31rem 0.6rem 0.31rem;
     }
     @media only screen and (max-width: 1280px){
-        .ConfirmModal-container{
-            width: 90%;
-        }
-        .ConfirmModal-container button{
-            transform: translate(20%);
+        p{
             font-size: 0.9rem;
         }
-        .ConfirmModal-container p{
-            font-size: 0.9rem;
-        }
-        .inlined h2{
-            font-size: 1.2rem;
-        }
-    }
-    .ConfirmModal-container button:hover{
-        border-color: green;
-        background-color: lightgreen;
-        color: green;
-    }
-    .close{
-        color: lightgreen;
-        margin-right: 1%;
-        float: right;
-        font-size: 2.3rem;
-        font-weight: bold;
-    }
-    .close:hover,
-    .close:focus{
-        color: black;
-        text-decoration: none;
-        cursor: pointer;
-    }
-    ::backdrop{
-        background-color: white;
-        opacity: 0.55;
     }
 </style>

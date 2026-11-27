@@ -1,33 +1,35 @@
 <template>
   <div class="Local">
     <PaginationOrInfiniteScroll
-      :pagination="isPaginated()" :items-length="flowers.length" 
-      :current-page="data.page" :total-pages="data.totalPages"
+      :pagination="isPaginated" :items-length="state.items.length"
+      :current-page="state.page" :total-pages="state.totalPages"
       @next-page="nextPage" @prev-page="prevPage" @update-page="nextBatch"
     >
-      <FlowersTable :flowers="flowers" :is-local="true" :no-flower-message="'There are no Flowers'" />
+      <FlowersTable :flowers="state.items" :is-local="true" :no-flower-message="'There are no Flowers'" />
     </PaginationOrInfiniteScroll>
   </div>
 </template>
 
 <script setup>
 
-import { nextTick, onMounted, reactive, computed, inject, watch } from 'vue';
+import { onMounted, reactive, inject, watch } from 'vue';
 import FlowersTable from '../components/FlowersTable.vue';
 import PaginationOrInfiniteScroll from '../components/PaginationOrInfiniteScroll.vue';
-import { useFlowerStore } from '../stores/FlowerStore';
+import { useSettingsStore } from '../stores/SettingsStore';
 import { useErrorStore } from '../stores/ErrorStore';
-import { useCaptionerStore } from '../stores/CaptionerStore';
-import { useRoute, useRouter } from 'vue-router';
+import { useShownFlowers } from '../composables/useShownFlowers';
+import * as flowerRepository from '../repositories/flowerRepository';
+import { usePaginatedList } from '../composables/usePaginatedList';
+import { usePageInAddress } from '../composables/usePageInAddress';
+import { useRoute } from 'vue-router';
 import importWorker from '../workers/import.worker?worker';
-import WorkerManager from '../stores/WorkerManager';
+import WorkerManager from '../services/WorkerManager';
 import mitt from 'mitt';
 
 const routes = useRoute();
-const router = useRouter();
-const FlowerStore = useFlowerStore();
+const SettingsStore = useSettingsStore();
 const ErrorStore = useErrorStore();
-const CaptionerStore = useCaptionerStore();
+const whenShown = useShownFlowers();
 const emitter = inject('emitter');
 let channel = mitt();
 let wm = new WorkerManager(channel);
@@ -35,9 +37,6 @@ let wm = new WorkerManager(channel);
 wm.addWorker('importer', importWorker());
 
 const data = reactive({
-    offset: 0,
-    page: 0,
-    totalPages: 0,
     demoFlowersFile: import.meta.env.BASE_URL + "demoFlowers.json",
     killWorker: false
 });
@@ -46,26 +45,25 @@ watch(data, () => {
         wm.deleteWorker('importer');
     }
 });
-const flowers = computed(() => {
-    return FlowerStore.getLocalFlowers;
+
+// The list is this view's own: the menu and the cards say when a flower is made or deleted (list 'local')
+// and the composable applies it.
+const paged = usePaginatedList({
+    list: 'local',
+    fetchCount: () => flowerRepository.countFlowers(),
+    fetchPage: ({ limit, offset }) => flowerRepository.listFlowers({ limit, offset }),
+    // the species and the descriptions of the flowers that are shown
+    onLoaded: ({ items }) => whenShown(items)
 });
+const { state, isPaginated, init, nextBatch } = paged;
+const { nextPage, prevPage } = usePageInAddress(paged);
+
 onMounted(() => {
-    data.offset = 0;
-    data.page = parseInt(routes.query.page, 10) || 0;
-    if(isPaginated()){
-        getFlowersFrom(data.page);
-        FlowerStore.getLocalFlowersCount().then(c => data.totalPages = Math.ceil(c / FlowerStore.settings.limit));
-    }else{
-        FlowerStore.updateLocalFlowers({limit: FlowerStore.settings.limit, offset: data.offset});
-        CaptionerStore.loadLocalDescriptions(data.offset, FlowerStore.settings.limit);
-        data.offset = FlowerStore.increaseOffset(data.offset);
-    }
+    // ?page= is the page to start at, the pages after it are not a route each
+    init(parseInt(routes.query.page, 10) || 0);
     loadDemoFlowers();
 });
 
-const nextBatch = () => {
-    updateFlowers(FlowerStore.settings.limit, data.offset);
-};
 const onError = (e) => {
     ErrorStore.push(e);
 };
@@ -84,41 +82,14 @@ wm.onResponse('importer', (e) => {
             progress: e.progress,
         });
     }else if(type === "done"){
-        data.offset = 0;
-        nextBatch();
+        // what was imported is not in the list yet, nor in the count of pages
+        init();
         data.killWorker = true;
     }
 });
-const updateFlowers = (limit, offset) => {
-    FlowerStore.updateAndConcatLocalFlowers({limit:limit, offset:offset});
-    CaptionerStore.loadAndConcatLocalDescriptions(offset, limit);
-    data.offset = FlowerStore.increaseOffset(offset);
-};
-const getFlowersFrom = (page) => {
-    nextTick(() => {
-        data.offset = FlowerStore.calcOffset(page);
-        FlowerStore.updateLocalFlowers({limit: FlowerStore.settings.limit, offset: data.offset});
-        CaptionerStore.loadLocalDescriptions(data.offset, FlowerStore.settings.limit);
-    });
-};
-const prevPage = () => {
-    if(data.page >= 1){
-        data.page -= 1;
-        router.push({path:"Local", query:{page: data.page}});
-    }
-};
-const nextPage = () => {
-    if(data.page < data.totalPages - 1){
-        data.page += 1;
-        router.push({path:"Local", query:{page: data.page}});
-    }
-};
-const isPaginated = () => {
-    return FlowerStore.settings.pagination;
-};
 
 const loadDemoFlowers = async () => {
-    if(FlowerStore.settings.loadDemoFlowers){
+    if(SettingsStore.settings.loadDemoFlowers){
         const blob = await fetch(data.demoFlowersFile)
                 .then(response => {
                     return response.blob();
@@ -127,9 +98,9 @@ const loadDemoFlowers = async () => {
         wm.sendRequest('importer', {
             files: files,
             toFavs: false,
-            batchSize: FlowerStore.settings.limit
+            batchSize: SettingsStore.settings.limit
         });
-        FlowerStore.setLoadDemoFlowers(false);
+        SettingsStore.setLoadDemoFlowers(false);
     }else{
         data.killWorker = true;
     }
@@ -139,6 +110,6 @@ const loadDemoFlowers = async () => {
 
 <style scoped>
     .Local{
-        background-color: rgb(37, 39, 41);
+        background-color: var(--fe-surface);
     }
 </style>

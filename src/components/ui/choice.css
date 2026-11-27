@@ -1,0 +1,31 @@
+/* What a checkbox and a radio of the application have in common: a green box with a mark that grows when it is checked. */
+.choice{
+    background-color: var(--fe-green);
+    color: var(--fe-lightgreen);
+    border: solid var(--fe-lightgreen);
+    cursor: pointer;
+    display: inline-grid;
+    place-content: center;
+    grid-template-columns: 0.5em auto;
+    gap: 0.1em;
+    font-size: 2rem;
+    font-weight: bold;
+    vertical-align: middle;
+    -webkit-appearance: none;
+    appearance: none;
+    box-shadow: inset 0rem 0rem 0.2rem 0.125rem var(--fe-black);
+}
+.choice::before{
+    content: "";
+    transform: scale(0);
+    transition: 120ms transform cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: inset 2em 2em var(--fe-lightgreen);
+    transform-origin: top left;
+}
+.choice:checked::before{
+    transform: scale(1);
+}
+.choice:disabled{
+    opacity: 0.5;
+    cursor: not-allowed;
+}

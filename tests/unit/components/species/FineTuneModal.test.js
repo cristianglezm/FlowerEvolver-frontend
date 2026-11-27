@@ -4,6 +4,7 @@ import { markRaw } from 'vue';
 import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import FineTuneModal from '../../../../src/components/species/FineTuneModal.vue';
+import ModalDialog from '../../../../src/components/ui/ModalDialog.vue';
 import { useSpeciesStore } from '../../../../src/stores/SpeciesStore';
 import { SpeciesModel } from '../../../../src/services/SpeciesModel';
 import { classifierJson } from '../../helpers/classifier';
@@ -39,6 +40,29 @@ describe('FineTuneModal', () => {
         expect(dialog().open).toBe(false);
     });
 
+    test('is the dialog of the application, with its title, a narrow one', () => {
+        const base = wrapper.getComponent(ModalDialog);
+
+        expect(base.props('title')).toBe('Fine-tune the classifier');
+        expect(base.props('size')).toBe('form');
+        expect(base.props('closable')).toBe(false);
+        expect(wrapper.get('h2').text()).toBe('Fine-tune the classifier');
+        expect(wrapper.get('[data-testid="finetune-modal"]').element).toBe(dialog());
+    });
+
+    test('is locked while it fine-tunes, and not before or after', async () => {
+        const locked = () => wrapper.getComponent(ModalDialog).props('locked');
+        expect(locked()).toBe(false);
+
+        SpeciesStore.isTuning = true;
+        await wrapper.vm.$nextTick();
+        expect(locked()).toBe(true);
+
+        SpeciesStore.isTuning = false;
+        await wrapper.vm.$nextTick();
+        expect(locked()).toBe(false);
+    });
+
     test('a button closes it', async () => {
         wrapper.vm.open();
         await close().trigger('click');
@@ -46,6 +70,15 @@ describe('FineTuneModal', () => {
     });
 
     describe('the parameters', () => {
+        test('are the fields of the settings, with their labels and the limits that their spinners have', () => {
+            expect(['epochs', 'lr', 'radius'].map((name) => wrapper.get(`label[for="finetune-${name}"]`).text()))
+                .toEqual(['Epochs:', 'Learning rate:', 'Radius:']);
+            expect(wrapper.findAll('.tipInfo')).toHaveLength(3);
+            expect(field('epochs').attributes()).toMatchObject({ type: 'number', min: '1', step: '1' });
+            expect(field('lr').attributes()).toMatchObject({ type: 'number', min: '0.01', step: '0.05' });
+            expect(field('radius').attributes()).toMatchObject({ type: 'number', min: '0.5', step: '0.5' });
+        });
+
         test('are 3 epochs, a learning rate of 0.3 and a radius of 1 to start with, and they are used', async () => {
             expect(field('epochs').element.value).toBe('3');
             expect(field('lr').element.value).toBe('0.3');

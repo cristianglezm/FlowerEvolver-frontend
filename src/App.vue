@@ -2,7 +2,7 @@
   <div id="app-container">
     <AppTitle />
     <AppMenu :is-local="isLocal()" />
-    <router-view :key="routes.fullPath" class="view" />
+    <router-view :key="viewKeyOf(routes)" class="view" />
     <AppFooter />
     <div v-show="isChatBotOpened">
       <ChatBotWidget :emitter="emitter" :chat-template="chat_template" :tools="tools" :documents="documents" :executor="execCommand" />
@@ -22,15 +22,16 @@ import AppTitle from './components/AppTitle.vue';
 import AppMenu from './components/AppMenu.vue';
 import AppFooter from './components/AppFooter.vue';
 import { useRoute } from 'vue-router';
-import { useFlowerStore } from './stores/FlowerStore';
+import { viewKeyOf } from './router/viewKey';
+import { useSettingsStore } from './stores/SettingsStore';
 import { ChatBotWidget, chat_template, tools, documents, execCommand, registerChatBot, unregisterChatBot } from './chatBotIntegration';
 
 const routes = useRoute();
 const emitter = inject('emitter');
-const FlowerStore = useFlowerStore();
+const SettingsStore = useSettingsStore();
 
 const isChatBotOpened = computed(() => {
-  return FlowerStore.settings.showChatBot;
+  return SettingsStore.settings.showChatBot;
 });
 const isLocal = () => {
   return routes.path === '/Local' || 
@@ -40,7 +41,7 @@ const isLocal = () => {
           routes.path === '/Settings';
 };
 onMounted(() => {
-  registerChatBot(emitter, FlowerStore.settings);
+  registerChatBot(emitter, SettingsStore.settings);
 });
 onUnmounted(() => {
   unregisterChatBot(emitter);
@@ -61,8 +62,8 @@ onUnmounted(() => {
 }
 html {
   font-family: 'MonaspaceRadon-Regular', Arial, Helvetica, sans-serif;
-  background-color: green !important;
-  scrollbar-color: lightgreen rgb(47, 50, 52);
+  background-color: var(--fe-green) !important;
+  scrollbar-color: var(--fe-lightgreen) var(--fe-scrollbar-track);
   width: 100%;
   height: 100%;
   overflow-x: hidden;

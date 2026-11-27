@@ -86,15 +86,15 @@ const title = computed(() => `${props.name} (${props.x}, ${props.y}): ${props.co
         border-radius: 0.4rem;
         font: inherit;
         font-size: 0.7rem;
-        color: lightgreen;
+        color: var(--fe-lightgreen);
         background-color: rgba(0, 128, 0, calc(var(--heat) * 0.7));
         cursor: pointer;
     }
     .SpeciesCard:hover{
-        border-color: green;
+        border-color: var(--fe-green);
     }
     .SpeciesCard.selected{
-        border-color: lightgreen;
+        border-color: var(--fe-lightgreen);
     }
     .SpeciesCard.empty{
         opacity: 0.45;

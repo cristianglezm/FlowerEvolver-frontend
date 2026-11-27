@@ -1,17 +1,11 @@
 <template>
-  <dialog :id="props.id">
-    <div id="progress-container" class="center">
-      <div>
-        <h1> {{ data.title }}</h1>
-      </div>
-      <div id="progress-bar">
-        <div id="Bar" />
-      </div>
-      <div>
-        <h1> {{ getProgress }} / {{ data.total }}</h1>
-      </div>
+  <ModalDialog :id="props.id" ref="dialog" size="fit">
+    <h1> {{ data.title }}</h1>
+    <div id="progress-bar">
+      <div id="Bar" />
     </div>
-  </dialog>
+    <h1> {{ getProgress }} / {{ data.total }}</h1>
+  </ModalDialog>
 </template>
 
 <script setup>
@@ -48,7 +42,9 @@
  *     progress: 50, // Update the progress value
  * });
  */
-import { reactive, onMounted, onBeforeUnmount, computed } from 'vue';
+import { reactive, ref, onMounted, onBeforeUnmount, computed } from 'vue';
+import { listen } from '../services/listen';
+import ModalDialog from './ui/ModalDialog.vue';
 
 const props = defineProps({
     id: {
@@ -74,82 +70,58 @@ const data = reactive({
     progress: 0,
     total: 0,
 });
+const dialog = ref(null);
 const getProgress = computed(() => {
     return data.progress;
 });
 const updateBar = () =>{
     const bar = document.getElementById("Bar");
     let width = ((data.progress / data.total) * 100) + "%"
-    bar.setAttribute("style", "width: " + width + "; background-color: lightgreen; height: 3.125rem;");
+    bar.setAttribute("style", "width: " + width + "; background-color: var(--fe-lightgreen); height: 3.125rem;");
 };
 
+const stops = [];
+
 onMounted(() => {
-    props.channel.on(props.on, (e) => {
+    stops.push(listen(props.channel, props.on, (e) => {
         data.title = e.title;
         data.progress = e.progress;
         data.total = e.total;
         openModal();
         e.onLoad();
-    });
-    props.channel.on(props.update, (e) => {
+    }));
+    stops.push(listen(props.channel, props.update, (e) => {
         data.progress = e.progress;
         updateBar();
         if(data.progress == data.total){
             closeModal();
         }
-    });
-    data.dialog = document.getElementById(props.id);
+    }));
 });
 
 onBeforeUnmount(() => {
-    props.channel.off(props.on);
-    props.channel.off(props.update);
+    stops.splice(0).forEach((stop) => stop());
 });
 
 const openModal = () => {
-    data.dialog.showModal();
+    dialog.value.open();
 };
 
 const closeModal = () => {
-    data.dialog.close();
+    dialog.value.close();
 };
 
 </script>
 
 <style scoped>
-    .center{
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-    }
-    #progress-container{
-        background-color: green;
-        color: lightgreen;
-        position: fixed;
-        border: solid lightgreen;
-        border-radius: 0.31rem;
-        box-shadow: 0rem 1rem 2rem 0rem rgba(0,0,0,0.3);
-        overflow: auto;
-        z-index: 1;
-        padding: 0.125rem;
-        text-align: center;
-    }
     #progress-bar{
-        background-color: rgba(4, 97, 43, 0.986);
-        box-shadow: inset 0rem 0rem 0.6rem 0.125rem black;
+        background-color: var(--fe-progress-track);
+        box-shadow: inset 0rem 0rem 0.6rem 0.125rem var(--fe-black);
         margin: 0.6rem;
     }
     @media only screen and (max-width: 1280px){
-        #progress-container{
-            width: 90%;
-        }
         h1{
             font-size: 0.9rem;
         }
-    }
-    ::backdrop{
-        background-color: white;
-        opacity: 0.55;
     }
 </style>

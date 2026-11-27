@@ -60,6 +60,6 @@ watch(() => [props.alpha, props.size], draw);
 <style scoped>
     .PrototypeCanvas{
         image-rendering: pixelated;
-        background-color: rgb(37, 39, 41);
+        background-color: var(--fe-surface);
     }
 </style>

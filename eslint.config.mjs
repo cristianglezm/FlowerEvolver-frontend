@@ -40,5 +40,26 @@ export default [
                 }
             ],
         },
+    },
+    {
+        // The tests run in node (vitest, playwright) and, when they start with
+        // `@vitest-environment jsdom`, with a browser's globals too: document, Event, File...
+        // `describe`, `test` and the rest are imported from vitest and playwright, not globals.
+        files: [
+            "tests/**/*.js"
+        ],
+        languageOptions:{
+            ecmaVersion: 2022,
+            sourceType: "module",
+            globals: {
+                ...globals.node,
+                ...globals.browser,
+                ...globals.es2021
+            }
+        },
+        rules:{
+            // a test declares small components next to the code that mounts them
+            'vue/one-component-per-file': 'off',
+        },
     }
 ];

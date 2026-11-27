@@ -1,6 +1,6 @@
 import { test as base } from '@playwright/test';
 
-const DEFAULT_SETTINGS = {
+export const DEFAULT_SETTINGS = {
 	params: { radius: 64, numLayers: 3, P: 6.0, bias: 1.0 },
 	mutationRates: { addNodeRate: 0.2, addConnRate: 0.3, removeConnRate: 0.2, perturbWeightsRate: 0.6, enableRate: 0.35, disableRate: 0.3, actTypeRate: 0.4 },
 	loadDemoFlowers: false,
@@ -33,9 +33,7 @@ export const test = base.extend({
 	settings: [DEFAULT_SETTINGS, { option: true }],
 	page: async ({ page, settings }, use) => {
 		await page.addInitScript((settingsJson) => {
-			// eslint-disable-next-line no-undef -- runs in the browser page context, not Node
 			localStorage.setItem('FlowerEvolverSettings', settingsJson);
-			// eslint-disable-next-line no-undef -- runs in the browser page context, not Node
 			localStorage.setItem('FlowerEvolverShowWarning', 'false');
 		}, JSON.stringify(settings));
 		await use(page);

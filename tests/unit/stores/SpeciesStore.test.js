@@ -1,14 +1,14 @@
 import 'fake-indexeddb/auto';
 import { describe, test, expect, beforeEach, afterAll, afterEach, vi } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
-import { db } from '../../../src/stores/FlowerStore/db';
+import { db } from '../../../src/services/db';
 import { useSpeciesStore, _resetSpeciesStoreForTests } from '../../../src/stores/SpeciesStore';
 import { useErrorStore } from '../../../src/stores/ErrorStore';
 import { getSpeciesClient } from '../../../src/services/speciesWorker';
 import { SpeciesClient } from '../../../src/services/SpeciesClient';
 import { SpeciesTrainer } from '../../../src/services/SpeciesTrainer';
-import * as flowerRepository from '../../../src/services/flowerRepository';
-import * as speciesRepository from '../../../src/services/speciesRepository';
+import * as flowerRepository from '../../../src/repositories/flowerRepository';
+import * as speciesRepository from '../../../src/repositories/speciesRepository';
 import { classifierJson } from '../helpers/classifier';
 
 // What is slow and needs the wasm, the classifier, is the one thing that is not real here: the
@@ -336,6 +336,13 @@ describe('SpeciesStore', () => {
             expect(SpeciesStore.rowFor(1)).toEqual({ id: 1, x: 1, y: 0, d: 0.1, fp: 'fp1' });
             expect(SpeciesStore.rowFor(2)).toMatchObject({ x: 0, y: 1, fp: 'fp1' });
             expect(SpeciesStore.rowFor(3)).toMatchObject({ x: 1, y: 1, fp: 'fp1' });
+        });
+
+        test('has nothing to do for no flowers, and does not start the classifier for them', async () => {
+            await expect(SpeciesStore.ensureFor([])).resolves.toBeUndefined();
+
+            expect(client.getModel).not.toHaveBeenCalled();
+            expect(SpeciesStore.isReady).toBe(false);
         });
 
         test('never fails, the page just has no badges', async () => {

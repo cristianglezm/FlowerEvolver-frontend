@@ -1,5 +1,5 @@
 import { pipeline, env } from '@huggingface/transformers';
-import { ModelCache, isGPUAvailable, dataURLToBlob } from '../AIUtils';
+import { ModelCache, isGPUAvailable, dataURLToBlob } from '../../services/AIUtils';
 
 const BACKEND = import.meta.env.VITE_APP_DOWNLOAD_URL;
 export const CACHE_KEY = 'fe-captioner-cache';

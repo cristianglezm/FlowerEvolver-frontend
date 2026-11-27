@@ -74,22 +74,22 @@ const label = computed(() => {
     .QeChart{
         width: 100%;
         max-width: 22rem;
-        background-color: #0b0b0b;
-        border: 0.05rem solid #234;
+        background-color: var(--fe-chart-bg);
+        border: 0.05rem solid var(--fe-chart-border);
     }
     .axis{
-        stroke: #456;
+        stroke: var(--fe-chart-grid);
     }
     .tick{
-        fill: #90ee90;
+        fill: var(--fe-lightgreen);
         font-size: 10px;
     }
     .line{
         fill: none;
-        stroke: #90ee90;
+        stroke: var(--fe-lightgreen);
         stroke-width: 2;
     }
     .dot{
-        fill: #90ee90;
+        fill: var(--fe-lightgreen);
     }
 </style>

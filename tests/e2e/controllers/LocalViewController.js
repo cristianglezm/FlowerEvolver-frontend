@@ -14,6 +14,10 @@ export class LocalViewController {
 		return this.page.getByTestId('flower-card');
 	}
 
+	card(index){
+		return new FlowerCardController(this.page, this.cards().nth(index));
+	}
+
 	async firstCard(){
 		return new FlowerCardController(this.page, this.cards().first());
 	}

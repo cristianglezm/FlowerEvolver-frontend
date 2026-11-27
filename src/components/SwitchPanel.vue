@@ -86,13 +86,13 @@
 
 <style scoped>
 .switch-panel-container{
-    background-color: green;
-    color: lightgreen;
+    background-color: var(--fe-green);
+    color: var(--fe-lightgreen);
     display: flex;
     flex-flow: column nowrap;
 }
 .switch-panel-bar{
-    background-color: green;
+    background-color: var(--fe-green);
     display: flex;
     flex-flow: row nowrap;
     justify-content: space-between;
@@ -106,34 +106,34 @@
     text-align: center;
 }
 .switch-panel-outer{
-    background-color: green;
+    background-color: var(--fe-green);
     width: 50%;
     height: 100%;
     margin: 0px 10px 0px 10px;
 }
 .switch-panel-inner{
-    background-color: green;
-    border: solid lightgreen;
+    background-color: var(--fe-green);
+    border: solid var(--fe-lightgreen);
     border-radius: 50px;
     width: 100%;
     height: 100%;
     display: flex;
-    box-shadow: inset 1px 1px 15px 8px rgb(47, 38, 37);
+    box-shadow: inset 1px 1px 15px 8px var(--fe-shadow-switch);
     transition: justify-content 1.5s ease;
 }
 .switch-panel-ball{
-    background-color: green;
+    background-color: var(--fe-green);
     border-radius: 50%;
     width: 50px;
     height: 50px;
     cursor: pointer;
-    box-shadow: inset 1px 1px 15px 3px lightgreen;
-    filter: drop-shadow(2px 2px 10px rgb(47, 38, 37));
+    box-shadow: inset 1px 1px 15px 3px var(--fe-lightgreen);
+    filter: drop-shadow(2px 2px 10px var(--fe-shadow-switch));
 }
 .switch-panel-ball:hover{
-  background-color: lightgreen;
-  box-shadow: inset 1px 1px 15px 3px black;
-  filter: drop-shadow(2px 2px 10px rgb(47, 38, 37));
+  background-color: var(--fe-lightgreen);
+  box-shadow: inset 1px 1px 15px 3px var(--fe-black);
+  filter: drop-shadow(2px 2px 10px var(--fe-shadow-switch));
 }
 .fade-enter-active, .fade-leave-active {
   transition: opacity 1s ease 1.5s;

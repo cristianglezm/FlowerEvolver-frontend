@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div style="display: flex; flex-flow: column nowrap; gap: 2rem; color: lightgreen; background-color: rgb(37, 39, 41)">
+    <div style="display: flex; flex-flow: column nowrap; gap: 2rem; color: var(--fe-lightgreen); background-color: var(--fe-surface)">
       <Spinner v-if="loading" :message="'Loading Charts..'" />
       <div v-else>
         <h2>Creation Parameters</h2>
@@ -51,7 +51,7 @@
 
 <script setup>
 import { reactive, ref, onMounted } from 'vue';
-import { useFlowerStore } from '../stores/FlowerStore';
+import * as flowerRepository from '../repositories/flowerRepository';
 import { getFlowerEvolver } from '../services/flowerEvolver';
 import VChart from 'vue-echarts';
 import { use } from 'echarts/core';
@@ -77,7 +77,6 @@ use([
   DataZoomComponent,
 ]);
 
-const FlowerStore = useFlowerStore();
 const loading = ref(true);
 
 const config = {
@@ -201,7 +200,7 @@ const processAndRenderData = async () => {
   const dataCounts = histKeys.reduce((acc, key) => ({ ...acc, [key]: {} }), {});
   const sexCounts = { male: 0, female: 0 };
   const fe = await getFlowerEvolver();
-  await FlowerStore.db.flowers.toCollection().each(f => {
+  await flowerRepository.forEachFlower(f => {
     const g = JSON.parse(f.genome);
     const p = g.Flower.petals;
     const s = fe.getFlowerStats(f.genome, 0.3, 23, 1000, 0);
@@ -267,7 +266,7 @@ onMounted(() => {
   }
   h2{
     margin: 1rem 0 0.5rem;
-    color: lightgreen;
+    color: var(--fe-lightgreen);
     text-align: center;
     padding: 2px;
   }

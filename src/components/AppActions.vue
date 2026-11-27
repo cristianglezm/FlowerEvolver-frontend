@@ -2,44 +2,50 @@
   <UploadFileModal :id="'importModal'" :channel="emitter" :on="'showImport'" />
   <div id="actions-settings">
     <div id="actions-safe">
-      <h2 style="color:lightgreen;">Actions</h2>
-      <button class="safe-button" @click="showRedrawFlowers()"> Redraw local Flowers </button>
+      <h2 style="color:var(--fe-lightgreen);">Actions</h2>
+      <SafeButton @click="showRedrawFlowers()"> Redraw local Flowers </SafeButton>
       <div class="columns">
         <div class="column">
-          <button class="safe-button" @click="showExport('favourites')"> Export favourite flowers </button>
-          <button class="safe-button" @click="showExport('garden')"> Export garden Flowers </button>
-          <button class="safe-button" @click="showExport('all')"> Export local Flowers </button>
+          <SafeButton @click="showExport('favourites')"> Export favourite flowers </SafeButton>
+          <SafeButton @click="showExport('garden')"> Export garden Flowers </SafeButton>
+          <SafeButton @click="showExport('all')"> Export local Flowers </SafeButton>
         </div>
         <div class="column">
-          <button class="safe-button" @click="showImport(true)"> Import Flowers to favourites </button>
-          <button class="safe-button" @click="importGarden()"> Import garden Flowers </button>
-          <button class="safe-button" @click="showImport(false)"> Import Flowers </button>
+          <SafeButton @click="showImport(true)"> Import Flowers to favourites </SafeButton>
+          <SafeButton @click="importGarden()"> Import garden Flowers </SafeButton>
+          <SafeButton @click="showImport(false)"> Import Flowers </SafeButton>
         </div>
       </div>
     </div>
     <div id="actions-danger">
-      <h2 style="color:red;">Danger Zone</h2>
-      <button class="unsafe-button" @click="deleteAllFlowers()"> Delete All Flowers </button>
-      <button class="unsafe-button" @click="deleteNonFavourites()"> Delete non Favourites </button>
-      <button class="unsafe-button" :disabled="!canReset" data-testid="remove-classifier" @click="askReset()"> Remove fine-tuned classifier </button>
+      <h2 style="color:var(--fe-danger);">Danger Zone</h2>
+      <UnsafeButton @click="deleteAllFlowers()"> Delete All Flowers </UnsafeButton>
+      <UnsafeButton @click="deleteNonFavourites()"> Delete non Favourites </UnsafeButton>
+      <UnsafeButton :disabled="!canReset" data-testid="remove-classifier" @click="askReset()"> Remove fine-tuned classifier </UnsafeButton>
     </div>
   </div>
 </template>
 
 <script setup>
 import { inject, toRaw, onBeforeUnmount, onMounted } from 'vue';
-import { useFlowerStore, STORAGE_KEY_GARDEN } from '../stores/FlowerStore';
+import { useLocalFlowerStore } from '../stores/LocalFlowerStore';
+import { STORAGE_KEY_GARDEN } from '../services/gardenStorage';
+import { useSettingsStore } from '../stores/SettingsStore';
+import * as flowerRepository from '../repositories/flowerRepository';
 import UploadFileModal from '../components/UploadFileModal.vue';
 import redrawWorker from '../workers/redraw.worker?worker';
 import exportWorker from '../workers/export.worker?worker';
 import importWorker from '../workers/import.worker?worker';
-import WorkerManager from '../stores/WorkerManager';
+import WorkerManager from '../services/WorkerManager';
 import mitt from 'mitt';
 import { useErrorStore } from '../stores/ErrorStore';
 import { useSpeciesStore } from '../stores/SpeciesStore';
 import { useClassifierReset } from '../composables/useClassifierReset';
+import SafeButton from './ui/SafeButton.vue';
+import UnsafeButton from './ui/UnsafeButton.vue';
 
-const FlowerStore = useFlowerStore();
+const LocalFlowerStore = useLocalFlowerStore();
+const SettingsStore = useSettingsStore();
 const ErrorStore = useErrorStore();
 const SpeciesStore = useSpeciesStore();
 const { canReset, askReset } = useClassifierReset();
@@ -120,7 +126,7 @@ const deleteAllFlowers = () => {
         btnNo: 'no',
         btnYes: 'Delete all',
         onConfirm: async () => {
-            await FlowerStore.deleteAllFlowers();
+            await LocalFlowerStore.deleteAllFlowers();
             emitter.emit('AppOptions#recalcSpace');
         },
     });
@@ -132,15 +138,15 @@ const deleteNonFavourites = () => {
         btnNo: 'no',
         btnYes: 'Delete non favourites',
         onConfirm: async () => {
-            await FlowerStore.deleteNonFavourites();
+            await LocalFlowerStore.deleteNonFavourites();
             emitter.emit('AppOptions#recalcSpace');
         }
     });
 };
 const redrawLocalFlowers = async () => {
     wm.sendRequest('redraw', {
-        batchSize: FlowerStore.settings.limit,
-        params: structuredClone(toRaw(FlowerStore.settings.params))
+        batchSize: SettingsStore.settings.limit,
+        params: structuredClone(toRaw(SettingsStore.settings.params))
     });
 };
 const showRedrawFlowers = () => {
@@ -150,13 +156,13 @@ const showRedrawFlowers = () => {
         btnNo: 'no',
         btnYes: 'redraw local flowers',
         onConfirm: () => {
-            FlowerStore.db.flowers.count((totalFlowers) => {
+            flowerRepository.countFlowers().then((totalFlowers) => {
                 if(totalFlowers != 0){
                     showProgressBar('re-drawing flowers', totalFlowers, redrawLocalFlowers);   
                 }else{
                     ErrorStore.push("You have no local flowers to redraw.");
                 }
-            });
+            }).catch(onError);
         },
     });
 };
@@ -168,7 +174,7 @@ const showExport = (type) => {
             btnNo: 'no',
             btnYes: 'Export favourite flowers',
             onConfirm: () => {
-                FlowerStore.db.favourites.count((totalFlowers) => {
+                flowerRepository.countFavourites().then((totalFlowers) => {
                     if(totalFlowers != 0){
                         showProgressBar('exporting favourite flowers', totalFlowers, 
                             () => {
@@ -177,7 +183,7 @@ const showExport = (type) => {
                     }else{
                         ErrorStore.push("You have no favourites to export");
                     }
-                });
+                }).catch(onError);
             }
         });
     }else if(type == "all"){
@@ -187,7 +193,7 @@ const showExport = (type) => {
             btnNo: 'no',
             btnYes: 'Export all local flowers',
             onConfirm: () => {
-                FlowerStore.db.flowers.count((totalFlowers) => {
+                flowerRepository.countFlowers().then((totalFlowers) => {
                     if(totalFlowers != 0){
                         showProgressBar('exporting flowers', totalFlowers, 
                             () => {
@@ -196,7 +202,7 @@ const showExport = (type) => {
                     }else{
                         ErrorStore.push("You have no flowers to export");
                     }
-                });
+                }).catch(onError);
             }
         });
     }else if(type == "garden"){
@@ -219,7 +225,7 @@ const importFiles = async (files, toFavs) => {
     wm.sendRequest('importer', {
         files: files,
         toFavs: toFavs,
-        batchSize: FlowerStore.settings.limit
+        batchSize: SettingsStore.settings.limit
     });
 };
 const importGarden = async () => {
@@ -231,7 +237,7 @@ const importGarden = async () => {
     wm.sendRequest('importer', {
         files: files,
         toFavs: toFavs,
-        batchSize: FlowerStore.settings.limit
+        batchSize: SettingsStore.settings.limit
     });
 };
 const showImport = (toFavs) => {
@@ -263,7 +269,7 @@ const exportFlowers = (type) => {
     }
     wm.sendRequest('exporter', {
         type: type,
-        batchSize: FlowerStore.settings.limit
+        batchSize: SettingsStore.settings.limit
     });
 };
 
@@ -273,7 +279,7 @@ const exportFlowers = (type) => {
     #actions-settings{
         padding: 0.6rem;
         text-align: center;
-        background-color: rgb(37, 39, 41);
+        background-color: var(--fe-surface);
         font-size: 1.25rem;
         display: flex;
         flex-flow: row nowrap;
@@ -281,8 +287,8 @@ const exportFlowers = (type) => {
     #actions-safe{
         padding: 0.6rem;
         margin: 0.6rem;
-        background-color: green;
-        border: solid lightgreen;
+        background-color: var(--fe-green);
+        border: solid var(--fe-lightgreen);
         width: 100%;
         border-radius: 1.25rem;
     }
@@ -297,65 +303,29 @@ const exportFlowers = (type) => {
         padding: 0.125rem;
         overflow-y: auto;
     }
-    .safe-button{
-        position: relative;
-        font-size: 1.25rem;
-        border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
-        margin: 0.6rem 0.6rem 0rem 1.25rem;
-        cursor: pointer;
-        border-color: lightgreen;
-        background-color: green;
-        color: lightgreen;
-    }
-    .safe-button:hover{
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
     #actions-danger{
-        border: solid red;
+        border: solid var(--fe-danger);
         border-radius: 1.25rem;
         margin: 0.6rem;
         padding: 0.6rem;
         margin-bottom: 1.25rem;
         width: 100%;
         text-align: center;
-        background-color: green;
-    }
-    .unsafe-button{
-        position: relative;
-        font-size: 1.25rem;
-        border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
-        margin: 0.6rem 0.6rem 0rem 1.25rem;
-        cursor: pointer;
-        border-color: whitesmoke;
-        background-color: red;
-        color: whitesmoke;
-    }
-    .unsafe-button:hover{
-        border-color: red;
-        background-color: whitesmoke;
-        color: red;
+        background-color: var(--fe-green);
     }
     /* what cannot be done now looks the same when the pointer is over it */
     .unsafe-button:disabled,
     .unsafe-button:disabled:hover{
         opacity: 0.5;
         cursor: not-allowed;
-        border-color: whitesmoke;
-        background-color: red;
-        color: whitesmoke;
+        border-color: var(--fe-whitesmoke);
+        background-color: var(--fe-danger);
+        color: var(--fe-whitesmoke);
     }
     @media only screen and (max-width: 1280px){
         #actions-settings{
             font-size: 0.9rem;
             flex-flow: row wrap;
-        }
-        .safe-button{
-            font-size: 0.9rem;
-        }
-        .unsafe-button{
-            font-size: 0.9rem;
         }
         #actions-safe{
             margin: 0.2rem;

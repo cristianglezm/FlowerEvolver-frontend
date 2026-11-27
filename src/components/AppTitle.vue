@@ -15,9 +15,9 @@
 <script setup>
 
 import { onMounted, reactive } from 'vue';
-import { STORAGE_KEY_GARDEN } from '../stores/FlowerStore';
+import { STORAGE_KEY_GARDEN } from '../services/gardenStorage';
 import gardenWorker from '../workers/garden.worker?worker';
-import WorkerManager from '../stores/WorkerManager';
+import WorkerManager from '../services/WorkerManager';
 import mitt from 'mitt';
 import { useErrorStore } from '../stores/ErrorStore';
 
@@ -85,14 +85,14 @@ const getRect = () => {
         font-size: 7.5rem;
         padding: 0rem;
         margin: 0rem;
-        color: lightgreen;
+        color: var(--fe-lightgreen);
     }
     @media only screen and (max-width: 1280px){
         h1{
             font-size: 2.25rem;
             padding: 0rem;
             margin: 0rem;
-            color: lightgreen;
+            color: var(--fe-lightgreen);
         }
     }
     #flowerGarden{
@@ -101,7 +101,7 @@ const getRect = () => {
         z-index: 0;
     }
     .TitleHeader{
-        background-color: green;
+        background-color: var(--fe-green);
         position: relative;
     }
     @media only screen and (max-width: 1280px){
@@ -119,13 +119,13 @@ const getRect = () => {
     }
     #warning{
         font-size: 1.25rem;
-        color: lightgreen;
+        color: var(--fe-lightgreen);
         position: absolute;
         z-index: 2;
         width: 100%;
         text-align: center;
         border-radius: 0.25rem;
-        border: solid lightgreen;
-        background-color: green;
+        border: solid var(--fe-lightgreen);
+        background-color: var(--fe-green);
     }
 </style>

@@ -1,39 +1,35 @@
 <template>
-  <dialog ref="dialog" class="FineTuneModal" data-testid="finetune-modal" @cancel="keepOpenWhileTuning($event)">
-    <h2>Fine-tune the classifier</h2>
+  <ModalDialog ref="dialog" size="form" title="Fine-tune the classifier" :locked="SpeciesStore.isTuning" data-testid="finetune-modal">
     <p class="about">
       The species adapt to the flowers you have made, so they tell your flowers apart better.
       Every flower is read and drawn once, which takes a while if you have many. You can cancel,
       and the classifier you had is put back. The sub-species you made are removed when it is kept.
     </p>
     <div class="fields">
-      <div class="labelInputArea">
-        <ToolTip :info="'How many times every flower is shown to the classifier, more takes longer and adapts the species more.'" />
-        <label for="finetune-epochs">Epochs: </label>
-        <input id="finetune-epochs" v-model.number="data.epochs" type="number" min="1" step="1" data-testid="finetune-epochs">
-      </div>
-      <div class="labelInputArea">
-        <ToolTip :info="'How far the species move towards the flowers in the first epoch, it gets smaller with each one.'" />
-        <label for="finetune-lr">Learning rate: </label>
-        <input id="finetune-lr" v-model.number="data.baseLR" type="number" min="0.01" step="0.05" data-testid="finetune-lr">
-      </div>
-      <div class="labelInputArea">
-        <ToolTip :info="'How many neighbouring species move along with the one a flower belongs to, in the first epoch.'" />
-        <label for="finetune-radius">Radius: </label>
-        <input id="finetune-radius" v-model.number="data.baseRadius" type="number" min="0.5" step="0.5" data-testid="finetune-radius">
-      </div>
+      <NumberField
+        v-model="data.epochs" input-id="finetune-epochs" label="Epochs: " testid="finetune-epochs" :min="1" :step="1"
+        tooltip="How many times every flower is shown to the classifier, more takes longer and adapts the species more."
+      />
+      <NumberField
+        v-model="data.baseLR" input-id="finetune-lr" label="Learning rate: " testid="finetune-lr" :min="0.01" :step="0.05"
+        tooltip="How far the species move towards the flowers in the first epoch, it gets smaller with each one."
+      />
+      <NumberField
+        v-model="data.baseRadius" input-id="finetune-radius" label="Radius: " testid="finetune-radius" :min="0.5" :step="0.5"
+        tooltip="How many neighbouring species move along with the one a flower belongs to, in the first epoch."
+      />
     </div>
     <p v-if="invalid !== ''" class="invalid" data-testid="finetune-invalid">{{ invalid }}</p>
     <TrainingPanel
-      v-if="SpeciesStore.training.ran === 'fineTune' && (SpeciesStore.isTuning || SpeciesStore.training.result !== null)"
+      v-if="SpeciesStore.training.ran === 'fineTune' && (SpeciesStore.isTuning || SpeciesStore.training.result !== null)" class="panel"
       :training="SpeciesStore.training" :width="SpeciesStore.model.width" :height="SpeciesStore.model.height"
       @cancel="SpeciesStore.cancelTraining()"
     />
     <div class="buttons">
-      <button type="button" class="safe-button" :disabled="SpeciesStore.isTuning || invalid !== ''" data-testid="finetune-start" @click="start()"> Fine-tune </button>
-      <button type="button" class="safe-button" :disabled="SpeciesStore.isTuning" data-testid="finetune-close" @click="close()"> Close </button>
+      <SafeButton :disabled="SpeciesStore.isTuning || invalid !== ''" data-testid="finetune-start" size="small" @click="start()"> Fine-tune </SafeButton>
+      <SafeButton :disabled="SpeciesStore.isTuning" data-testid="finetune-close" size="small" @click="close()"> Close </SafeButton>
     </div>
-  </dialog>
+  </ModalDialog>
 </template>
 
 <script setup>
@@ -44,7 +40,9 @@
 import { computed, reactive, ref } from 'vue';
 import { useSpeciesStore } from '../../stores/SpeciesStore';
 import TrainingPanel from './TrainingPanel.vue';
-import ToolTip from '../ToolTip.vue';
+import NumberField from '../ui/NumberField.vue';
+import SafeButton from '../ui/SafeButton.vue';
+import ModalDialog from '../ui/ModalDialog.vue';
 
 const SpeciesStore = useSpeciesStore();
 const dialog = ref(null);
@@ -72,88 +70,45 @@ const start = async () => {
     await SpeciesStore.fineTune({ epochs: data.epochs, baseLR: data.baseLR, baseRadius: data.baseRadius });
 };
 const open = () => {
-    dialog.value.showModal();
+    dialog.value.open();
 };
 const close = () => {
     dialog.value.close();
-};
-// Esc closes a dialog, and what is running would go on behind it
-const keepOpenWhileTuning = (event) => {
-    if(SpeciesStore.isTuning){
-        event.preventDefault();
-    }
 };
 
 defineExpose({ open, close });
 </script>
 
 <style scoped>
-    .FineTuneModal{
-        width: min(36rem, 92vw);
-        padding: 1rem 1.4rem;
-        border: 0.1rem solid green;
-        border-radius: 0.6rem;
-        background-color: rgb(37, 39, 41);
-        color: lightgreen;
-    }
-    .FineTuneModal::backdrop{
-        background-color: rgba(0, 0, 0, 0.7);
-    }
-    h2{
-        margin: 0 0 0.4rem 0;
-    }
     .about{
         margin: 0 0 0.8rem 0;
+        padding: 0 1.4rem;
         font-size: 0.9rem;
-    }
-    /* the same as the parameters of Settings: tooltip, label, and the number in a pill */
-    .labelInputArea{
-        display: block;
-        padding-top: 0.31rem;
-    }
-    .labelInputArea label{
-        width: 9.6rem;
-        display: inline-block;
-        margin: 0rem 0rem 0rem 0.93rem;
-    }
-    .labelInputArea input[type=number]{
-        vertical-align: top;
-        background-color: green;
-        color: lightgreen;
-        border: solid lightgreen;
-        border-radius: 8rem;
-        margin: 0.125rem 0rem 0rem 0.125rem;
-        width: 20%;
-        text-align: center;
-        appearance: textfield;
+        text-align: left;
     }
     .fields{
         margin-bottom: 0.6rem;
+        padding: 0 1.4rem;
+        text-align: left;
+        /* a dialog is narrow: the labels and the pills have the same size on every screen */
+        --fe-field-label-width: 9.6rem;
+        --fe-field-control-width: 20%;
+    }
+    .panel{
+        margin: 0 1.4rem;
     }
     .invalid{
         margin: 0 0 0.6rem 0;
-        color: red;
+        padding: 0 1.4rem;
+        text-align: left;
+        color: var(--fe-black);
+        font-weight: bold;
     }
     .buttons{
+        --fe-button-margin: 0;
         display: flex;
         gap: 0.6rem;
-        margin-top: 0.8rem;
-    }
-    .safe-button{
-        font-size: 1rem;
-        border-radius: 1.2rem;
-        border: 0.1rem solid lightgreen;
-        background-color: green;
-        color: lightgreen;
-        cursor: pointer;
-    }
-    .safe-button:hover:not(:disabled){
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
-    .safe-button:disabled{
-        opacity: 0.5;
-        cursor: not-allowed;
+        margin: 0.8rem 0 0.8rem 0;
+        padding: 0 1.4rem;
     }
 </style>

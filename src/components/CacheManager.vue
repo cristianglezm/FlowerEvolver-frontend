@@ -48,7 +48,7 @@
    * </template>
    */
   import { onMounted, reactive } from 'vue';
-  import { CacheManager as CM } from '../stores/CacheManager';
+  import { CacheManager as CM } from '../services/CacheManager';
   import ConfirmModal from './ConfirmModal.vue';
   import mitt from 'mitt';
   

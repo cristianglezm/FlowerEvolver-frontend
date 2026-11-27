@@ -1,0 +1,14 @@
+#!/bin/sh
+# Sourced by the entrypoint of the nginx image before the templates are rendered.
+
+# the resolver of the container, in case 15-local-resolvers.envsh did not find one
+: "${NGINX_LOCAL_RESOLVERS:=127.0.0.11}"
+export NGINX_LOCAL_RESOLVERS
+
+# the port the browser must be sent to when it is not 443 (a local test on 8443, say)
+if [ "${HTTPS_PORT:-443}" = "443" ]; then
+    HTTPS_PORT_SUFFIX=""
+else
+    HTTPS_PORT_SUFFIX=":${HTTPS_PORT}"
+fi
+export HTTPS_PORT_SUFFIX

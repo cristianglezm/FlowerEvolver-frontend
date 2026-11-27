@@ -62,7 +62,7 @@
     import { computed, nextTick, onMounted, onUnmounted, reactive } from 'vue';
     import { Kokoro, isGPUAvailable, CACHE_KEY as KOKORO_CACHE_KEY, VOICES_CACHE_KEY } from '../stores/KokoroStore/Kokoro'
     import { useKokoroStore } from '../stores/KokoroStore';
-    import { CacheManager as CM } from '../stores/CacheManager';
+    import { CacheManager as CM } from '../services/CacheManager';
     import CacheManager from './CacheManager.vue';
     import ToolTip from './ToolTip.vue';
 

@@ -1,13 +1,19 @@
 <template>
-  <div v-if="props.pagination" :class="{container: props.itemsLength}">
-    <div v-if="props.itemsLength" class="arrow" :class="{disabled: atStart()}"><button :disabled="atStart()" @click="prevPage()">&lt;</button></div>
+  <div v-if="props.pagination">
+    <nav v-if="props.itemsLength" class="pager" aria-label="Pages" data-testid="pager-top">
+      <PageButton direction="previous" data-testid="page-previous-top" :disabled="atStart()" @click="prevPage()" />
+      <PageButton direction="next" data-testid="page-next-top" :disabled="atEnd()" @click="nextPage()" />
+    </nav>
     <slot />
-    <div v-if="props.itemsLength" class="arrow" :class="{disabled: atEnd()}"><button :disabled="atEnd()" @click="nextPage()">&gt;</button></div>
+    <nav v-if="props.itemsLength" class="pager" aria-label="Pages" data-testid="pager-bottom">
+      <PageButton direction="previous" data-testid="page-previous-bottom" :disabled="atStart()" @click="prevPage()" />
+      <PageButton direction="next" data-testid="page-next-bottom" :disabled="atEnd()" @click="nextPage()" />
+    </nav>
   </div>
   <div v-else>
     <slot />
     <div v-if="showButton">
-      <button class="return-button" @click="scrollToAnchor()"> back to top </button>
+      <ReturnButton data-testid="back-to-top" @click="scrollToAnchor()" />
     </div>
   </div>
 </template>
@@ -16,7 +22,8 @@
 /**
  * PaginationOrInfiniteScroll Component
  * 
- * This component provides pagination controls for navigating through content.
+ * This component provides pagination controls for navigating through content: the arrows are above and below the
+ * content, so that the page can be changed from where the person is.
  *
  * @emits next-page - Event emitted when the "Next Page" button is clicked.
  * @emits prev-page - Event emitted when the "Previous Page" button is clicked.
@@ -28,6 +35,8 @@
  * @param {number} totalPages - The total number of pages.
  */
 import { onMounted, onBeforeUnmount, ref } from 'vue';
+import ReturnButton from './ui/ReturnButton.vue';
+import PageButton from './ui/PageButton.vue';
 
 const emit = defineEmits({
     'next-page': null,
@@ -123,72 +132,10 @@ if(!props.pagination){
 </script>
 
 <style scoped>
-    .container{
-        display: grid;
-        grid-template-columns: 4.3rem auto 4.3rem;
-        grid-gap: 0.6rem;
-    }
-    @media only screen and (max-width: 1280px){
-        .container{
-            display: grid;
-            grid-template-columns: 1.25rem auto 1.25rem;
-            grid-gap: 0.6rem;
-        }
-    }
-    .arrow{
-        background-color: rgb(37, 39, 41);
-    }
-    .arrow button{
-        font-size: 2.5rem;
-        color: green;
-        border-radius: 7.8rem;
-        background-color: lightgreen;
-        text-align: center;
-        padding: 0.31rem 0.93rem 0.31rem 0.93rem;
-        position: relative;
-        top: 50%;
-        left: 0.1em;
-        cursor: pointer;
-    }
-    .disabled button{
-        cursor: not-allowed !important;
-        opacity: 0.5;
-        margin-bottom: -12.5rem;
-    }
-    .return-button{
-        position: fixed;
-        right: 2%;
-        bottom: 15%;
-        background-color: green;
-        color: lightgreen;
-        padding: 0.31rem 0.93rem 0.31rem 0.93rem;
-        text-align: center;
-        cursor: pointer;
-        border-radius: 19.68rem 20.93rem 9.68rem 8.43rem;
-        border-color: lightgreen;
-        font-size: 1.25rem;
-        float: right;
-        z-index: 1;
-    }
-    .return-button:hover{
-        background-color: lightgreen;
-        border-color: green;
-        color: green;
-    }
-@media only screen and (max-width: 1280px){
-    .arrow button{
-        font-size: 0.93rem;
-        border-radius: 7.8rem;
-        padding: 0.125rem 0.75rem 0.125rem 0.75rem;
-        top: 50%;
-        left: 0.1em;
-    }
-    .return-button{
-        font-size: 0.93rem;
-    }
-}
-    .arrow button:hover{
-        background-color: green;
-        color: lightgreen;
+    .pager{
+        display: flex;
+        justify-content: center;
+        gap: 1.25rem;
+        padding: 0.6rem 0;
     }
 </style>

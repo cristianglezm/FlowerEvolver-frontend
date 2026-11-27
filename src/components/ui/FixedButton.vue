@@ -1,0 +1,68 @@
+<template>
+  <button class="fixed-button" :class="side" type="button">
+    <slot />
+  </button>
+</template>
+
+<script setup>
+/**
+ * A button that floats at the edge of the page and slides in when the pointer is over it, for the actions that are
+ * always at hand (the ones of the menu on a wide screen). It goes inside a FixedButtons, which says which edge it is
+ * at and puts it with the others.
+ *
+ * It is a button: `disabled`, `title`, `id`, `data-testid` and `@click` go to it, and a button that is disabled does
+ * not click. A disabled one still slides in, so that it can be seen, but it does not change its colours.
+ *
+ * @component FixedButton
+ */
+import { inject } from 'vue';
+import { FIXED_SIDE } from './fixedButtons';
+
+// it is a ref that follows the group, and it is not there when the button is outside of one (Vue says so)
+const side = inject(FIXED_SIDE);
+</script>
+
+<style scoped>
+    .fixed-button{
+        position: relative;
+        font-size: 1.25rem;
+        cursor: pointer;
+        border-color: var(--fe-lightgreen);
+        background-color: var(--fe-surface);
+        color: var(--fe-lightgreen);
+        z-index: 10;
+        width: 180px;
+        height: 130px;
+        pointer-events: all;
+        padding-left: 30px;
+        padding-right: 25px;
+        box-shadow: 2px 2px 10px 4px var(--fe-shadow-fixed);
+    }
+    .fixed-button:hover:not(:disabled){
+        background-color: var(--fe-lightgreen);
+        border-color: var(--fe-green);
+        color: var(--fe-green);
+    }
+    .fixed-button:disabled{
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .left{
+        border-radius: 0em  2.0em 2.0em 0.0em;
+        transform: translate(-130px, 0%);
+        transition: transform 0.5s ease;
+    }
+    .left:hover{
+        transform: translate(2px, 0%);
+        transition: transform 0.5s ease;
+    }
+    .right{
+        border-radius: 2em  0.0em 0.0em 2em;
+        transform: translate(140px, 0%);
+        transition: transform 0.5s ease;
+    }
+    .right:hover{
+        transform: translate(-2px, 0%);
+        transition: transform 0.5s ease;
+    }
+</style>

@@ -1,10 +1,10 @@
 import mitt from 'mitt';
 import { defineStore } from 'pinia';
-import WorkerManager from '../WorkerManager';
+import WorkerManager from '../../services/WorkerManager';
 import captioner from '../../workers/captioner.worker?worker';
 import { toRaw } from 'vue';
 import { useErrorStore } from '../ErrorStore';
-import * as flowerRepository from '../../services/flowerRepository';
+import * as flowerRepository from '../../repositories/flowerRepository';
 
 let channel = new mitt();
 const wm = new WorkerManager(channel);
@@ -85,18 +85,26 @@ export const useCaptionerStore = defineStore('CaptionerStore', {
         }
     },
     actions: {
-        async loadLocalDescriptions(offset, limit){
-            this.localDescriptions = new Map();
-            flowerRepository.listDescriptions({offset, limit})
-            .then((descriptions) => {
+        /**
+         * @brief Loads the descriptions of these flowers of the browser, the ones that have one, and keeps the others
+         * that are loaded. The descriptions table is read by the id of the flowers and not by its own order, which is
+         * not the order of any list that is shown. Done when they are in the store. Never fails.
+         */
+        async loadLocalDescriptionsOf(ids){
+            if(ids.length === 0){
+                return;
+            }
+            try{
+                const descriptions = await flowerRepository.bulkGetDescriptions(ids);
                 descriptions.forEach((desc) => {
-                    this.localDescriptions.set(desc.id, desc.description);
+                    if(desc !== undefined){
+                        this.localDescriptions.set(desc.id, desc.description);
+                    }
                 });
-            })
-            .catch((e) => {
+            }catch(e){
                 const ErrorStore = useErrorStore();
                 ErrorStore.push(e);
-            });
+            }
         },
         async loadAndConcatLocalDescriptions(offset, limit){
             let newMap = new Map();

@@ -54,13 +54,13 @@ const open = () => {
         background: none;
         font: inherit;
         font-size: 0.85rem;
-        color: #90ee90;
+        color: var(--fe-lightgreen);
         text-align: center;
         text-decoration: underline;
         cursor: pointer;
     }
     .SpeciesBadge.atypical{
-        color: #ffb347;
+        color: var(--fe-atypical);
     }
     .cell{
         opacity: 0.75;

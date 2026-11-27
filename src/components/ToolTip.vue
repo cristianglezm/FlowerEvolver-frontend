@@ -34,8 +34,8 @@ const toggleInfo = () => {
 
 <style scoped>
     .tipInfo{
-        background-color: green;
-        border: solid lightgreen;
+        background-color: var(--fe-green);
+        border: solid var(--fe-lightgreen);
         border-radius: 1.25rem;
         display: inline-grid;
         text-align: center;
@@ -43,8 +43,8 @@ const toggleInfo = () => {
         padding-right: 0.3rem;
     }
     .infoBox{
-        background-color: green;
-        border: solid lightgreen;
+        background-color: var(--fe-green);
+        border: solid var(--fe-lightgreen);
         border-radius: 1.25rem;
         float:right;
         position: absolute;

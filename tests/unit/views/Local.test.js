@@ -1,0 +1,505 @@
+// @vitest-environment jsdom
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+import { nextTick } from 'vue';
+import { mount, flushPromises } from '@vue/test-utils';
+import { createTestingPinia } from '@pinia/testing';
+import { createRouter, createMemoryHistory } from 'vue-router';
+import Local from '../../../src/views/Local.vue';
+import PaginationOrInfiniteScroll from '../../../src/components/PaginationOrInfiniteScroll.vue';
+import { useLocalFlowerStore } from '../../../src/stores/LocalFlowerStore';
+import { useSettingsStore } from '../../../src/stores/SettingsStore';
+import { useErrorStore } from '../../../src/stores/ErrorStore';
+import { flowerAdded, listReset } from '../../../src/services/listEvents';
+
+// What is under test is the view with the real LocalFlowerStore and the real wasm, the way the e2e specs use it: a
+// flower is made, mutated, reproduced or deleted by the menu or a card while the Local tab is on screen, and the
+// tab has to show it. Only what is behind them is faked: the table of flowers (it behaves like the Dexie one,
+// the newest first), the network, the species and the descriptions.
+const table = vi.hoisted(() => ({ rows: [], seq: 0 }));
+vi.mock('../../../src/repositories/flowerRepository', () => {
+    const bySeq = (id) => table.rows.find((f) => f.id === id);
+    return {
+        ensureOpen: vi.fn(),
+        countFlowers: vi.fn(async () => table.rows.length),
+        listFlowers: vi.fn(async ({ limit, offset }) => [...table.rows].reverse().slice(offset, offset + limit)),
+        addFlower: vi.fn(async (flower) => {
+            const id = ++table.seq;
+            table.rows.push({ ...flower, id });
+            return id;
+        }),
+        getFlower: vi.fn(async (id) => bySeq(id)),
+        deleteFlower: vi.fn(async (id) => { table.rows = table.rows.filter((f) => f.id !== id); }),
+        wipeDatabase: vi.fn(async () => { table.rows = []; table.seq = 0; }),
+        removeFavourite: vi.fn(async () => {}),
+        deleteDescription: vi.fn(async () => {}),
+        deleteDescendant: vi.fn(async () => {}),
+        findMutationsByOriginalOrId: vi.fn(async () => []),
+        bulkDeleteMutations: vi.fn(async () => {}),
+        addMutation: vi.fn(async () => {}),
+        addDescendant: vi.fn(async () => {}),
+        listFavouriteIds: vi.fn(async () => []),
+        bulkGetFlowers: vi.fn(async () => []),
+        bulkAddFlowers: vi.fn(async () => {}),
+        bulkAddFavourites: vi.fn(async () => {}),
+        bulkGetDescriptions: vi.fn(async () => []),
+        bulkAddDescriptions: vi.fn(async () => {}),
+    };
+});
+vi.mock('../../../src/services/flowerApiClient', () => ({ API: 'http://test-api.local/', describeError: vi.fn((e) => e) }));
+vi.mock('../../../src/repositories/speciesRepository', () => ({ bulkGetSpecies: vi.fn(async () => []), bulkPutSpecies: vi.fn(async () => {}) }));
+// the species of the flowers that are shown is asked for through ensureFor, which is what these tests look at
+const speciesStore = vi.hoisted(() => ({
+    classifyLater: vi.fn(), removeFlower: vi.fn(async () => {}), invalidate: vi.fn(), ensureFor: vi.fn(async () => {}),
+}));
+vi.mock('../../../src/stores/SpeciesStore', () => ({ useSpeciesStore: () => speciesStore }));
+// the descriptions of the flowers that are shown are asked for by id
+const captioner = vi.hoisted(() => ({ loadLocalDescriptionsOf: vi.fn(async () => {}) }));
+vi.mock('../../../src/stores/CaptionerStore', () => ({ useCaptionerStore: () => captioner }));
+// a flower card is a lot of components and stores, the view only hands it the flowers
+vi.mock('../../../src/components/FlowersTable.vue', () => ({
+    default: {
+        props: ['flowers', 'isLocal', 'noFlowerMessage'],
+        template: '<ul class="flowers"><li v-for="flower in flowers" :key="flower.id">{{ flower.id }}</li><li v-if="!flowers.length" class="none">{{ noFlowerMessage }}</li></ul>',
+    },
+}));
+const workers = vi.hoisted(() => []);
+// the module of a worker is called as a function, not with new
+vi.mock('../../../src/workers/import.worker?worker', () => ({
+    default: () => {
+        const worker = { postMessage: vi.fn(), terminate: vi.fn() };
+        workers.push(worker);
+        return worker;
+    },
+}));
+
+const page = { template: '<div />' };
+
+describe('Local view', () => {
+    let LocalFlowerStore;
+    let SettingsStore;
+    let ErrorStore;
+    let router;
+    let emitter;
+    let wrapper;
+
+    const addRows = (count) => {
+        for(let i = 0; i < count; ++i){
+            table.rows.push({ id: ++table.seq, genome: 'g', image: 'i' });
+        }
+    };
+    const mountView = async (path = '/Local') => {
+        await router.push(path);
+        wrapper = mount(Local, { global: { plugins: [router], provide: { emitter } } });
+        await flushPromises();
+        return wrapper;
+    };
+    const shown = () => wrapper.findAll('.flowers li:not(.none)').map((li) => Number(li.text()));
+    // the ids that the species were asked for, in order, batch after batch
+    const askedFor = () => speciesStore.ensureFor.mock.calls.flatMap(([ids]) => ids);
+    const settle = async () => {
+        await flushPromises();
+        await nextTick();
+    };
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        localStorage.clear();
+        table.rows = [];
+        table.seq = 0;
+        workers.length = 0;
+        emitter = { emit: vi.fn() };
+        createTestingPinia({ stubActions: false, createSpy: vi.fn });
+        LocalFlowerStore = useLocalFlowerStore();
+        SettingsStore = useSettingsStore();
+        ErrorStore = useErrorStore();
+        vi.spyOn(ErrorStore, 'push');
+        SettingsStore.settings.loadDemoFlowers = false;
+        SettingsStore.settings.pagination = false;
+        SettingsStore.settings.limit = 3;
+        router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/Local', name: 'Local', component: page }] });
+    });
+
+    afterEach(() => {
+        wrapper?.unmount();
+        wrapper = undefined;
+    });
+
+    describe('infinite scroll', () => {
+        test('shows the newest flowers first, a batch at a time, and loads their descriptions', async () => {
+            addRows(7);
+            await mountView();
+
+            expect(shown()).toEqual([7, 6, 5]);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[7, 6, 5]]]);
+
+            wrapper.findComponent(PaginationOrInfiniteScroll).vm.$emit('update-page');
+            await settle();
+
+            expect(shown()).toEqual([7, 6, 5, 4, 3, 2]);
+            // the next batch is the flowers that were not asked for yet, and no others
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[7, 6, 5]], [[4, 3, 2]]]);
+        });
+
+        test('asks for the species of each batch when it is shown, and only of that batch', async () => {
+            addRows(7);
+            await mountView();
+            expect(speciesStore.ensureFor.mock.calls).toEqual([[[7, 6, 5]]]);
+
+            wrapper.findComponent(PaginationOrInfiniteScroll).vm.$emit('update-page');
+            await settle();
+
+            expect(speciesStore.ensureFor.mock.calls).toEqual([[[7, 6, 5]], [[4, 3, 2]]]);
+            expect(ErrorStore.push).not.toHaveBeenCalled();
+        });
+
+        test('has no pages, so the address is not touched when the next batch is shown', async () => {
+            addRows(7);
+            await mountView();
+
+            wrapper.findComponent(PaginationOrInfiniteScroll).vm.$emit('update-page');
+            await settle();
+
+            expect(shown()).toEqual([7, 6, 5, 4, 3, 2]);
+            expect(router.currentRoute.value.fullPath).toBe('/Local');
+        });
+
+        test('does not ask for the species of a flower that is made, the store that makes it classifies it', async () => {
+            await mountView();
+            expect(askedFor()).toEqual([]);
+
+            await LocalFlowerStore.makeLocalFlower();
+            await settle();
+
+            expect(shown()).toEqual([1]);
+            expect(speciesStore.classifyLater).toHaveBeenCalledExactlyOnceWith(1);
+            expect(askedFor()).toEqual([]);
+        });
+
+        test('says that there are no flowers', async () => {
+            await mountView();
+
+            expect(wrapper.get('.none').text()).toBe('There are no Flowers');
+        });
+
+        // the e2e spec 'create, mutate, and favourite a local flower'
+        test('a flower that the menu makes is at the top, and so is its mutation', async () => {
+            await mountView();
+
+            await LocalFlowerStore.makeLocalFlower();
+            await settle();
+            expect(shown()).toEqual([1]);
+
+            await LocalFlowerStore.makeLocalMutation(table.rows[0]);
+            await settle();
+            expect(shown()).toEqual([2, 1]);
+            expect(ErrorStore.push).not.toHaveBeenCalled();
+        });
+
+        // the e2e spec 'selecting two local flowers enables reproduction'
+        test('the child of two selected flowers is at the top', async () => {
+            await mountView();
+            await LocalFlowerStore.makeLocalFlower();
+            await LocalFlowerStore.makeLocalFlower();
+            await settle();
+            expect(shown()).toEqual([2, 1]);
+
+            LocalFlowerStore.selectLocalFlower({ id: 1 });
+            LocalFlowerStore.selectLocalFlower({ id: 2 });
+            await LocalFlowerStore.localReproduce();
+            await settle();
+
+            expect(shown()).toEqual([3, 2, 1]);
+            expect(ErrorStore.push).not.toHaveBeenCalled();
+        });
+
+        test('a redrawn copy is at the top with its own id', async () => {
+            await mountView();
+            await LocalFlowerStore.makeLocalFlower();
+            await settle();
+
+            await LocalFlowerStore.redrawFlower({ ...table.rows[0] });
+            await settle();
+
+            expect(shown()).toEqual([2, 1]);
+        });
+
+        test('a flower that is deleted goes away, the others stay', async () => {
+            addRows(3);
+            await mountView();
+
+            await LocalFlowerStore.deleteLocalFlower(2);
+            await settle();
+
+            expect(shown()).toEqual([3, 1]);
+        });
+
+        test('deleting every flower leaves it empty, and a flower made after that is the first again', async () => {
+            addRows(3);
+            await mountView();
+
+            await LocalFlowerStore.deleteAllFlowers();
+            await settle();
+            expect(shown()).toEqual([]);
+            expect(wrapper.find('.none').exists()).toBe(true);
+
+            await LocalFlowerStore.makeLocalFlower();
+            await settle();
+            expect(shown()).toEqual([1]);
+        });
+
+        test('what is left after deleting the flowers that are not favourites is read again, with the new ids', async () => {
+            addRows(5);
+            await mountView();
+            expect(shown()).toEqual([5, 4, 3]);
+
+            // the favourite is the flower 4, it is written again as the flower 1
+            const { listFavouriteIds, bulkGetFlowers, bulkAddFlowers } = await import('../../../src/repositories/flowerRepository');
+            listFavouriteIds.mockResolvedValueOnce([4]);
+            bulkGetFlowers.mockResolvedValueOnce([{ id: 4, genome: 'g', image: 'i' }]);
+            bulkAddFlowers.mockImplementationOnce(async (flowers) => {
+                table.seq = 0;
+                flowers.forEach((f) => table.rows.push({ ...f, id: ++table.seq }));
+            });
+            await LocalFlowerStore.deleteNonFavourites();
+            await settle();
+
+            expect(shown()).toEqual([1]);
+        });
+
+        // the race of the plan's 7.2: the Local tab is opened while the child is on its way
+        test('a flower that is announced after the list was read with it in is not shown twice', async () => {
+            addRows(2);
+            await mountView();
+
+            flowerAdded('local', table.rows[1]);
+            await settle();
+
+            expect(shown()).toEqual([2, 1]);
+        });
+
+        test('after the view is gone a flower that is made is not its business', async () => {
+            await mountView();
+            wrapper.unmount();
+            wrapper = undefined;
+
+            await LocalFlowerStore.makeLocalFlower();
+            await flushPromises();
+
+            expect(ErrorStore.push).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('one page at a time', () => {
+        beforeEach(() => {
+            SettingsStore.settings.pagination = true;
+            addRows(8);
+        });
+        const clickArrow = async (label) => {
+            await wrapper.findAll('button').find((b) => b.text() === label).trigger('click');
+            await settle();
+        };
+
+        test('starts at the page of the route, and counts the pages', async () => {
+            await mountView('/Local?page=1');
+
+            expect(shown()).toEqual([5, 4, 3]);
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[5, 4, 3]]]);
+            expect(wrapper.findComponent(PaginationOrInfiniteScroll).props('totalPages')).toBe(3);
+        });
+
+        test('asks for the species of each page when it is shown, and again when it is shown again', async () => {
+            await mountView();
+            await clickArrow('>');
+            await clickArrow('<');
+
+            expect(speciesStore.ensureFor.mock.calls).toEqual([[[8, 7, 6]], [[5, 4, 3]], [[8, 7, 6]]]);
+        });
+
+        test('starts at the first page when the route has no page, or not a number', async () => {
+            await mountView('/Local?page=abc');
+
+            expect(shown()).toEqual([8, 7, 6]);
+        });
+
+        const address = () => router.currentRoute.value.fullPath;
+
+        test('the arrows move one page, in place, and the address has the page: the first page has none', async () => {
+            await mountView();
+            expect(address()).toBe('/Local');
+
+            await clickArrow('>');
+            expect(shown()).toEqual([5, 4, 3]);
+            expect(address()).toBe('/Local?page=1');
+            await clickArrow('>');
+            expect(shown()).toEqual([2, 1]);
+            expect(address()).toBe('/Local?page=2');
+            await clickArrow('<');
+            expect(shown()).toEqual([5, 4, 3]);
+            expect(address()).toBe('/Local?page=1');
+            await clickArrow('<');
+            expect(shown()).toEqual([8, 7, 6]);
+            expect(address()).toBe('/Local');
+
+            // the descriptions of each page, the ones of the flowers on it, and the address did not read a page again
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toEqual([[[8, 7, 6]], [[5, 4, 3]], [[2, 1]], [[5, 4, 3]], [[8, 7, 6]]]);
+        });
+
+        test('the back button shows the page before and forward the page after, in place', async () => {
+            await mountView();
+            await clickArrow('>');
+            await clickArrow('>');
+            const view = wrapper.vm;
+
+            router.back();
+            await vi.waitFor(() => expect(shown()).toEqual([5, 4, 3]));
+            router.back();
+            await vi.waitFor(() => expect(shown()).toEqual([8, 7, 6]));
+            router.forward();
+            await vi.waitFor(() => expect(shown()).toEqual([5, 4, 3]));
+
+            expect(address()).toBe('/Local?page=1');
+            expect(wrapper.vm).toBe(view);
+            expect(ErrorStore.push).not.toHaveBeenCalled();
+        });
+
+        test('a link to a page of the view shows that page, one to another view reads nothing', async () => {
+            await mountView();
+
+            await router.push('/Local?page=2');
+            await settle();
+            expect(shown()).toEqual([2, 1]);
+
+            const asked = captioner.loadLocalDescriptionsOf.mock.calls.length;
+            router.addRoute({ path: '/Favourites', component: { template: '<div />' } });
+            await router.push('/Favourites');
+            await settle();
+            expect(captioner.loadLocalDescriptionsOf.mock.calls).toHaveLength(asked);
+            expect(shown()).toEqual([2, 1]);
+        });
+
+        test('a page beyond the last one is the last one, and the address says so', async () => {
+            await mountView();
+
+            await router.push('/Local?page=9');
+            await settle();
+
+            expect(shown()).toEqual([2, 1]);
+            expect(address()).toBe('/Local?page=2');
+        });
+
+        test('opened at a page beyond the last one, the last one is shown and the address says so, without a place in the history', async () => {
+            const push = vi.spyOn(router, 'push');
+            await mountView('/Local?page=9');
+            push.mockClear();
+
+            await settle();
+
+            expect(shown()).toEqual([2, 1]);
+            expect(address()).toBe('/Local?page=2');
+            expect(push).not.toHaveBeenCalled();
+        });
+
+        test('a list that starts again by itself starts at the first page, and the address is replaced and not pushed', async () => {
+            await mountView('/Local?page=1');
+            expect(shown()).toEqual([5, 4, 3]);
+            const push = vi.spyOn(router, 'push');
+            const replace = vi.spyOn(router, 'replace');
+
+            listReset('local');
+            await settle();
+
+            expect(shown()).toEqual([8, 7, 6]);
+            expect(address()).toBe('/Local');
+            expect(push).not.toHaveBeenCalled();
+            expect(replace).toHaveBeenCalledTimes(1);
+        });
+
+        test('opened at a page, the address is not touched', async () => {
+            const push = vi.spyOn(router, 'push');
+            await mountView('/Local?page=1');
+            push.mockClear();
+            const replace = vi.spyOn(router, 'replace');
+
+            await settle();
+
+            expect(shown()).toEqual([5, 4, 3]);
+            expect(address()).toBe('/Local?page=1');
+            expect(push).not.toHaveBeenCalled();
+            expect(replace).not.toHaveBeenCalled();
+        });
+
+        test('a flower that is made is at the top of the page that is shown', async () => {
+            await mountView();
+
+            await LocalFlowerStore.makeLocalFlower();
+            await settle();
+
+            expect(shown()).toEqual([9, 8, 7, 6]);
+        });
+    });
+
+    describe('the demo flowers', () => {
+        test('what the worker imported is shown when it says it is done', async () => {
+            SettingsStore.settings.loadDemoFlowers = true;
+            vi.stubGlobal('fetch', vi.fn(async () => ({ blob: async () => new Blob(['[]']) })));
+            await mountView();
+            expect(shown()).toEqual([]);
+            expect(workers[0].postMessage).toHaveBeenCalledTimes(1);
+            expect(SettingsStore.settings.loadDemoFlowers).toBe(false);
+
+            addRows(4);
+            workers[0].onmessage({ data: { type: 'done' } });
+            await settle();
+
+            expect(shown()).toEqual([4, 3, 2]);
+            expect(workers[0].terminate).toHaveBeenCalled();
+            vi.unstubAllGlobals();
+        });
+
+        test('the pages are counted again, the import added to them', async () => {
+            SettingsStore.settings.pagination = true;
+            SettingsStore.settings.loadDemoFlowers = true;
+            vi.stubGlobal('fetch', vi.fn(async () => ({ blob: async () => new Blob(['[]']) })));
+            await mountView();
+            expect(wrapper.findComponent(PaginationOrInfiniteScroll).props('totalPages')).toBe(0);
+
+            addRows(7);
+            workers[0].onmessage({ data: { type: 'done' } });
+            await settle();
+
+            expect(shown()).toEqual([7, 6, 5]);
+            expect(wrapper.findComponent(PaginationOrInfiniteScroll).props('totalPages')).toBe(3);
+            vi.unstubAllGlobals();
+        });
+
+        test('the progress of the import is shown through the emitter', async () => {
+            SettingsStore.settings.loadDemoFlowers = true;
+            vi.stubGlobal('fetch', vi.fn(async () => ({ blob: async () => new Blob(['[]']) })));
+            await mountView();
+
+            workers[0].onmessage({ data: { type: 'showProgress', title: 'importing', total: 42 } });
+            workers[0].onmessage({ data: { type: 'updateProgress', progress: 7 } });
+
+            expect(emitter.emit).toHaveBeenCalledWith('showProgress', expect.objectContaining({ title: 'importing', total: 42 }));
+            expect(emitter.emit).toHaveBeenCalledWith('updateProgress', { progress: 7 });
+            vi.unstubAllGlobals();
+        });
+
+        test('without them to load the worker is not kept', async () => {
+            await mountView();
+
+            expect(workers[0].terminate).toHaveBeenCalled();
+        });
+    });
+
+    test('a table that cannot be read goes to the ErrorStore and the view stays empty', async () => {
+        const { listFlowers } = await import('../../../src/repositories/flowerRepository');
+        const failure = new Error('IndexedDB is closed');
+        listFlowers.mockRejectedValueOnce(failure);
+
+        await mountView();
+
+        expect(ErrorStore.push).toHaveBeenCalledWith(failure);
+        expect(shown()).toEqual([]);
+    });
+});

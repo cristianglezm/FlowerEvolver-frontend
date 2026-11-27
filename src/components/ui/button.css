@@ -1,0 +1,28 @@
+/* What the buttons of the application have in common, the colours are those of each one. */
+.fe-button{
+    position: relative;
+    font-size: 1.25rem;
+    border-radius: 19.6rem 20.9rem 9.6rem 8.4rem;
+    /* a place that lays its buttons out in another way says so with this variable on any element above them */
+    margin: var(--fe-button-margin, 0.6rem 0.6rem 0rem 1.25rem);
+    cursor: pointer;
+}
+.fe-button.small{
+    font-size: 0.9rem;
+}
+.fe-button.compact{
+    font-size: 13.3333px;
+}
+.fe-button.symbol{
+    font-size: large;
+    font-weight: bold;
+}
+.fe-button:disabled{
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+@media only screen and (max-width: 1280px){
+    .fe-button{
+        font-size: 0.9rem;
+    }
+}

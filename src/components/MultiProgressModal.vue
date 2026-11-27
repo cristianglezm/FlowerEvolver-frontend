@@ -1,22 +1,20 @@
 <template>
-  <dialog :id="props.id" style="overflow: auto;" aria-labelledby="modalTitle" role="dialog" aria-modal="true">
-    <div class="center multiProgress-container">
-      <div>
-        <h1 id="modalTitle">{{ data.title }}</h1>
-      </div>
-      <div v-if="data.items.size">
-        <div v-for="[key, item] of data.items" :key="key" role="region" :aria-labelledby="'progress-title-' + item.name">
-          <h2 id="'progress-title-' + item.name"> {{ item.name }} </h2>
-          <div :id="'multiProgress-bar-' + item.name" class="bar-background" role="progressbar" :aria-valuenow="getProgress(item.name)" :aria-valuemin="0" :aria-valuemax="item.total" :aria-labelledby="'progress-title-' + item.name">
-            <div :id="'Bar-' + item.name" />
-          </div>
-          <div>
-            <h1> {{ getProgress(item.name).toFixed(2) }} / {{ item.total }}</h1>
-          </div>
+  <ModalDialog :id="props.id" ref="dialog" size="fit" tall aria-labelledby="modalTitle" role="dialog" aria-modal="true">
+    <div>
+      <h1 id="modalTitle">{{ data.title }}</h1>
+    </div>
+    <div v-if="data.items.size">
+      <div v-for="[key, item] of data.items" :key="key" role="region" :aria-labelledby="'progress-title-' + item.name">
+        <h2 id="'progress-title-' + item.name"> {{ item.name }} </h2>
+        <div :id="'multiProgress-bar-' + item.name" class="bar-background" role="progressbar" :aria-valuenow="getProgress(item.name)" :aria-valuemin="0" :aria-valuemax="item.total" :aria-labelledby="'progress-title-' + item.name">
+          <div :id="'Bar-' + item.name" />
+        </div>
+        <div>
+          <h1> {{ getProgress(item.name).toFixed(2) }} / {{ item.total }}</h1>
         </div>
       </div>
     </div>
-  </dialog>
+  </ModalDialog>
 </template>
 
 <script setup>
@@ -74,7 +72,9 @@
  *    progress: 100, // Final progress value for Task 1
  * });
  */
-import { reactive, onMounted, onBeforeUnmount } from 'vue';
+import { reactive, ref, onMounted, onBeforeUnmount } from 'vue';
+import { listen } from '../services/listen';
+import ModalDialog from './ui/ModalDialog.vue';
 
 const props = defineProps({
     id: {
@@ -95,6 +95,7 @@ const data = reactive({
     items: new Map()
 });
 
+const dialog = ref(null);
 const getProgress = (key) => {
     return data.items.get(key).progress;
 };
@@ -103,14 +104,15 @@ const updateBar = (key) =>{
     let width = ((item.progress / item.total) * 100) + "%"
     const bar = document.getElementById("Bar-" + key);
     if(bar){
-        bar.setAttribute("style", "width: " + width + "; background-color: lightgreen; height: 3.125rem;");
+        bar.setAttribute("style", "width: " + width + "; background-color: var(--fe-lightgreen); height: 3.125rem;");
     }
 };
 
+const stops = [];
+
 onMounted(() => {
     data.items = new Map();
-    data.dialog = document.getElementById(props.id);
-    props.channel.on(props.on, (e) => {
+    stops.push(listen(props.channel, props.on, (e) => {
         switch(e.status){
             case "setup":{
                 data.title = e.title;
@@ -141,60 +143,32 @@ onMounted(() => {
             }
                 break;
         }
-    });
+    }));
 });
 
 onBeforeUnmount(() => {
-    props.channel.off(props.on);
+    stops.splice(0).forEach((stop) => stop());
 });
 
 const openModal = () => {
-    data.dialog.showModal();
+    dialog.value.open();
 };
 
 const closeModal = () => {
-    data.dialog.close();
+    dialog.value.close();
 };
 
 </script>
 
 <style scoped>
-    .center{
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-    }
-    .multiProgress-container{
-        background-color: green;
-        color: lightgreen;
-        position: fixed;
-        border: solid lightgreen;
-        border-radius: 0.31rem;
-        box-shadow: 0rem 1rem 2rem 0rem rgba(0,0,0,0.3);
-        overflow: auto;
-        z-index: 1;
-        padding: 0.125rem;
-        text-align: center;
-        height: 90%;
-        margin: auto;
-        box-sizing: content-box;
+    .bar-background{
+        background-color: var(--fe-progress-track);
+        box-shadow: inset 0rem 0rem 0.6rem 0.125rem var(--fe-black);
+        margin: 0.6rem;
     }
     @media only screen and (max-width: 1280px){
-        .multiProgress-container{
-            width: 90%;
-        }
         h1, h2{
             font-size: 0.9rem;
         }
-    }
-    .bar-background{
-        background-color: rgba(4, 97, 43, 0.986);
-        box-shadow: inset 0rem 0rem 0.6rem 0.125rem black;
-        margin: 0.6rem;
-    }
-    ::backdrop{
-        background-color: white;
-        opacity: 0.55;
     }
 </style>

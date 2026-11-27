@@ -24,7 +24,6 @@ test('importing a single flower file adds it to Local flowers', async ({ page })
 	await page.setInputFiles('#uploadFiles', {
 		name: 'flower.json',
 		mimeType: 'application/json',
-		// eslint-disable-next-line no-undef - Buffer is a Node global; this runs in the test's own Node context, not the browser
 		buffer: Buffer.from(genomeJson),
 	});
 	await page.getByRole('button', { name: 'Import Files' }).click();

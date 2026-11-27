@@ -4,9 +4,10 @@ import { getSpeciesClient } from '../../services/speciesWorker';
 import { SpeciesModel } from '../../services/SpeciesModel';
 import { SpeciesClient } from '../../services/SpeciesClient';
 import { SpeciesTrainer } from '../../services/SpeciesTrainer';
-import * as speciesRepository from '../../services/speciesRepository';
-import * as flowerRepository from '../../services/flowerRepository';
+import * as speciesRepository from '../../repositories/speciesRepository';
+import * as flowerRepository from '../../repositories/flowerRepository';
 import { useErrorStore } from '../ErrorStore';
+import { CLASSIFYING } from '../../services/speciesQuestions';
 
 // How many flowers are classified at once. The slow part is rendering them, the more that go in one
 // call the longer the classifier is busy for whoever is waiting behind.
@@ -72,7 +73,7 @@ const speciesRow = (id, match, fp) => {
         : { id, x: match.x, y: match.y, d: match.distance, fp };
 };
 
-const BUSY = 'Your flowers are still being classified, try again in a moment.';
+const BUSY = CLASSIFYING;
 const describeSplit = (result, name) => {
     switch(result.outcome){
         case 'done':
@@ -218,6 +219,10 @@ export const useSpeciesStore = defineStore('SpeciesStore', {
          * The ones that have it are only read. Never fails.
          */
         ensureFor(ids){
+            // an empty list (the first page of an empty tab) is not worth starting the classifier for
+            if(ids.length === 0){
+                return Promise.resolve();
+            }
             return track((async () => {
                 try{
                     await this.start();

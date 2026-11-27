@@ -1,7 +1,12 @@
-import { useFlowerStore } from "./FlowerStore";
+import { useLocalFlowerStore } from "./LocalFlowerStore";
+import { useFavouritesStore } from "./FavouritesStore";
 import { useCaptionerStore } from "./CaptionerStore";
 import { useRouter } from "vue-router";
 import { useVectorStore } from "./vectorStore";
+import { useSpeciesStore } from "./SpeciesStore";
+import { useErrorStore } from "./ErrorStore";
+import * as flowerRepository from "../repositories/flowerRepository";
+import { canResetClassifier, resetQuestion, unsplitQuestion, CLASSIFYING } from "../services/speciesQuestions";
 
 // we need this global router initialized in the App to be 
 // able to use goto as useRouter needs to be inside a <script setup>
@@ -15,6 +20,23 @@ export const initRouter = () => {
 export const initEmitter = (channel) => {
     emitter = channel;
 }
+// A coordinate of a species, a whole number or the text of one. 0 is a cell, so an empty value is not 0.
+const whole = (value) => {
+    if(value === null || value === undefined || value === "" || typeof value === "boolean"){
+        return null;
+    }
+    const number = Number(value);
+    return Number.isInteger(number) && number >= 0 ? number : null;
+};
+const cellOf = (parameters) => {
+    const x = whole(parameters?.x);
+    const y = whole(parameters?.y);
+    return x === null || y === null ? null : { x, y };
+};
+// The map is not known before the classifier starts: the cell is trusted then.
+const isInMap = (map, cell) => {
+    return !map || (cell.x < map.width && cell.y < map.height);
+};
 export const execCommand = (text) => {
     let infoForUser = new Array();
     let textForUser = new Array();
@@ -66,10 +88,9 @@ export const execCommand = (text) => {
                 break;
             case "describe":{
                 const CaptionerStore = useCaptionerStore();
-                const FlowerStore = useFlowerStore();
                 let flowerID = command[i].parameters?.id;
                 if(flowerID){
-                    FlowerStore.db.flowers.get(flowerID)
+                    flowerRepository.getFlower(flowerID)
                     .then((flower) => {
                         const numPreload = 5;
                         let lower = flower.id - numPreload;
@@ -167,15 +188,15 @@ export const execCommand = (text) => {
             }
                 break;
             case "reproduce":{
-                let FlowerStore = useFlowerStore();
+                let LocalFlowerStore = useLocalFlowerStore();
                 let father = command[i].parameters?.father;
                 let mother = command[i].parameters?.mother;
                 let fail = "reproduce command failed";
                 let success = "reproduce command executed";
                 if(father && mother){
-                    FlowerStore.selectLocalFlower({ id: father});
-                    FlowerStore.selectLocalFlower({ id: mother});
-                    FlowerStore.localReproduce();
+                    LocalFlowerStore.selectLocalFlower({ id: father});
+                    LocalFlowerStore.selectLocalFlower({ id: mother});
+                    LocalFlowerStore.localReproduce();
                     infoForUser.push(success);
                 }else{
                     infoForUser.push("reproduce: father or mother id not given, need both ids.");
@@ -184,14 +205,14 @@ export const execCommand = (text) => {
             }
                 break;
             case "mutate":{
-                let FlowerStore = useFlowerStore();
+                let LocalFlowerStore = useLocalFlowerStore();
                 let original = command[i].parameters?.id;
                 let fail = "mutate command failed.";
                 let success = "mutate command executed.";
                 if(original){
-                    FlowerStore.db.flowers.get(original)
+                    flowerRepository.getFlower(original)
                     .then((flower) => {
-                        FlowerStore.makeLocalMutation(flower);
+                        LocalFlowerStore.makeLocalMutation(flower);
                     }).catch((_) => {
                         infoForUser.push("mutate command not executed, Flower not found");
                     });
@@ -203,18 +224,18 @@ export const execCommand = (text) => {
             }
                 break;
             case "makeFlower":{
-                let FlowerStore = useFlowerStore();
-                FlowerStore.makeLocalFlower();
+                let LocalFlowerStore = useLocalFlowerStore();
+                LocalFlowerStore.makeLocalFlower();
                 infoForUser.push("makeFlower command executed");
             }
                 break;
             case "addToFav":{
-                let FlowerStore = useFlowerStore();
+                let FavouritesStore = useFavouritesStore();
                 let fail = "addToFavs command failed";
                 let success = "addToFavs command executed";
                 let id = command[i].parameters?.id;
                 if(id){
-                    FlowerStore.addFlowerToFav(id);
+                    FavouritesStore.addFlowerToFav(id);
                     infoForUser.push(success);
                 }else{
                     infoForUser.push("Flower id not found");
@@ -223,7 +244,7 @@ export const execCommand = (text) => {
             }
                 break;
             case "deleteFromFav":{
-                let FlowerStore = useFlowerStore();
+                let FavouritesStore = useFavouritesStore();
                 let fail = "deleteFromFav command failed";
                 let success = "deleteFromFav requested confirmation";
                 let id = command[i].parameters?.id;
@@ -234,7 +255,7 @@ export const execCommand = (text) => {
                         btnNo: 'no',
                         btnYes: 'remove flower from favourites',
                         onConfirm: async () => {
-                            FlowerStore.removeFlowerFromFav(id);
+                            FavouritesStore.removeFlowerFromFav(id);
                         }
                     });
                     infoForUser.push(success);
@@ -245,7 +266,7 @@ export const execCommand = (text) => {
             }
                 break;
             case "deleteFlower":{
-                let FlowerStore = useFlowerStore();
+                let LocalFlowerStore = useLocalFlowerStore();
                 let fail = "deleteFlower command failed";
                 let success = "deleteFlower requested confirmation";
                 let id = command[i].parameters?.id;
@@ -256,7 +277,7 @@ export const execCommand = (text) => {
                         btnNo: 'no',
                         btnYes: 'Delete flower',
                         onConfirm: async () => {
-                            FlowerStore.deleteLocalFlower(id);
+                            LocalFlowerStore.deleteLocalFlower(id);
                         }
                     });
                     infoForUser.push(success);
@@ -268,14 +289,14 @@ export const execCommand = (text) => {
                 break;
             case "deleteAllFlowers":{
                 let success = "deleteAllFlowers requested confirmation";
-                let FlowerStore = useFlowerStore();
+                let LocalFlowerStore = useLocalFlowerStore();
                 commandsToConfirm.push({
                         title: 'delete all flowers',
                         message: 'Are you sure you want to delete all flowers?',
                         btnNo: 'no',
                         btnYes: 'Delete all',
                         onConfirm: async () => {
-                            await FlowerStore.deleteAllFlowers();
+                            await LocalFlowerStore.deleteAllFlowers();
                         }
                 });
                 infoForUser.push(success);
@@ -283,17 +304,103 @@ export const execCommand = (text) => {
                 break;
             case "deleteNonFavourites":{
                 let success = "deleteNonFavourites requested confirmation";
-                let FlowerStore = useFlowerStore();
+                let LocalFlowerStore = useLocalFlowerStore();
                 commandsToConfirm.push({
                     title: 'Delete non favourites',
                     message: 'Are you sure you want to delete all flowers but favourites?',
                     btnNo: 'no',
                     btnYes: 'Delete non favourites',
                     onConfirm: async () => {
-                        await FlowerStore.deleteNonFavourites();
+                        await LocalFlowerStore.deleteNonFavourites();
                     }
                 });
                 infoForUser.push(success);
+            }
+                break;
+            case "selectSpecies":{
+                if(!router){
+                    throw Error("please call initRouter() in the App");
+                }
+                const SpeciesStore = useSpeciesStore();
+                const parameters = command[i].parameters;
+                const fail = "selectSpecies command failed";
+                const cell = cellOf(parameters);
+                const subGiven = parameters?.sub !== undefined && parameters?.sub !== null;
+                const sub = subGiven ? cellOf(parameters.sub) : null;
+                if(cell === null){
+                    infoForUser.push("selectSpecies: x and y not given, they are whole numbers");
+                    infoForUser.push(fail);
+                }else if(!isInMap(SpeciesStore.model, cell)){
+                    infoForUser.push(`selectSpecies: there is no species at (${cell.x}, ${cell.y})`);
+                    infoForUser.push(fail);
+                }else if(subGiven && sub === null){
+                    infoForUser.push("selectSpecies: sub needs x and y");
+                    infoForUser.push(fail);
+                }else if(sub === null){
+                    SpeciesStore.select(cell);
+                    router.push({name: 'Species'});
+                    infoForUser.push("selectSpecies command executed");
+                }else{
+                    const submap = SpeciesStore.submapOf(cell.x, cell.y);
+                    if(submap === undefined){
+                        infoForUser.push(`selectSpecies: the species at (${cell.x}, ${cell.y}) has no sub-species`);
+                        infoForUser.push(fail);
+                    }else if(!isInMap({ width: submap.w, height: submap.h }, sub)){
+                        infoForUser.push(`selectSpecies: there is no sub-species at (${sub.x}, ${sub.y})`);
+                        infoForUser.push(fail);
+                    }else{
+                        SpeciesStore.select(cell);
+                        SpeciesStore.selectSub(sub);
+                        router.push({name: 'Species'});
+                        infoForUser.push("selectSpecies command executed");
+                    }
+                }
+            }
+                break;
+            case "unsplitSpecies":{
+                const SpeciesStore = useSpeciesStore();
+                const fail = "unsplitSpecies command failed";
+                const cell = cellOf(command[i].parameters);
+                if(cell === null){
+                    infoForUser.push("unsplitSpecies: x and y not given, they are whole numbers");
+                    infoForUser.push(fail);
+                }else if(!isInMap(SpeciesStore.model, cell)){
+                    infoForUser.push(`unsplitSpecies: there is no species at (${cell.x}, ${cell.y})`);
+                    infoForUser.push(fail);
+                }else if(SpeciesStore.submapOf(cell.x, cell.y) === undefined){
+                    infoForUser.push(`unsplitSpecies: the species at (${cell.x}, ${cell.y}) is not split`);
+                    infoForUser.push(fail);
+                }else{
+                    commandsToConfirm.push({
+                        ...unsplitQuestion(SpeciesStore.nameOf(cell.x, cell.y)),
+                        onConfirm: async () => {
+                            if(await SpeciesStore.unsplit(cell) === 'busy'){
+                                useErrorStore().push(new Error(CLASSIFYING));
+                            }
+                        }
+                    });
+                    infoForUser.push("unsplitSpecies requested confirmation");
+                }
+            }
+                break;
+            case "resetClassifier":{
+                const SpeciesStore = useSpeciesStore();
+                const fail = "resetClassifier command failed";
+                if(!SpeciesStore.hasTuned){
+                    infoForUser.push("resetClassifier: there is no fine-tuned classifier to remove");
+                    infoForUser.push(fail);
+                }else if(!canResetClassifier(SpeciesStore)){
+                    infoForUser.push("resetClassifier: the classifier is in use, try again in a moment");
+                    infoForUser.push(fail);
+                }else{
+                    commandsToConfirm.push({
+                        ...resetQuestion(),
+                        onConfirm: async () => {
+                            await SpeciesStore.resetClassifier();
+                        }
+                    });
+                    infoForUser.push("resetClassifier requested confirmation");
+                }
             }
                 break;
             default: infoForUser.push("unknown command " + command[i].name);
@@ -378,6 +485,48 @@ export const tools = [
         "parameters": {}
     },
     {
+        "name": "selectSpecies",
+        "description": "Goes to the Species tab and selects the species at the cell (x, y), or one of its sub-species when the species is split",
+        "parameters": {
+            "x": {
+                "description": "Column of the species in the map, a whole number from 0",
+                "type": "int",
+                "required": true
+            },
+            "y": {
+                "description": "Row of the species in the map, a whole number from 0",
+                "type": "int",
+                "required": true
+            },
+            "sub": {
+                "description": "A sub-species of that species, as {x, y}",
+                "type": "object",
+                "required": false
+            }
+        }
+    },
+    {
+        "name": "unsplitSpecies",
+        "description": "Removes the sub-species of the species at the cell (x, y), the flowers stay in the species",
+        "parameters": {
+            "x": {
+                "description": "Column of the species in the map, a whole number from 0",
+                "type": "int",
+                "required": true
+            },
+            "y": {
+                "description": "Row of the species in the map, a whole number from 0",
+                "type": "int",
+                "required": true
+            }
+        }
+    },
+    {
+        "name": "resetClassifier",
+        "description": "Goes back to the built-in species classifier, removing the fine-tuned one and the sub-species",
+        "parameters": {}
+    },
+    {
         "name": "describe",
         "description": "Describes the flower given by ID",
         "parameters": {
@@ -403,7 +552,8 @@ export const tools = [
                     "Settings",
                     "Mutations",
                     "Descendants",
-                    "Charts"
+                    "Charts",
+                    "Species"
                 ],
                 "type": "string",
                 "required": true
@@ -590,6 +740,26 @@ export const documents = [
     {
         "title": "Why is the 'remote' button label changing?",
         "content": "The 'remote' button labels change depending on your current tab. For example, 'remote make flowers' becomes 'local make flower' when you are in the Local, Settings, or Favourites tabs to reflect the context of actions you can perform."
+    },
+    {
+        "title": "What are species?",
+        "content": "Your flowers are sorted into species, a map of cells, by how their petals look. Open the 'Species' tab to see the map, how many flowers each species has, and the flowers of the species that you select. A flower that does not look like any species is marked as atypical."
+    },
+    {
+        "title": "How do I use a species to make a new flower?",
+        "content": "In the 'Species' tab select a species and use the 'Use as parent' button: a flower of that species becomes the next parent. Do it twice and reproduce them from the 'Local' tab."
+    },
+    {
+        "title": "How do I fine-tune the species classifier?",
+        "content": "In the 'Species' tab use the 'Fine-tune...' button, choose the epochs, the learning rate and the radius, and start it. It takes a while and it removes the sub-species. 'Use the built-in classifier' goes back to the original one, also from the Danger Zone of the 'Settings' tab ('Remove fine-tuned classifier')."
+    },
+    {
+        "title": "What are sub-species and how do I split a species?",
+        "content": "A species with enough flowers can be split into a smaller map of sub-species: select it in the 'Species' tab and use the 'Split...' button. 'Remove the split' takes the sub-species away, the flowers stay in the species."
+    },
+    {
+        "title": "How do I use the params of a flower for new flowers, or change them?",
+        "content": "On a flower card use the 'p' button to see its petal params. 'Use for new flowers' makes them the creation params of the 'Settings' tab. 'Edit' opens an editor where you change the params and use 'Redraw' to see the flower with them; 'Save as new flower' adds it as a new flower and the original stays as it is."
     },
     {
         "title": "How do I handle storage quota issues?",

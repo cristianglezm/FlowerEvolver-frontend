@@ -20,8 +20,8 @@ const data = {
 
 <style scoped>
     .Footer{
-        background-color: rgb(37, 39, 41);
-        color: lightgreen;
+        background-color: var(--fe-surface);
+        color: var(--fe-lightgreen);
         display: grid;
         grid-template-columns: auto auto;
         justify-items: stretch;
