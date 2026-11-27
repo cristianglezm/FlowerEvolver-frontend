@@ -1,4 +1,4 @@
-import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, test, expect, vi, afterEach } from 'vitest';
 import { CacheManager } from '../../../src/services/CacheManager';
 
 const req = (url) => ({ url });

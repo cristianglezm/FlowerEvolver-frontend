@@ -9,6 +9,7 @@
         "buildGHP": "vite build --base=/FlowerEvolver-frontend/",
         "dev": "vite",
         "lint": "eslint --fix src",
+        "lint:check": "eslint src tests",
         "show": "npx playwright show-report",
         "test": "npm run test:unit && npm run test:e2e",
         "test:unit": "vitest run",

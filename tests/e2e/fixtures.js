@@ -33,9 +33,7 @@ export const test = base.extend({
 	settings: [DEFAULT_SETTINGS, { option: true }],
 	page: async ({ page, settings }, use) => {
 		await page.addInitScript((settingsJson) => {
-			// eslint-disable-next-line no-undef -- runs in the browser page context, not Node
 			localStorage.setItem('FlowerEvolverSettings', settingsJson);
-			// eslint-disable-next-line no-undef -- runs in the browser page context, not Node
 			localStorage.setItem('FlowerEvolverShowWarning', 'false');
 		}, JSON.stringify(settings));
 		await use(page);
