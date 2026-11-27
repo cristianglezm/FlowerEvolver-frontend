@@ -70,6 +70,7 @@ import SubspeciesMap from '../components/species/SubspeciesMap.vue';
 import { usePaginatedList } from '../composables/usePaginatedList';
 import { usePageInAddress } from '../composables/usePageInAddress';
 import { useClassifierReset } from '../composables/useClassifierReset';
+import { unsplitQuestion, CLASSIFYING } from '../services/speciesQuestions';
 import { useLocalFlowerStore } from '../stores/LocalFlowerStore';
 import { useSpeciesStore } from '../stores/SpeciesStore';
 import { useShownFlowers } from '../composables/useShownFlowers';
@@ -175,13 +176,10 @@ const readSub = async () => {
 const askUnsplit = () => {
     const selected = SpeciesStore.selected;
     emitter.emit('showYesNo', {
-        title: 'remove the sub-species',
-        message: `Remove the sub-species of ${SpeciesStore.nameOf(selected.x, selected.y)}? The flowers stay in the species.`,
-        btnNo: 'no',
-        btnYes: 'Remove them',
+        ...unsplitQuestion(SpeciesStore.nameOf(selected.x, selected.y)),
         onConfirm: async () => {
             if(await SpeciesStore.unsplit(selected) === 'busy'){
-                ErrorStore.push(new Error('Your flowers are still being classified, try again in a moment.'));
+                ErrorStore.push(new Error(CLASSIFYING));
             }
         },
     });

@@ -7,6 +7,7 @@ import { SpeciesTrainer } from '../../services/SpeciesTrainer';
 import * as speciesRepository from '../../repositories/speciesRepository';
 import * as flowerRepository from '../../repositories/flowerRepository';
 import { useErrorStore } from '../ErrorStore';
+import { CLASSIFYING } from '../../services/speciesQuestions';
 
 // How many flowers are classified at once. The slow part is rendering them, the more that go in one
 // call the longer the classifier is busy for whoever is waiting behind.
@@ -72,7 +73,7 @@ const speciesRow = (id, match, fp) => {
         : { id, x: match.x, y: match.y, d: match.distance, fp };
 };
 
-const BUSY = 'Your flowers are still being classified, try again in a moment.';
+const BUSY = CLASSIFYING;
 const describeSplit = (result, name) => {
     switch(result.outcome){
         case 'done':
